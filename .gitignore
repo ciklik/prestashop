@@ -1,0 +1,13 @@
+vendor/
+composer.lock
+.DS_Store
+.idea
+config_fr.xml
+config.xml
+js/node_modules
+/node_modules/
+/logs/
+/cache/
+/img/
+/.vscode/
+sftp-config.json

@@ -1,0 +1,6 @@
+services:
+  prestashop.module.ciklik.install:
+    class: PrestaShop\Module\Ciklik\Database\CiklikInstaller
+    arguments:
+      - '@doctrine.dbal.default_connection'
+      - '%database_prefix%'
