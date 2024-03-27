@@ -35,6 +35,7 @@
         ]
     },
     "require": {
+        "php": ">7.1",
         "ext-json": "*",
         "guzzlehttp/guzzle": "~5.0",
         "monolog/monolog": "1.25.3",

@@ -52,6 +52,7 @@ class Ciklik extends PaymentModule
      * @var \Monolog\Logger
      */
     private $logger;
+    private $container = null;
 
     public function __construct()
     {
@@ -114,63 +115,7 @@ class Ciklik extends PaymentModule
      */
     public function getContent()
     {
-        /*********************
-         * PrestaShop Account *
-         * *******************/
-        /** @var PrestaShop\Module\PsAccounts\Service\PsAccountsService $accountsService */
-        $accountsService = null;
-        try {
-            $accountsFacade = $this->getService('prestashop.module.ciklik.ps_accounts_facade');
-            $accountsService = $accountsFacade->getPsAccountsService();
-        } catch (\PrestaShop\PsAccountsInstaller\Installer\Exception\InstallerException $e) {
-            $accountsInstaller = $this->getService('prestashop.module.ciklik.ps_accounts_installer');
-            $accountsInstaller->install();
-            $accountsFacade = $this->getService('prestashop.module.ciklik.ps_accounts_facade');
-            $accountsService = $accountsFacade->getPsAccountsService();
-        }
-        try {
-            Media::addJsDef([
-                'contextPsAccounts' => $accountsFacade->getPsAccountsPresenter()
-                    ->present($this->name),
-            ]);
-
-            // Retrieve the PrestaShop Account CDN
-            $this->context->smarty->assign('urlAccountsCdn', $accountsService->getAccountsCdn());
-
-        } catch (Exception $e) {
-            $this->context->controller->errors[] = $e->getMessage();
-            return '';
-        }
-
-        /**********************
-         * PrestaShop Billing *
-         * *******************/
-        // Load the context for PrestaShop Billing
-        $billingFacade = $this->getService('prestashop.module.ciklik.ps_billings_facade');
-        $partnerLogo = 'https://www.ciklik.co/uploads/2022/05/logo-ciklik-dark.svg';
-        // $partnerLogo = $this->getLocalPath() . 'views/img/partnerLogo.png';
-
-        // PrestaShop Billing
-        Media::addJsDef($billingFacade->present([
-            'logo' => $partnerLogo,
-            'tosLink' => 'https://www.ciklik.co/',
-            'privacyLink' => 'https://www.ciklik.co/',
-            // This field is deprecated but a valid email must be provided to ensure backward compatibility
-            'emailSupport' => 'some@email.com'
-        ]));
-        $this->context->smarty->assign('urlBilling', "https://unpkg.com/@prestashopcorp/billing-cdc/dist/bundle.js");
-
-
-        /**********************
-         * Ciklik behaviour   *
-         * *******************/
-        if ($accountsService->isAccountLinked()) {
-            // Tools::redirectAdmin($this->context->link->getAdminLink(static::MODULE_ADMIN_CONTROLLER));
-            // return;
-        }
-
-        // Make the user link his account
-        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/configure.tpl');
+        Tools::redirectAdmin($this->context->link->getAdminLink(static::MODULE_ADMIN_CONTROLLER));
     }
 
     /**
