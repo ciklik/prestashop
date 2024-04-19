@@ -46,6 +46,12 @@ class AdminConfigureCiklikController extends ModuleAdminController
         $purchase_type_attributes = self::getCiklikAttributes(Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID);
         $frequencies_attributes = self::getCiklikAttributes(Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID);
 
+        $intervals = [
+            ['engagement_interval' => 'month' , 'name' => $this->trans('Mensuel', [], 'Modules.Ciklik')],
+            ['engagement_interval' => 'week', 'name' => $this->trans('Hebdomadaire', [], 'Modules.Ciklik')],
+            ['engagement_interval' => 'day', 'name' => $this->trans('Journalier', [], 'Modules.Ciklik')],
+        ];
+
         return [
             $this->module->name => [
                 'title'  => $this->trans('Configuration', [], 'Admin.Global'),
@@ -119,6 +125,37 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'cast'       => 'intval',
                         'required'   => false,
                     ],
+                    Ciklik::CONFIG_ENABLE_ENGAGEMENT => [
+                        'type'       => 'bool',
+                        'title'      => $this->l('Activer l\'engagement'),
+                        'desc'       => $this->l('Cette option permet de désactiver le désabonnement pendant le cycle d’engagement'),
+                        'validation' => 'isBool',
+                        'cast'       => 'intval',
+                        'required'   => false,
+                    ],
+                    Ciklik::CONFIG_ENGAGEMENT_INTERVAL => [
+                        'type'       => 'select',
+                        'title'      => $this->l('Cycle d’engagement'),
+                        'identifier' => 'engagement_interval',
+                        'cast' => 'strval',
+                        'list'       => $intervals,
+                    ],
+                    Ciklik::CONFIG_ENGAGEMENT_INTERVAL_COUNT => [
+                        'type'       => 'select',
+                        'title'      => $this->l('Nombre de cycles d’engagement'),
+                        'identifier' => 'engagement_interval_count',
+                        'cast'       => 'intval',
+                        'list'       =>  array_map(function($value) {
+                            return ['engagement_interval_count' => $value, 'name'=> $value];
+                        }, range(0,31)),
+                    ],
+                    Ciklik::CONFIG_ALLOW_CHANGE_NEXT_BILLING => [
+                        'type'       => 'bool',
+                        'title'      => $this->l('Autoriser la modification de la date du prochain paiement'),
+                        'validation' => 'isBool',
+                        'cast'       => 'intval',
+                        'required'   => false,
+                    ],
                     Ciklik::CONFIG_DEBUG_LOGS_ENABLED => [
                         'type'       => 'bool',
                         'title'      => $this->l('Enable debug logs'),
@@ -139,6 +176,12 @@ class AdminConfigureCiklikController extends ModuleAdminController
         $available_order_states = self::getCiklikPaidOrderStates((int) Configuration::get('PS_LANG_DEFAULT'));
         $purchase_type_attributes = self::getCiklikAttributes(Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID);
         $frequencies_attributes = self::getCiklikAttributes(Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID);
+
+        $intervals = [
+            ['engagement_interval' => 'month' , 'name' => $this->trans('Mensuel', [], 'Modules.Ciklik')],
+            ['engagement_interval' => 'week', 'name' => $this->trans('Hebdomadaire', [], 'Modules.Ciklik')],
+            ['engagement_interval' => 'day', 'name' => $this->trans('Journalier', [], 'Modules.Ciklik')],
+        ];
 
         return [
             $this->module->name => [
@@ -220,6 +263,37 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'type'       => 'bool',
                         'title'      => $this->l('Déléguer l\'affichage des options'),
                         'desc'       => $this->l('Les options d\'abonnement sont affichées via une case à cocher'),
+                        'validation' => 'isBool',
+                        'cast'       => 'intval',
+                        'required'   => false,
+                    ],
+                    Ciklik::CONFIG_ENABLE_ENGAGEMENT => [
+                        'type'       => 'bool',
+                        'title'      => $this->l('Activer l\'engagement'),
+                        'desc'       => $this->l('Cette option permet de désactiver le désabonnement pendant le cycle d’engagement'),
+                        'validation' => 'isBool',
+                        'cast'       => 'intval',
+                        'required'   => false,
+                    ],
+                    Ciklik::CONFIG_ENGAGEMENT_INTERVAL => [
+                        'type'       => 'select',
+                        'title'      => $this->l('Cycle d’engagement'),
+                        'identifier' => 'engagement_interval',
+                        'cast' => 'strval',
+                        'list'       => $intervals,
+                    ],
+                    Ciklik::CONFIG_ENGAGEMENT_INTERVAL_COUNT => [
+                        'type'       => 'select',
+                        'title'      => $this->l('Nombre de cycles d’engagement'),
+                        'identifier' => 'engagement_interval_count',
+                        'cast'       => 'intval',
+                        'list'       =>  array_map(function($value) {
+                            return ['engagement_interval_count' => $value, 'name'=> $value];
+                        }, range(0,31)),
+                    ],
+                    Ciklik::CONFIG_ALLOW_CHANGE_NEXT_BILLING => [
+                        'type'       => 'bool',
+                        'title'      => $this->l('Autoriser la modification de la date du prochain paiement'),
                         'validation' => 'isBool',
                         'cast'       => 'intval',
                         'required'   => false,

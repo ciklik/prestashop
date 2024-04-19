@@ -40,6 +40,11 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
         $this->context->smarty->assign([
             'subscriptions' => $subscriptionsData ?? [],
             'subcription_base_link' => Tools::getShopDomainSsl(true) . '/ciklik/subscription',
+            'enable_engagement' => Configuration::get(Ciklik::CONFIG_ENABLE_ENGAGEMENT),
+            'allow_change_next_billing' => Configuration::get(Ciklik::CONFIG_ALLOW_CHANGE_NEXT_BILLING),
+            'engagement_interval' => Configuration::get(Ciklik::CONFIG_ENGAGEMENT_INTERVAL),
+            'engagement_interval_count' => (int) Configuration::get(Ciklik::CONFIG_ENGAGEMENT_INTERVAL_COUNT),
+            'addresses'=> $this->context->customer->getAddresses($this->context->langage->id),
         ]);
 
         $this->setTemplate('module:ciklik/views/templates/front/account.tpl');

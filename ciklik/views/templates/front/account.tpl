@@ -49,13 +49,41 @@
                     <td>
                         {if $subscription->active}
                             {$subscription->next_billing->format('d/m/Y')}
+                            <br>
+                            {if $allow_change_next_billing === '1'}
+                                {include file="module:ciklik/views/templates/front/actions/changeRebillDate.tpl" subscription=$subscription}
+                            {/if}
                         {/if}
                     </td>
                     <td class="text-sm-center order-actions">
-                        {if $subscription->active}
-                            <a href="{$subcription_base_link}/{$subscription->uuid}/stop">{l s='Stop' mod='ciklik'}</a>
+                        {if $enable_engagement === '1'}
+                            {if PrestaShop\Module\Ciklik\Helpers\IntervalHelper::addIntervalToDate(
+                                $subscription->created_at->toImmutable(),
+                                $engagement_interval,
+                                $engagement_interval_count
+                                )
+                            ->isPast()}
+                                    {if $subscription->active}
+                                        <a href="{$subcription_base_link}/{$subscription->uuid}/stop">{l s='Stop' mod='ciklik'}</a>
+                                    {else}
+                                        <a href="{$subcription_base_link}/{$subscription->uuid}/resume">{l s='Resume' mod='ciklik'}</a>
+                                    {/if}
+                                {else}
+                                <small>
+                                    Résiliable à partir du : <br>
+                                    {PrestaShop\Module\Ciklik\Helpers\IntervalHelper::addIntervalToDate(
+                                            $subscription->created_at->toImmutable(),
+                                            $engagement_interval,
+                                            $engagement_interval_count
+                                        )->format('d/m')}
+                                </small>
+                                {/if}
                         {else}
-                            <a href="{$subcription_base_link}/{$subscription->uuid}/resume">{l s='Resume' mod='ciklik'}</a>
+                            {if $subscription->active}
+                                <a href="{$subcription_base_link}/{$subscription->uuid}/stop">{l s='Stop' mod='ciklik'}</a>
+                            {else}
+                                <a href="{$subcription_base_link}/{$subscription->uuid}/resume">{l s='Resume' mod='ciklik'}</a>
+                            {/if}
                         {/if}
                     </td>
                 </tr>

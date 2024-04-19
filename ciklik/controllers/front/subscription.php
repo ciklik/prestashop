@@ -1,4 +1,7 @@
 <?php
+
+use PrestaShop\Module\Ciklik\Data\SubscriptionData;
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -15,6 +18,9 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         switch (Tools::getValue('action')) {
             case 'stop':
                 $this->stop();
+                break;
+            case 'newdate':
+                $this->newdate();
                 break;
             case 'resume':
                 $this->resume();
@@ -40,5 +46,26 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         );
 
         Tools::redirect($this->context->link->getModuleLink('ciklik', 'account'));
+    }
+
+    private function newdate()
+    {
+        $date = \Carbon\Carbon::parse(Tools::getValue('next_billing'));
+
+        $result = (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
+            Tools::getValue('uuid'),
+            ['next_billing' => $date->toDateString()]
+        );
+
+        if (count($result['errors'])) {
+            foreach ($result['errors'] as $key => $error) {
+                $this->errors[] = $error[0];
+            }
+        } else {
+            $this->success[] = 'La date de renouvellement de votre abonnement a bien été modifiée.';
+        }
+
+        $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
     }
 }
