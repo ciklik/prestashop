@@ -128,6 +128,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
                 'quantity' => $product['cart_quantity'],
                 'interval' => $frequency['interval'] ?? null,
                 'interval_count' => $frequency['interval_count'] ?? null,
+                'name' => $product['name']
             ];
 
 
