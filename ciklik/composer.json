@@ -38,6 +38,7 @@
         "monolog/monolog": "1.25.3",
         "guzzlehttp/guzzle": "~5.0",
         "vlucas/phpdotenv": "^3.4",
+        "nesbot/carbon": "^2.72.3",
         "ext-json": "*"
     },
     "require-dev": {
