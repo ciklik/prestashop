@@ -635,7 +635,7 @@ class Ciklik extends PaymentModule
                         }
                     }
 
-                } else if ($purchase_type_attribute['id_attribute'] === (int) Configuration::get(self::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID)) {
+                } else if ((int) $purchase_type_attribute['id_attribute'] === (int) Configuration::get(self::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID)) {
                     $ciklik_attributes['frequency_id_attribute'] = (int) $frequency_attribute['id_attribute'];
                     $ciklik_attributes['enabled'] = true;
                     $ciklik_attributes['selected'] = true;
