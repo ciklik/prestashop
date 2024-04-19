@@ -568,13 +568,11 @@ class Ciklik extends PaymentModule
         if (array_key_exists('quantity_wanted', $params['product'])) {
             $ciklik_attributes = static::getCiklikProductAttributes($params['product'], $this->context);
 
-            if (count($ciklik_attributes)) {
+            if (count($ciklik_attributes) && isset($ciklik_attributes['current_id_product_attribute'])) {
                 $params['product']['id_product_attribute'] = $ciklik_attributes['current_id_product_attribute'];
                 $params['product']['ciklik'] = $ciklik_attributes;
             }
         }
-
-        return $params;
     }
 
     public static function getCiklikProductAttributes($product, Context $context)
