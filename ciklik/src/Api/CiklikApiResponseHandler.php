@@ -26,7 +26,8 @@ class CiklikApiResponseHandler
             'status' => $this->responseIsSuccessful($responseContents, $response->getStatusCode()),
             'httpCode' => $response->getStatusCode(),
             'body' => array_key_exists('data', $responseContents) ? $responseContents['data'] : [],
-            'message' => $response->getReasonPhrase()
+            'message' => $response->getReasonPhrase(),
+            'errors' => $responseContents['errors'] ?? []
         ];
     }
 

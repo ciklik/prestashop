@@ -120,8 +120,14 @@ class CiklikApiClient
      */
     protected function put(array $options = []): array
     {
+        try {
+            $response = $this->getClient()->put($this->getRoute(), $options);
+        } catch (ClientException $e) {
+            $response = $e->getResponse();
+        }
+
         return $this->handleResponse(
-            $this->getClient()->put($this->getRoute(), $options),
+            $response,
             $options
         );
     }
