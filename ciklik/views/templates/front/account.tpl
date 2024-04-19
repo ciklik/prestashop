@@ -45,6 +45,8 @@
                         {$subscription->address->address} <br>
 
                         {$subscription->address->postcode} {$subscription->address->city}, {$subscription->address->country}
+                        <br>
+                        {include file="module:ciklik/views/templates/front/actions/changeDeliveryAddress.tpl" subscription=$subscription addresses=$addresses}
                     </td>
                     <td>
                         {if $subscription->active}

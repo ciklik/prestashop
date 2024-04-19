@@ -80,8 +80,7 @@ class SubscriptionData
             $data['active'],
             $data['display_content'],
             $data['display_interval'],
-            SubscriptionDeliveryAddressData::create($data['address']),
-            new \DateTimeImmutable($data['next_billing'])
+            SubscriptionDeliveryAddressData::create($fingerprint->id_address_delivery),
             new \DateTimeImmutable($data['next_billing']),
             CarbonImmutable::parse($data['created_at']),
             CarbonImmutable::parse($data['end_date']),

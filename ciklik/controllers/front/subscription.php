@@ -22,6 +22,9 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             case 'newdate':
                 $this->newdate();
                 break;
+            case 'updateaddress':
+                $this->updateaddress();
+                break;
             case 'resume':
                 $this->resume();
                 break;
@@ -67,5 +70,38 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
 
+    }
+
+    private function updateaddress()
+    {
+
+        $address = new \Address(Tools::getValue('changeAddressForm'));
+
+        if ($this->context->customer->id !== (int) $address->id_customer) {
+            throw new PrestaShop\Module\Ciklik\Exceptions\NotAllowedException();
+        }
+
+        $sub = (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne(
+            Tools::getValue('uuid'),
+        );
+
+        $sub = SubscriptionData::create($sub['body']);
+        $sub->external_fingerprint->id_address_delivery = (int) Tools::getValue('changeAddressForm');
+
+        $result = (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
+            Tools::getValue('uuid'),
+            ['metadata' => ['prestashop_fingerprint' => $sub->external_fingerprint->serialize()]]
+        );
+
+
+        if (count($result['errors'])) {
+            foreach ($result['errors'] as $key => $error) {
+                $this->errors[] = $error[0];
+            }
+        } else {
+            $this->success[] = 'Votre nouvelle adresse a bien été prise en compte';
+        }
+
+        $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
     }
 }

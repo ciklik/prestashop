@@ -9,42 +9,17 @@ namespace PrestaShop\Module\Ciklik\Data;
 
 class SubscriptionDeliveryAddressData
 {
-    /**
-     * @var string
-     */
-    public $first_name;
-    /**
-     * @var string
-     */
-    public $last_name;
-    /**
-     * @var string
-     */
-    public $address;
-    /**
-     * @var string|null
-     */
-    public $address1;
-    /**
-     * @var string
-     */
-    public $postcode;
-    /**
-     * @var string
-     */
-    public $city;
-    /**
-     * @var string
-     */
-    public $country;
 
-    private function __construct(string      $first_name,
-                                 string      $last_name,
-                                 string      $address,
-                                 ?string $address1,
-                                 string      $postcode,
-                                 string      $city,
-                                 string      $country)
+
+    private function __construct(
+        string      $first_name,
+        string      $last_name,
+        string      $address,
+        ?string $address1,
+        string      $postcode,
+        string      $city,
+        string      $country
+    )
     {
         $this->first_name = $first_name;
         $this->last_name = $last_name;
@@ -55,8 +30,28 @@ class SubscriptionDeliveryAddressData
         $this->country = $country;
     }
 
-    public static function create(array $data): SubscriptionDeliveryAddressData
+    public static function create($address_id)
     {
+        $address = new \Address($address_id);
+        // Vérifier si l'adresse a été trouvée
+        if (\Validate::isLoadedObject($address)) {
+            $data['first_name'] = $address->firstname;
+            $data['last_name'] = $address->lastname;
+            $data['address'] = $address->address1;
+            $data['address1'] = $address->address2;
+            $data['postcode'] = $address->postcode;
+            $data['city'] = $address->city;
+            $data['country']['name'] = $address->country;
+        } else {
+            $data['first_name'] = '';
+            $data['last_name'] = '';
+            $data['address'] = '';
+            $data['address1'] = '';
+            $data['postcode'] = '';
+            $data['city'] = '';
+            $data['country']['name']= '';
+        }
+
         return new self(
             $data['first_name'],
             $data['last_name'],
