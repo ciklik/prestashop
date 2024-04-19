@@ -605,7 +605,7 @@ class Ciklik extends PaymentModule
             }
 
             if (null !== $purchase_type_attribute) {
-                if ($purchase_type_attribute['id_attribute'] === (int) Configuration::get(self::CONFIG_ONEOFF_ATTRIBUTE_ID)) {
+                if ((int) $purchase_type_attribute['id_attribute'] === (int) Configuration::get(self::CONFIG_ONEOFF_ATTRIBUTE_ID)) {
                     $ciklik_attributes['enabled'] = true;
                     $ciklik_attributes['selected'] = false;
                     $ciklik_attributes['reference_id_product_attribute'] = (int) $product['id_product_attribute'];
@@ -669,6 +669,7 @@ class Ciklik extends PaymentModule
                 }
 
                 $ciklik_attributes['subscription_price'] = Product::getPriceStatic((int) $product['id_product'], true, $ciklik_attributes['id_product_attribute']);
+                $ciklik_attributes['discount_percentage'] = floor((($ciklik_attributes['subscription_reference_price'] - $ciklik_attributes['subscription_price']) / $ciklik_attributes['subscription_reference_price']) * 100);
             }
         }
 
