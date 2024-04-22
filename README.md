@@ -3,7 +3,7 @@
 ### Tips
 
 * Pour cacher les autres méthodes de paiement, quand il y a un abonnement dans le panier ,
-ouvrir le fichier `themes/{theme}/templates/checkout/_partials/steps/payment.tpl` et ajouter le code suivant au dessus de :
+ouvrir le fichier `themes/{theme}/templates/checkout/_partials/steps/payment.tpl` et ajouter le code suivant en dessous de :
 `{foreach from=$module_options item="option"}`
 
 ```
@@ -19,6 +19,15 @@ ouvrir le fichier `themes/{theme}/templates/checkout/_partials/steps/payment.tpl
         {assign var="payment_options" value=[$ciklikOption]}
     {/if}
 ```
+
+## Upgrade 1.2.0
+
+- Variables configuration :
+
+**CONFIG_ENABLE_ENGAGEMENT** Activer l'engagement sur tous les abonnements
+**CONFIG_ENGAGEMENT_INTERVAL** Engagement en mois/jour/semaine (month/day/week)
+**CONFIG_ENGAGEMENT_INTERVAL_COUNT** Combien d'*CONFIG_ENGAGEMENT_INTERVAL*
+**CONFIG_ALLOW_CHANGE_NEXT_BILLING** Autoriser le changement de date du prochain paiement depuis l'espace mon compte
 
 ## Upgrade 1.1.0
 
