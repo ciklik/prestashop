@@ -24,7 +24,7 @@ if (!defined('_PS_VERSION_')) {
 
 class Ciklik extends PaymentModule
 {
-    const VERSION = '1.2.0';
+    const VERSION = '1.2.1';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
