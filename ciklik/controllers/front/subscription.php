@@ -82,7 +82,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         }
 
         $sub = (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne(
-            Tools::getValue('uuid'),
+            Tools::getValue('uuid')
         );
 
         $sub = SubscriptionData::create($sub['body']);
