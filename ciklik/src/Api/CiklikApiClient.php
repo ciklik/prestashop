@@ -63,6 +63,7 @@ class CiklikApiClient
                     //'Hook-Url' => $this->link->getModuleLink('ciklik', 'DispatchWebHook', [], true),
                     'Module-Version' => Ciklik::VERSION, // version of the module
                     'Prestashop-Version' => _PS_VERSION_, // prestashop version
+                    'User-Agent' => 'Ciklik-Prestashop/' . Ciklik::VERSION,
                 ],
                 'defaults' => [
                     'headers' => [
@@ -72,6 +73,7 @@ class CiklikApiClient
                         //'Hook-Url' => $this->link->getModuleLink('ciklik', 'DispatchWebHook', [], true),
                         'Module-Version' => Ciklik::VERSION, // version of the module
                         'Prestashop-Version' => _PS_VERSION_, // prestashop version
+                        'User-Agent' => 'Ciklik-Prestashop/' . Ciklik::VERSION,
                     ],
                 ],
                 'http_errors' => $this->throwGuzzleExceptions,
