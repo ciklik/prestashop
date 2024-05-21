@@ -42,7 +42,8 @@ class OrderData
                                  string $status,
                                  string $paid_transaction_id,
                                  string $paid_class_key,
-                                 \DateTimeImmutable $created_at)
+                                 \DateTimeImmutable $created_at,
+                                 $subscription_uuid)
     {
         $this->ciklik_order_id = $ciklik_order_id;
         $this->ciklik_user_uuid = $ciklik_user_uuid;
@@ -50,6 +51,7 @@ class OrderData
         $this->paid_transaction_id = $paid_transaction_id;
         $this->paid_class_key = $paid_class_key;
         $this->created_at = $created_at;
+        $this->subscription_uuid = $subscription_uuid;
     }
 
     public static function create(array $data): OrderData
@@ -60,7 +62,8 @@ class OrderData
             $data['status'],
             $data['paid_transaction_id'],
             $data['paid_class_key'],
-            new \DateTimeImmutable($data['created_at'])
+            new \DateTimeImmutable($data['created_at']),
+            $data['subscription_uuid']
         );
     }
 

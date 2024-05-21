@@ -2,6 +2,8 @@
 
 use PrestaShop\Module\Ciklik\Data\OrderData;
 use PrestaShop\Module\Ciklik\Data\OrderValidationData;
+use PrestaShop\Module\Ciklik\Gateway\Response;
+use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 
 /**
@@ -12,6 +14,7 @@ use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 
 class CiklikValidationModuleFrontController extends ModuleFrontController
 {
+    use ThreadHelper;
     /**
      * @var PaymentModule
      */
@@ -53,6 +56,12 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
         );
 
         CiklikCustomer::save($customer->id, $orderData->ciklik_user_uuid);
+
+        $this->addDataToOrder((int) $this->module->currentOrder, [
+            'ciklik_order_id' => $orderData->ciklik_order_id,
+            'order_type' => 'subscription_creation',
+            'subscription_uuid' => Tools::getValue('ciklik_subscription_uuid'),
+        ]);
 
         Tools::redirect($this->context->link->getPageLink(
             'order-confirmation',
