@@ -2,7 +2,7 @@
     "type": "prestashop-module",
     "name": "ciklik/prestashop",
     "description": "Ciklik module for Prestashop",
-    "homepage": "https://github.com/PrestaShop/paymentexample",
+    "homepage": "https://github.com/ciklik/prestashop",
     "license": "AFL-3.0",
     "authors": [
         {
