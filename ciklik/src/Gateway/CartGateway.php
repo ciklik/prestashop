@@ -127,15 +127,15 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $items = [];
 
         /*
-         * Si on est sur une commande front, on utilise
-         * getRawSummaryDetails natif.
-         * Sinon, la version rebill qui associe le bon transporteur
+         * Ajout du customer dans le contexte
+         * Pour gérer les cart_rules.
+         * Sans customer, pas de discount
          */
-        if ($withLinks === true) {
-            $summary = $cart->getRawSummaryDetails((int) Configuration::get('PS_LANG_DEFAULT'));
-        } else {
-            $summary = CartHelper::getRebillRawSummaryDetails((int) Configuration::get('PS_LANG_DEFAULT'), false, $cart);
-        }
+        $context = Context::getContext();
+        $customer = new Customer($cart->id_customer);
+        $context->updateCustomer($customer);
+
+        $summary = $cart->getRawSummaryDetails((int) Configuration::get('PS_LANG_DEFAULT'));
 
         foreach ($summary['products'] as $product) {
 
@@ -173,7 +173,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
             foreach ($summary['discounts'] as $discount) {
                 $items[] = [
                     'type' => 'reduction',
-                    'ref' => $discount['code'],
+                    'ref' => $discount['name'] ?? $discount['code'],
                     'price' => (float) $discount['value_real'],
                     'tax_rate' => 0,
                 ];
