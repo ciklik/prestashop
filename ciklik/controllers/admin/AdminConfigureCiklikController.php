@@ -305,7 +305,6 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'title'           => $this->l('Suffix de nom de produit'),
                         'desc'            => $this->l('Valeurs de déclinaisons ajoutées au nom transmis à Ciklik'),
                         'show'            => true,
-                        'skip_clean_html' => true,
                         'multiple'        => true,
                         'value_multiple'  => $product_suffixes_values,
                         'choices'         => $product_suffixes_choices,
