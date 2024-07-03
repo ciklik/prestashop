@@ -75,7 +75,7 @@ class Installer
         return (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_API_TOKEN, null)
             && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_MODE, 'LIVE')
             && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_HOST, null)
-            && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES, null)
+            && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES, json_encode([]))
             && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_WEBSERVICE_ID, '0')
             && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_DEBUG_LOGS_ENABLED, '0');
     }

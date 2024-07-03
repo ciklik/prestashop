@@ -27,7 +27,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
         }
 
         $attributes_groups = AttributeGroup::getAttributesGroups((int)Configuration::get('PS_LANG_DEFAULT'));
-        $product_suffixes = explode(',', Configuration::get(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES));
+        $product_suffixes = json_decode(Configuration::get(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES), JSON_OBJECT_AS_ARRAY);
         $product_suffixes_choices = [];
         $product_suffixes_values = [];
 
@@ -306,6 +306,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'desc'            => $this->l('Valeurs de déclinaisons ajoutées au nom transmis à Ciklik'),
                         'show'            => true,
                         'multiple'        => true,
+                        'skip_clean_html' => true,
                         'value_multiple'  => $product_suffixes_values,
                         'choices'         => $product_suffixes_choices,
                     ],
@@ -371,6 +372,11 @@ class AdminConfigureCiklikController extends ModuleAdminController
         ];
     }
 
+    protected function updateOptionCiklikProductNameSuffixes($values)
+    {
+        Configuration::updateValue(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES, json_encode($values));
+    }
+
     public static function getCiklikPaidOrderStates($id_lang)
     {
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
@@ -399,14 +405,6 @@ class AdminConfigureCiklikController extends ModuleAdminController
 
     public function beforeUpdateOptions()
     {
-
-        if (isset($_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES]) && is_array($_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES])) {
-            $_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES] = implode(',', $_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES] ?? []);
-        } else {
-            $_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES] = [];
-        }
-
-
         if (Configuration::get(Ciklik::CONFIG_API_TOKEN) !== Tools::getValue(Ciklik::CONFIG_API_TOKEN)) {
 
             try {

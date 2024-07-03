@@ -7,12 +7,12 @@
 
 namespace PrestaShop\Module\Ciklik\Managers;
 
-use PrestaShop\Module\Ciklik\Api\Subscribable;
+use Ciklik;
 use Configuration;
 use Context;
-use Ciklik;
 use Db;
 use DbQuery;
+use PrestaShop\Module\Ciklik\Api\Subscribable;
 use Product;
 use Tools;
 
@@ -56,7 +56,7 @@ class CiklikSubscribableVariant
     public static function formatName(array $combination, Product $product): string
     {
         $suffix = '' ;
-        $suffixes = Configuration::get(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES);
+        $suffixes = implode(',', json_decode(Configuration::get(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES), true));
 
         if (! (string)$suffixes === '') {
             $query = new DbQuery();
