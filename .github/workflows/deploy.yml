@@ -13,7 +13,6 @@ jobs:
                   composer install --no-dev --optimize-autoloader --classmap-authoritative
                   composer dump-autoload --no-dev --optimize --classmap-authoritative
                   npm install --quiet --no-progress
-                  rm -rf node_modules
                   rm -rf .git
                   rm -rf .github
                   rm -rf tests
