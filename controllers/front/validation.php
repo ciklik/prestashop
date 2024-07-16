@@ -1,4 +1,9 @@
 <?php
+/**
+ * @author    Metrogeek SAS <support@ciklik.co>
+ * @copyright Since 2017 Metrogeek SAS
+ * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
+ */
 
 use PrestaShop\Module\Ciklik\Data\OrderData;
 use PrestaShop\Module\Ciklik\Data\OrderValidationData;
@@ -9,13 +14,6 @@ use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 if (!defined('_PS_VERSION_')) {
     exit;
 }
-
-/**
- * @author    Metrogeek SAS <support@ciklik.co>
- * @copyright Since 2017 Metrogeek SAS
- * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
- */
-
 class CiklikValidationModuleFrontController extends ModuleFrontController
 {
     use ThreadHelper;
