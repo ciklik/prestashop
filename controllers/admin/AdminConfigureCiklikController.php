@@ -8,6 +8,10 @@
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Data\ShopData;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class AdminConfigureCiklikController extends ModuleAdminController
 {
 

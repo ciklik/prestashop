@@ -10,6 +10,10 @@ namespace PrestaShop\Module\Ciklik\Factory;
 use Monolog\Handler\RotatingFileHandler;
 use Monolog\Logger;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikLogger
 {
     const MAX_FILES = 15;

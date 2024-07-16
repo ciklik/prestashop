@@ -18,6 +18,10 @@ use PrestaShop\Module\Ciklik\Sql\SqlQueries;
 use Tools;
 use WebserviceKey;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class Installer
 {
     /**

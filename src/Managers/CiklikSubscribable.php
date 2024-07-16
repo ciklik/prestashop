@@ -10,6 +10,10 @@ namespace PrestaShop\Module\Ciklik\Managers;
 use Cart;
 use Db;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikSubscribable
 {
     public static function handle(int $id_product)

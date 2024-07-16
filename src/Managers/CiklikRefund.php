@@ -13,6 +13,10 @@ use Employee;
 use Tools;
 use Validate;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikRefund
 {
     public static function canRun(): bool

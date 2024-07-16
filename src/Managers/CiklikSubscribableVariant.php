@@ -16,6 +16,10 @@ use PrestaShop\Module\Ciklik\Api\Subscribable;
 use Product;
 use Tools;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikSubscribableVariant
 {
     public static function pushToCiklik(int $id_product, array $combinations = []): void

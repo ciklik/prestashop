@@ -7,6 +7,10 @@
 
 namespace PrestaShop\Module\Ciklik\Managers;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikAttributeGroup
 {
     public static function create(string $name, int $position): \AttributeGroup

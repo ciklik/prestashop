@@ -3,9 +3,13 @@
 declare(strict_types=1);
 
 namespace PrestaShop\Module\Ciklik\Helpers;
-use \CustomerThread;
 use \CustomerMessage;
+use \CustomerThread;
 use \Tools;
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
 /**
  * Class ThreadHelper

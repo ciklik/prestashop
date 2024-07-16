@@ -11,9 +11,13 @@ use Configuration;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Response;
+use Module;
 use PrestaShop\Module\Ciklik\Data\ShopData;
 use PrestaShop\Module\Ciklik\Environment\CiklikEnv;
-use Module;
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
 class CiklikApiClient
 {

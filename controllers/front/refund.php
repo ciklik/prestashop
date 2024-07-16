@@ -5,6 +5,10 @@ use PrestaShop\Module\Ciklik\Data\TransactionData;
 use PrestaShop\Module\Ciklik\Managers\CiklikRefund;
 use PrestaShop\Module\Ciklik\Managers\CiklikTransaction;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS

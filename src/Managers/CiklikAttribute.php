@@ -10,6 +10,10 @@ namespace PrestaShop\Module\Ciklik\Managers;
 use Configuration;
 use Tools;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikAttribute
 {
     public static function create(string $name, int $id_attribute_group): int

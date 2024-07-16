@@ -11,6 +11,10 @@ use Db;
 use Order;
 use OrderPayment;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikTransaction
 {
     public static function getIdByOrder(Order $order)

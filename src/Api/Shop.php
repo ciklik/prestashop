@@ -9,6 +9,10 @@ namespace PrestaShop\Module\Ciklik\Api;
 
 use PrestaShop\Module\Ciklik\Data\ShopData;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class Shop extends CiklikApiClient
 {
     public function whoIAm(array $options = [])

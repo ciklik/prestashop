@@ -10,6 +10,10 @@ namespace PrestaShop\Module\Ciklik\Managers;
 use Ciklik;
 use Configuration;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class RelatedEntitiesManager
 {
     public static function install(): bool

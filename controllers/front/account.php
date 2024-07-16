@@ -3,6 +3,10 @@
 use PrestaShop\Module\Ciklik\Api\Subscription;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS

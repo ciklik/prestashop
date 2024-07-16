@@ -12,6 +12,10 @@ use Configuration;
 use Db;
 use DbQuery;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikCombination
 {
     public static function get(int $id_product): array

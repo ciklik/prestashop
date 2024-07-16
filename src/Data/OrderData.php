@@ -9,6 +9,10 @@ namespace PrestaShop\Module\Ciklik\Data;
 
 use Configuration;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class OrderData
 {
     const STATUS_COMPLETED = 'completed';

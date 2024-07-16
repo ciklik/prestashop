@@ -7,6 +7,10 @@
 
 use Ciklik;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikExternalModuleFrontController extends ModuleFrontController
 {
     /**

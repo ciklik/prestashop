@@ -6,6 +6,11 @@
  */
 
 namespace PrestaShop\Module\Ciklik\Exceptions;
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class NotAllowedException extends \Exception
 {
 

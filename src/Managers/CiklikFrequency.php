@@ -12,6 +12,10 @@ use Configuration;
 use Db;
 use DbQuery;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikFrequency
 {
     public static function save(int $id_attribute,

@@ -9,6 +9,10 @@ use PrestaShop\Module\Ciklik\Gateway\CartGateway;
 use PrestaShop\Module\Ciklik\Gateway\OrderGateway;
 use PrestaShop\Module\Ciklik\Gateway\Response;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikGatewayModuleFrontController extends ModuleFrontController
 {
     /**

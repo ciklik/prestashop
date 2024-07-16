@@ -7,6 +7,10 @@
 
 namespace PrestaShop\Module\Ciklik\Api;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class Customer extends CiklikApiClient
 {
     public function getAll(array $options = [])

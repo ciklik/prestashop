@@ -10,6 +10,10 @@ namespace PrestaShop\Module\Ciklik\Environment;
 use Ciklik;
 use Dotenv\Dotenv;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikEnv
 {
     /**

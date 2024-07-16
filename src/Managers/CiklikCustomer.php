@@ -9,6 +9,10 @@ namespace PrestaShop\Module\Ciklik\Managers;
 
 use Db;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikCustomer
 {
     public static function save(int $id_customer,

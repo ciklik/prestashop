@@ -10,12 +10,16 @@ declare(strict_types=1);
 namespace PrestaShop\Module\Ciklik\Gateway;
 
 use Cart;
-use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
-use Tools;
 use Context;
 use PrestaShop\Module\Ciklik\Data\OrderData;
-use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 use PrestaShop\Module\Ciklik\Data\OrderValidationData;
+use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
+use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
+use Tools;
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
 class OrderGateway extends AbstractGateway implements EntityGateway
 {

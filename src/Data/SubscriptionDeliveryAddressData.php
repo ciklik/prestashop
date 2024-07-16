@@ -7,10 +7,12 @@
 
 namespace PrestaShop\Module\Ciklik\Data;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class SubscriptionDeliveryAddressData
 {
-
-
     private function __construct(
         string      $first_name,
         string      $last_name,

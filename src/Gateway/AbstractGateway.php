@@ -13,6 +13,10 @@ use Ciklik;
 use Configuration;
 use WebserviceKey;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 abstract class AbstractGateway implements EntityGateway
 {
     /**
@@ -68,4 +72,3 @@ abstract class AbstractGateway implements EntityGateway
         (new Response)->setBody(['error' => 'DELETE method doesn\'t exist'])->sendMethodNotAllowed();
     }
 }
-

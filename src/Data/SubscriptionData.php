@@ -9,6 +9,10 @@ namespace PrestaShop\Module\Ciklik\Data;
 
 use Carbon\CarbonImmutable;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class SubscriptionData
 {
     /**

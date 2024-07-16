@@ -7,8 +7,12 @@
 
 namespace PrestaShop\Module\Ciklik\Data;
 
-use Cart;
 use Carrier;
+use Cart;
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
 class CartFingerprintData
 {

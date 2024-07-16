@@ -2,6 +2,10 @@
 
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS

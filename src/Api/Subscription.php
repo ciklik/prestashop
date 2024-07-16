@@ -9,6 +9,10 @@ namespace PrestaShop\Module\Ciklik\Api;
 
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class Subscription extends CiklikApiClient
 {
     public function getAll(array $options = [])

@@ -9,8 +9,8 @@ declare(strict_types=1);
 
 namespace PrestaShop\Module\Ciklik\Gateway;
 
-use Cart;
 use Carrier;
+use Cart;
 use Configuration;
 use Context;
 use Customer;
@@ -19,6 +19,10 @@ use DbQuery;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use Tools;
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
 class CartGateway extends AbstractGateway implements EntityGateway
 {

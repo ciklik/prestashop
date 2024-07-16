@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace PrestaShop\Module\Ciklik\Gateway;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class Response
 {
     /**

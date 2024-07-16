@@ -9,6 +9,10 @@ namespace PrestaShop\Module\Ciklik\Api;
 
 use Psr\Http\Message\ResponseInterface;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class CiklikApiResponseHandler
 {
     /**

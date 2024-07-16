@@ -6,6 +6,10 @@ namespace PrestaShop\Module\Ciklik\Helpers;
 
 use Carbon\CarbonImmutable;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Helper function for interacting with intervals
  */

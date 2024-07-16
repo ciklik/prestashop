@@ -9,6 +9,10 @@ namespace PrestaShop\Module\Ciklik\Api;
 
 use PrestaShop\Module\Ciklik\Data\TransactionData;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class Transaction extends CiklikApiClient
 {
     public function getAll(array $options = [])
