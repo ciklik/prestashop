@@ -63,7 +63,6 @@ $params['product']['ciklik'] = [
 
 IMPORTANT : le module Ciklik doit être en 1ère position d'exécution dans le hook actionGetProductPropertiesBefore
 
-
 ## Personnalisation de la page produit
 
 Pour gérer et personnaliser l'affichage des options d'abonnement sur la page d'un produit, il est nécessaire de surcharger le fichier ProductController.php.
@@ -71,8 +70,6 @@ Pour gérer et personnaliser l'affichage des options d'abonnement sur la page d'
 Créer le fichier /override/controllers/front/ProductController.php avec le contenu suivant :
 
 ```php
-<?php
-
 class ProductController extends ProductControllerCore
 {
     protected function assignAttributesGroups($product_for_template = null)
