@@ -1,4 +1,9 @@
-<small><u data-toggle="modal" data-target="#updateNextBilling"{$subscription->uuid}>
+{**
+ * @author    Metrogeek SAS <support@ciklik.co>
+ * @copyright Since 2017 Metrogeek SAS
+ * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
+ *}
+ <small><u data-toggle="modal" data-target="#updateNextBilling"{$subscription->uuid}>
         Modifier
     </u></small>
 
@@ -33,4 +38,3 @@
         </div>
     </div>
 </div>
-
