@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Ciklik SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -10,10 +11,9 @@ if (file_exists($autoloadPath)) {
     require_once $autoloadPath;
 }
 
-
-use PrestaShop\Module\Ciklik\Data\ShopData;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Data\PaymentMethodData;
+use PrestaShop\Module\Ciklik\Data\ShopData;
 use PrestaShop\Module\Ciklik\Install\Installer;
 use PrestaShop\Module\Ciklik\Managers\CiklikAttribute;
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
@@ -649,7 +649,6 @@ class Ciklik extends PaymentModule
                             $ciklik_attributes['current_id_product_attribute'] = $ciklik_attributes['reference_id_product_attribute'];
                         }
                     }
-
                 } else if ((int) $purchase_type_attribute['id_attribute'] === (int) Configuration::get(self::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID)) {
                     $ciklik_attributes['frequency_id_attribute'] = (int) $frequency_attribute['id_attribute'];
                     $ciklik_attributes['enabled'] = true;
