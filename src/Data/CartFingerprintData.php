@@ -9,6 +9,7 @@ namespace PrestaShop\Module\Ciklik\Data;
 
 use Carrier;
 use Cart;
+use Tools;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -84,7 +85,7 @@ class CartFingerprintData
 
     public static function unserialize(string $fingerprint): CartFingerprintData
     {
-        $data = unserialize($fingerprint);
+        $data = Tools::unSerialize($fingerprint);
 
         return new self(
             $data['id_customer'],
