@@ -16,8 +16,8 @@ if (!defined('_PS_VERSION_')) {
 class CiklikCustomer
 {
     public static function save(int $id_customer,
-                                string $ciklik_uuid,
-                                array $metadata = []): int
+        string $ciklik_uuid,
+        array $metadata = []): int
     {
         if (is_array($customer = self::getByIdCustomer($id_customer)) && array_key_exists('id_ciklik_customer', $customer)) {
             Db::getInstance()->update('ciklik_customers', ['ciklik_uuid' => $ciklik_uuid, 'metadata' => json_encode($metadata)], '`id_customer` = ' . $id_customer);
@@ -30,7 +30,7 @@ class CiklikCustomer
             VALUES (' . $id_customer . ', \'' . $ciklik_uuid . '\', \'' . json_encode($metadata) . '\')
         ');
 
-        return (int) \Db::getInstance()->Insert_ID();
+        return (int) Db::getInstance()->Insert_ID();
     }
 
     public static function getByIdCustomer(int $id_customer): array

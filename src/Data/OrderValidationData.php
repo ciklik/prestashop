@@ -50,14 +50,14 @@ class OrderValidationData
     public $secure_key;
 
     private function __construct(int $id_cart,
-                                 int $id_order_state,
-                                 float $amount_paid,
-                                 string $payment_method,
-                                 ?string $message,
-                                 array $extra_vars,
-                                 int $currency_special,
-                                 bool $dont_touch_amount,
-                                 string $secure_key)
+        int $id_order_state,
+        float $amount_paid,
+        string $payment_method,
+        ?string $message,
+        array $extra_vars,
+        int $currency_special,
+        bool $dont_touch_amount,
+        string $secure_key)
     {
         $this->id_cart = $id_cart;
         $this->id_order_state = $id_order_state;

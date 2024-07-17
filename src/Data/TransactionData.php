@@ -7,6 +7,8 @@
 
 namespace PrestaShop\Module\Ciklik\Data;
 
+use DateTimeImmutable;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -46,19 +48,19 @@ class TransactionData
      */
     public $failure_code;
     /**
-     * @var \DateTimeImmutable
+     * @var DateTimeImmutable
      */
     public $created_at;
 
     private function __construct(string $transaction_id,
-                                 string $gateway,
-                                 float $amount,
-                                 bool $paid,
-                                 bool $refunded,
-                                 float $amount_refunded,
-                                 ?string $failure_message,
-                                 ?string $failure_code,
-                                 \DateTimeImmutable $created_at)
+        string $gateway,
+        float $amount,
+        bool $paid,
+        bool $refunded,
+        float $amount_refunded,
+        ?string $failure_message,
+        ?string $failure_code,
+        DateTimeImmutable $created_at)
     {
         $this->transaction_id = $transaction_id;
         $this->gateway = $gateway;
@@ -82,7 +84,7 @@ class TransactionData
             $data['amount_refunded'],
             $data['failure_message'],
             $data['failure_code'],
-            new \DateTimeImmutable($data['created_at'])
+            new DateTimeImmutable($data['created_at'])
         );
     }
 }

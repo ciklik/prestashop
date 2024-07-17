@@ -33,12 +33,12 @@ class CiklikSubscribable
 
     public static function create(int $id_product): int
     {
-        \Db::getInstance()->execute('
+        Db::getInstance()->execute('
             INSERT INTO `' . _DB_PREFIX_ . 'ciklik_subscribables` (`id_product`) 
             VALUES (' . $id_product . ')
         ');
 
-        return (int) \Db::getInstance()->Insert_ID();
+        return (int) Db::getInstance()->Insert_ID();
     }
 
     public static function deleteByIdProduct(int $id_product): bool

@@ -16,9 +16,9 @@ function upgrade_module_1_1_0($object)
     $id_hook = Hook::getIdByName('actionGetProductPropertiesBefore', false);
 
     return
-        Configuration::updateValue(Ciklik::CONFIG_ONEOFF_ATTRIBUTE_ID, $purchase_type_attributes[0]['id_attribute']) &&
-        Configuration::updateValue(Ciklik::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID, $purchase_type_attributes[1]['id_attribute']) &&
-        Configuration::updateValue(Ciklik::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID, $frequencies_attributes[0]['id_attribute']) &&
-        $object->updatePosition($id_hook, 0, 1)
+        Configuration::updateValue(Ciklik::CONFIG_ONEOFF_ATTRIBUTE_ID, $purchase_type_attributes[0]['id_attribute'])
+        && Configuration::updateValue(Ciklik::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID, $purchase_type_attributes[1]['id_attribute'])
+        && Configuration::updateValue(Ciklik::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID, $frequencies_attributes[0]['id_attribute'])
+        && $object->updatePosition($id_hook, 0, 1)
     ;
 }

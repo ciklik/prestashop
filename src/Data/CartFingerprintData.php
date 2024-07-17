@@ -43,11 +43,11 @@ class CartFingerprintData
     public $id_carrier_reference;
 
     private function __construct(int $id_customer,
-                                 int $id_address_delivery,
-                                 int $id_address_invoice,
-                                 int $id_lang,
-                                 int $id_currency,
-                                 int $id_carrier_reference)
+        int $id_address_delivery,
+        int $id_address_invoice,
+        int $id_lang,
+        int $id_currency,
+        int $id_carrier_reference)
     {
         $this->id_customer = $id_customer;
         $this->id_address_delivery = $id_address_delivery;

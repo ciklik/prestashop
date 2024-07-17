@@ -8,6 +8,7 @@
 namespace PrestaShop\Module\Ciklik\Data;
 
 use Carbon\CarbonImmutable;
+use DateTimeImmutable;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -36,15 +37,15 @@ class SubscriptionData
      */
     public $address;
     /**
-     * @var \DateTimeImmutable
+     * @var DateTimeImmutable
      */
     public $next_billing;
     /**
-     * @var \DateTimeImmutable
+     * @var DateTimeImmutable
      */
     public $created_at;
     /**
-     * @var \DateTimeImmutable
+     * @var DateTimeImmutable
      */
     public $end_date;
 
@@ -54,14 +55,14 @@ class SubscriptionData
     public $external_fingerprint;
 
     private function __construct(string $uuid,
-                                 bool $active,
-                                 string $display_content,
-                                 string $display_interval,
-                                 SubscriptionDeliveryAddressData $address,
-                                 \DateTimeImmutable $next_billing,
-                                 \DateTimeImmutable $created_at,
-                                 \DateTimeImmutable $end_date,
-                                 CartFingerprintData $external_fingerprint
+        bool $active,
+        string $display_content,
+        string $display_interval,
+        SubscriptionDeliveryAddressData $address,
+        DateTimeImmutable $next_billing,
+        DateTimeImmutable $created_at,
+        DateTimeImmutable $end_date,
+        CartFingerprintData $external_fingerprint
     ) {
         $this->uuid = $uuid;
         $this->active = $active;
@@ -84,7 +85,7 @@ class SubscriptionData
             $data['display_content'],
             $data['display_interval'],
             SubscriptionDeliveryAddressData::create($fingerprint->id_address_delivery),
-            new \DateTimeImmutable($data['next_billing']),
+            new DateTimeImmutable($data['next_billing']),
             CarbonImmutable::parse($data['created_at']),
             CarbonImmutable::parse($data['end_date']),
             $fingerprint

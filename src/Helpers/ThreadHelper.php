@@ -9,8 +9,10 @@ declare(strict_types=1);
 
 namespace PrestaShop\Module\Ciklik\Helpers;
 
+use Customer;
 use CustomerMessage;
 use CustomerThread;
+use Order;
 use Tools;
 
 if (!defined('_PS_VERSION_')) {
@@ -24,8 +26,8 @@ trait ThreadHelper
 {
     public function addDataToOrder(int $order_id, array $data)
     {
-        $order = new \Order($order_id);
-        $customer = new \Customer($order->id_customer);
+        $order = new Order($order_id);
+        $customer = new Customer($order->id_customer);
 
         $customer_thread = new CustomerThread();
         $customer_thread->id_contact = 0;

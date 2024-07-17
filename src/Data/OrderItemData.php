@@ -39,11 +39,11 @@ class OrderItemData
     public $quantity;
 
     private function __construct(int $prestashop_id,
-                                 string $name,
-                                 string $type,
-                                 float $price,
-                                 float $tax,
-                                 int $quantity)
+        string $name,
+        string $type,
+        float $price,
+        float $tax,
+        int $quantity)
     {
         $this->prestashop_id = $prestashop_id;
         $this->name = $name;

@@ -105,7 +105,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
                 (new Response())->setBody(['error' => "Product not found for variant {$id_variant}"])->sendNotFound();
             }
 
-            $cart->updateQty($quantity, (int) ($id_product), (int) ($id_variant));
+            $cart->updateQty($quantity, (int) $id_product, (int) $id_variant);
         }
 
         $cart->update();

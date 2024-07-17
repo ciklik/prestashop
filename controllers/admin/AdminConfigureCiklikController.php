@@ -14,7 +14,7 @@ if (!defined('_PS_VERSION_')) {
 
 class AdminConfigureCiklikController extends ModuleAdminController
 {
-    protected $moduleContainer = null;
+    protected $moduleContainer;
 
     public function __construct()
     {
@@ -58,7 +58,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
         try {
             $accountsFacade = $this->getService('prestashop.module.ciklik.ps_accounts_facade');
             $accountsService = $accountsFacade->getPsAccountsService();
-        } catch (\PrestaShop\PsAccountsInstaller\Installer\Exception\InstallerException $e) {
+        } catch (PrestaShop\PsAccountsInstaller\Installer\Exception\InstallerException $e) {
             $accountsInstaller = $this->getService('prestashop.module.ciklik.ps_accounts_installer');
             $accountsInstaller->install();
             $accountsFacade = $this->getService('prestashop.module.ciklik.ps_accounts_facade');
@@ -434,7 +434,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
                 }
 
                 $this->confirmations[] = $this->trans('Connection successful', [], 'Modules.Ciklik.Admin');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->errors[] = $this->trans('Connection failed', [$e->getMessage()], 'Modules.Ciklik.Admin');
             }
         }
@@ -443,7 +443,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
     public function getService(string $serviceName)
     {
         if ($this->moduleContainer === null) {
-            $this->moduleContainer = new \PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer(
+            $this->moduleContainer = new PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer(
                 $this->module->name,
                 $this->module->getLocalPath()
             );

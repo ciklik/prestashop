@@ -36,7 +36,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
     private function stop()
     {
-        (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
+        (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
             Tools::getValue('uuid'),
             ['active' => false]
         );
@@ -46,7 +46,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
     private function resume()
     {
-        (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
+        (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
             Tools::getValue('uuid'),
             ['active' => true]
         );
@@ -56,9 +56,9 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
     private function newdate()
     {
-        $date = \Carbon\Carbon::parse(Tools::getValue('next_billing'));
+        $date = Carbon\Carbon::parse(Tools::getValue('next_billing'));
 
-        $result = (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
+        $result = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
             Tools::getValue('uuid'),
             ['next_billing' => $date->toDateString()]
         );
@@ -76,20 +76,20 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
     private function updateaddress()
     {
-        $address = new \Address(Tools::getValue('changeAddressForm'));
+        $address = new Address(Tools::getValue('changeAddressForm'));
 
         if ($this->context->customer->id !== (int) $address->id_customer) {
             throw new PrestaShop\Module\Ciklik\Exceptions\NotAllowedException();
         }
 
-        $sub = (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne(
+        $sub = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne(
             Tools::getValue('uuid')
         );
 
         $sub = SubscriptionData::create($sub['body']);
         $sub->external_fingerprint->id_address_delivery = (int) Tools::getValue('changeAddressForm');
 
-        $result = (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
+        $result = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
             Tools::getValue('uuid'),
             ['metadata' => ['prestashop_fingerprint' => $sub->external_fingerprint->serialize()]]
         );

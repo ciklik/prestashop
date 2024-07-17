@@ -36,7 +36,7 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
             $this->redirectToCheckout();
         }
 
-        $orderData = (new \PrestaShop\Module\Ciklik\Api\Order($this->context->link))->getOne((int) Tools::getValue('ciklik_order_id'));
+        $orderData = (new PrestaShop\Module\Ciklik\Api\Order($this->context->link))->getOne((int) Tools::getValue('ciklik_order_id'));
 
         if (!$orderData instanceof OrderData) {
             $this->redirectToCheckout();

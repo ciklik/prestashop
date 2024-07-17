@@ -7,7 +7,9 @@
 
 namespace PrestaShop\Module\Ciklik\Data;
 
+use Ciklik;
 use Configuration;
+use DateTimeImmutable;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -37,17 +39,17 @@ class OrderData
      */
     public $paid_class_key;
     /**
-     * @var \DateTimeImmutable
+     * @var DateTimeImmutable
      */
     public $created_at;
 
     private function __construct(int $ciklik_order_id,
-                                 string $ciklik_user_uuid,
-                                 string $status,
-                                 string $paid_transaction_id,
-                                 string $paid_class_key,
-                                 \DateTimeImmutable $created_at,
-                                 $subscription_uuid)
+        string $ciklik_user_uuid,
+        string $status,
+        string $paid_transaction_id,
+        string $paid_class_key,
+        DateTimeImmutable $created_at,
+        $subscription_uuid)
     {
         $this->ciklik_order_id = $ciklik_order_id;
         $this->ciklik_user_uuid = $ciklik_user_uuid;
@@ -66,7 +68,7 @@ class OrderData
             $data['status'],
             $data['paid_transaction_id'],
             $data['paid_class_key'],
-            new \DateTimeImmutable($data['created_at']),
+            new DateTimeImmutable($data['created_at']),
             $data['subscription_uuid']
         );
     }
@@ -74,7 +76,7 @@ class OrderData
     public function getOrderState()
     {
         if ($this->status === self::STATUS_COMPLETED) {
-            return (int) Configuration::get(\Ciklik::CONFIG_ORDER_STATE);
+            return (int) Configuration::get(Ciklik::CONFIG_ORDER_STATE);
         }
 
         return (int) Configuration::get('PS_OS_ERROR');

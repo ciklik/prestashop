@@ -7,6 +7,9 @@
 
 namespace PrestaShop\Module\Ciklik\Data;
 
+use Address;
+use Validate;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -33,9 +36,9 @@ class SubscriptionDeliveryAddressData
 
     public static function create($address_id)
     {
-        $address = new \Address($address_id);
+        $address = new Address($address_id);
         // Vérifier si l'adresse a été trouvée
-        if (\Validate::isLoadedObject($address)) {
+        if (Validate::isLoadedObject($address)) {
             $data['first_name'] = $address->firstname;
             $data['last_name'] = $address->lastname;
             $data['address'] = $address->address1;

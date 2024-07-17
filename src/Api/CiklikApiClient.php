@@ -12,6 +12,7 @@ use Configuration;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Response;
+use Link;
 use Module;
 use PrestaShop\Module\Ciklik\Environment\CiklikEnv;
 
@@ -31,7 +32,7 @@ class CiklikApiClient
     /**
      * Class Link in order to generate module link
      *
-     * @var \Link
+     * @var Link
      */
     protected $link;
 
@@ -51,7 +52,7 @@ class CiklikApiClient
 
     protected $throwGuzzleExceptions = true;
 
-    public function __construct(\Link $link, Client $client = null)
+    public function __construct(Link $link, ?Client $client = null)
     {
         $this->setLink($link);
 
@@ -64,7 +65,7 @@ class CiklikApiClient
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
                     'Authorization' => 'Bearer ' . Configuration::get(Ciklik::CONFIG_API_TOKEN),
-                    //'Hook-Url' => $this->link->getModuleLink('ciklik', 'DispatchWebHook', [], true),
+                    // 'Hook-Url' => $this->link->getModuleLink('ciklik', 'DispatchWebHook', [], true),
                     'Module-Version' => Ciklik::VERSION, // version of the module
                     'Prestashop-Version' => _PS_VERSION_, // prestashop version
                     'User-Agent' => 'Ciklik-Prestashop/' . Ciklik::VERSION,
@@ -74,7 +75,7 @@ class CiklikApiClient
                         'Content-Type' => 'application/json',
                         'Accept' => 'application/json',
                         'Authorization' => 'Bearer ' . Configuration::get(Ciklik::CONFIG_API_TOKEN),
-                        //'Hook-Url' => $this->link->getModuleLink('ciklik', 'DispatchWebHook', [], true),
+                        // 'Hook-Url' => $this->link->getModuleLink('ciklik', 'DispatchWebHook', [], true),
                         'Module-Version' => Ciklik::VERSION, // version of the module
                         'Prestashop-Version' => _PS_VERSION_, // prestashop version
                         'User-Agent' => 'Ciklik-Prestashop/' . Ciklik::VERSION,
@@ -178,9 +179,9 @@ class CiklikApiClient
     /**
      * Setter for link
      *
-     * @param \Link $link
+     * @param Link $link
      */
-    protected function setLink(\Link $link)
+    protected function setLink(Link $link)
     {
         $this->link = $link;
     }
@@ -228,7 +229,7 @@ class CiklikApiClient
     /**
      * Getter for Link
      *
-     * @return \Link
+     * @return Link
      */
     protected function getLink()
     {

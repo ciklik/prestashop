@@ -32,20 +32,20 @@ class DisplayRefundsHookController
     {
         $order = new Order($params['id_order']);
 
-        $transaction_id = \PrestaShop\Module\Ciklik\Managers\CiklikTransaction::getIdByOrder($order);
+        $transaction_id = PrestaShop\Module\Ciklik\Managers\CiklikTransaction::getIdByOrder($order);
 
         if (!$transaction_id) {
             return null;
         }
 
         try {
-            $transactionData = (new \PrestaShop\Module\Ciklik\Api\Transaction($this->context->link))->getOne($transaction_id);
+            $transactionData = (new PrestaShop\Module\Ciklik\Api\Transaction($this->context->link))->getOne($transaction_id);
         } catch (Exception $e) {
             return null;
         }
 
         $maxRefundAmount = $transactionData->amount - $transactionData->amount_refunded;
-        $currency = new \Currency($order->id_currency);
+        $currency = new Currency($order->id_currency);
         $orderData = [
             'id' => $order->id,
             'currencySymbol' => $currency->sign,

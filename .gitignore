@@ -12,3 +12,4 @@ js/node_modules
 /.vscode/
 sftp-config.json
 .php_cs.cache
+.php-cs-fixer.cache

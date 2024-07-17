@@ -11,6 +11,7 @@ namespace PrestaShop\Module\Ciklik\Gateway;
 
 use Cart;
 use Context;
+use Db;
 use PrestaShop\Module\Ciklik\Data\OrderData;
 use PrestaShop\Module\Ciklik\Data\OrderValidationData;
 use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
@@ -39,7 +40,7 @@ class OrderGateway extends AbstractGateway implements EntityGateway
 
         if ($cart->orderExists()) {
             $sql = 'SELECT id_order FROM ' . _DB_PREFIX_ . 'orders WHERE id_cart = ' . (int) $cart->id;
-            $orderId = \Db::getInstance()->getValue($sql);
+            $orderId = Db::getInstance()->getValue($sql);
 
             $this->addDataToOrder(
                 (int) $orderId,

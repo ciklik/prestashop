@@ -19,9 +19,9 @@ if (!defined('_PS_VERSION_')) {
 class CiklikFrequency
 {
     public static function save(int $id_attribute,
-                                string $interval,
-                                int $interval_count,
-                                int $id_frequency = 0): int
+        string $interval,
+        int $interval_count,
+        int $id_frequency = 0): int
     {
         if ($id_frequency) {
             Db::getInstance()->update('ciklik_frequencies', ['interval' => $interval, 'interval_count' => $interval_count], '`id_frequency` = ' . (int) $id_frequency);
@@ -31,7 +31,7 @@ class CiklikFrequency
             VALUES (' . $id_attribute . ', \'' . $interval . '\', ' . $interval_count . ')
         ');
 
-            return (int) \Db::getInstance()->Insert_ID();
+            return (int) Db::getInstance()->Insert_ID();
         }
 
         return $id_frequency;
@@ -65,6 +65,6 @@ class CiklikFrequency
             SELECT `id_attribute_group`
             FROM `' . _DB_PREFIX_ . 'attribute`
             WHERE `id_attribute` = ' . $id_attribute . '
-        ') === (int) \Configuration::get('CIKLIK_FREQUENCIES_ATTRIBUTE_GROUP_ID');
+        ') === (int) Configuration::get('CIKLIK_FREQUENCIES_ATTRIBUTE_GROUP_ID');
     }
 }

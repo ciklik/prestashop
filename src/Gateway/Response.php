@@ -63,7 +63,7 @@ class Response
             echo $this->body;
         }
 
-        exit();
+        exit;
     }
 
     public function sendCreated()

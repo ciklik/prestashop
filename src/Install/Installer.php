@@ -189,14 +189,14 @@ class Installer
         $prestashopVersion = _PS_VERSION_;
 
         if (version_compare($prestashopVersion, '8.0.0', '<')) {
-            //Hooks pour presta 1.7.7
+            // Hooks pour presta 1.7.7
             $hooks = [
                 'actionAfterUpdateProductFormHandler',
                 'actionAttributeDelete',
                 'actionAttributeSave',
                 'actionGetProductPropertiesBefore',
                 'actionObjectShopAddAfter',
-                //'actionPresentPaymentOptions',
+                // 'actionPresentPaymentOptions',
                 'actionProductDelete',
                 'displayAdminOrderMainBottom',
                 'displayAttributeForm',
@@ -211,7 +211,7 @@ class Installer
                 'actionObjectProductAddAfter',
             ];
         } else {
-            //Hooks pour presta 8+
+            // Hooks pour presta 8+
             $hooks = [
                 'actionAfterUpdateProductFormHandler',
                 'actionAttributeDelete',

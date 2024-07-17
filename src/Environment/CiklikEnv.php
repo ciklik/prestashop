@@ -8,6 +8,7 @@
 namespace PrestaShop\Module\Ciklik\Environment;
 
 use Ciklik;
+use Configuration;
 use Dotenv\Dotenv;
 
 if (!defined('_PS_VERSION_')) {
@@ -105,7 +106,7 @@ class CiklikEnv
      */
     private function isLive()
     {
-        $mode = \Configuration::get(Ciklik::CONFIG_MODE);
+        $mode = Configuration::get(Ciklik::CONFIG_MODE);
 
         if ('LIVE' === $mode) {
             return true;

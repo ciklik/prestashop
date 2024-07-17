@@ -39,11 +39,11 @@ class ShopData
     public $metadata;
 
     private function __construct(int $id,
-                                 string $host,
-                                 string $name,
-                                 array $paymentMethods,
-                                 array $webhooks,
-                                 array $metadata)
+        string $host,
+        string $name,
+        array $paymentMethods,
+        array $webhooks,
+        array $metadata)
     {
         $this->id = $id;
         $this->host = $host;

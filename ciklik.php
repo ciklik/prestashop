@@ -48,10 +48,10 @@ class Ciklik extends PaymentModule
     const CONFIG_ALLOW_CHANGE_NEXT_BILLING = 'CIKLIK_ALLOW_CHANGE_NEXT_BILLING';
 
     /**
-     * @var \Monolog\Logger
+     * @var Monolog\Logger
      */
     private $logger;
-    private $container = null;
+    private $container;
 
     public function __construct()
     {
@@ -77,7 +77,7 @@ class Ciklik extends PaymentModule
         $this->displayName = $this->l('Ciklik');
         $this->description = $this->l('Description');
         if ($this->container === null) {
-            $this->container = new \PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer(
+            $this->container = new PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer(
                 $this->name,
                 $this->getLocalPath()
             );
@@ -712,7 +712,7 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * @return \Monolog\Logger
+     * @return Monolog\Logger
      */
     public function getLogger()
     {
