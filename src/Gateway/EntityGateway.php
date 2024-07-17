@@ -16,5 +16,6 @@ if (!defined('_PS_VERSION_')) {
 interface EntityGateway
 {
     public function get();
+
     public function post();
 }

@@ -14,15 +14,14 @@ if (!defined('_PS_VERSION_')) {
 class SubscriptionDeliveryAddressData
 {
     private function __construct(
-        string      $first_name,
-        string      $last_name,
-        string      $address,
+        string $first_name,
+        string $last_name,
+        string $address,
         ?string $address1,
-        string      $postcode,
-        string      $city,
-        string      $country
-    )
-    {
+        string $postcode,
+        string $city,
+        string $country
+    ) {
         $this->first_name = $first_name;
         $this->last_name = $last_name;
         $this->address = $address;
@@ -51,7 +50,7 @@ class SubscriptionDeliveryAddressData
             $data['address1'] = '';
             $data['postcode'] = '';
             $data['city'] = '';
-            $data['country']['name']= '';
+            $data['country']['name'] = '';
         }
 
         return new self(

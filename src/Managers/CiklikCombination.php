@@ -44,7 +44,6 @@ class CiklikCombination
         return $ids;
     }
 
-
     public static function getOne(
         int $id_product,
         int $frequency_id_attribute,
@@ -72,7 +71,7 @@ class CiklikCombination
                     $constraint_query->where($constraint_queries[$i - 1]);
                 }
                 $constraint_queries[] = 'pa.id_product_attribute IN (' . $constraint_query->build() . ')';
-                $i++;
+                ++$i;
             }
 
             $query->where(end($constraint_queries));

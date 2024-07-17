@@ -7,7 +7,6 @@
 
 use PrestaShop\Module\Ciklik\Data\OrderData;
 use PrestaShop\Module\Ciklik\Data\OrderValidationData;
-use PrestaShop\Module\Ciklik\Gateway\Response;
 use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 
@@ -39,7 +38,7 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
 
         $orderData = (new \PrestaShop\Module\Ciklik\Api\Order($this->context->link))->getOne((int) Tools::getValue('ciklik_order_id'));
 
-        if (! $orderData instanceof OrderData) {
+        if (!$orderData instanceof OrderData) {
             $this->redirectToCheckout();
         }
 

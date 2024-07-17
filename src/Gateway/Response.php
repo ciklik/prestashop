@@ -27,13 +27,12 @@ class Response
     public function __construct(
         string $body = '{}',
         string $status = 'HTTP/1.1 200 OK'
-    )
-    {
-        header("Access-Control-Allow-Origin: *");
-        header("Content-Type: application/json; charset=UTF-8");
-        header("Access-Control-Allow-Methods: OPTIONS,GET,POST,PUT,DELETE");
-        header("Access-Control-Max-Age: 3600");
-        header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+    ) {
+        header('Access-Control-Allow-Origin: *');
+        header('Content-Type: application/json; charset=UTF-8');
+        header('Access-Control-Allow-Methods: OPTIONS,GET,POST,PUT,DELETE');
+        header('Access-Control-Max-Age: 3600');
+        header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With');
         $this->body = $body;
         $this->status = $status;
     }
@@ -60,7 +59,7 @@ class Response
     {
         header($this->status);
 
-        if (! is_null($this->body)) {
+        if (!is_null($this->body)) {
             echo $this->body;
         }
 

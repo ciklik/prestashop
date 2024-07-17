@@ -27,10 +27,10 @@ class OrderGateway extends AbstractGateway implements EntityGateway
 
     public function post()
     {
-        $cart = new Cart((int)Tools::getValue('prestashop_cart_id'));
+        $cart = new Cart((int) Tools::getValue('prestashop_cart_id'));
 
         if (!$cart->id) {
-            (new Response)->setBody(['error' => 'Cart not found'])->sendNotFound();
+            (new Response())->setBody(['error' => 'Cart not found'])->sendNotFound();
         }
 
         $context = Context::getContext();
@@ -38,26 +38,26 @@ class OrderGateway extends AbstractGateway implements EntityGateway
         $orderData = (new \PrestaShop\Module\Ciklik\Api\Order($context->link))->getOne((int) Tools::getValue('ciklik_order_id'));
 
         if ($cart->orderExists()) {
-            $sql = 'SELECT id_order FROM ' . _DB_PREFIX_ . 'orders WHERE id_cart = ' . (int)$cart->id;
+            $sql = 'SELECT id_order FROM ' . _DB_PREFIX_ . 'orders WHERE id_cart = ' . (int) $cart->id;
             $orderId = \Db::getInstance()->getValue($sql);
 
             $this->addDataToOrder(
                 (int) $orderId,
                 [
-                    'ciklik_order_id'   => $orderData->ciklik_order_id,
-                    'order_type'        => Tools::getValue('order_type'),
+                    'ciklik_order_id' => $orderData->ciklik_order_id,
+                    'order_type' => Tools::getValue('order_type'),
                     'subscription_uuid' => Tools::getValue('ciklik_subscription_uuid'),
                 ]
             );
 
-            (new Response)->setBody([
-                'ps_order_id'    => (int)$orderId,
-                'ps_customer_id' => (int)$cart->id_customer
+            (new Response())->setBody([
+                'ps_order_id' => (int) $orderId,
+                'ps_customer_id' => (int) $cart->id_customer,
             ])->sendCreated();
         }
 
         if (!$orderData instanceof OrderData) {
-            (new Response)->setBody(['error' => 'Order has not been retrieved'])->sendBadRequest();
+            (new Response())->setBody(['error' => 'Order has not been retrieved'])->sendBadRequest();
         }
 
         $orderValidationData = OrderValidationData::create($cart, $orderData);
@@ -79,14 +79,14 @@ class OrderGateway extends AbstractGateway implements EntityGateway
         $this->addDataToOrder(
             (int) $this->module->currentOrder,
             [
-                'ciklik_order_id'   => $orderData->ciklik_order_id,
-                'order_type'        => Tools::getValue('order_type'),
+                'ciklik_order_id' => $orderData->ciklik_order_id,
+                'order_type' => Tools::getValue('order_type'),
                 'subscription_uuid' => Tools::getValue('ciklik_subscription_uuid'),
             ]
         );
 
-        (new Response)->setBody([
-            'ps_order_id'    => (int) $this->module->currentOrder,
+        (new Response())->setBody([
+            'ps_order_id' => (int) $this->module->currentOrder,
             'ps_customer_id' => (int) $cart->id_customer,
         ])->sendCreated();
     }

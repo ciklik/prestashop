@@ -30,20 +30,20 @@ class CartGateway extends AbstractGateway implements EntityGateway
     {
         $filters = Tools::getValue('filter');
 
-        if (! array_key_exists('id', $filters)) {
-            (new Response)->setBody(['error' => 'Missing parameter : id'])->sendBadRequest();
+        if (!array_key_exists('id', $filters)) {
+            (new Response())->setBody(['error' => 'Missing parameter : id'])->sendBadRequest();
         }
 
         preg_match('/\[(?P<id>\d+)\]/', $filters['id'], $matches);
 
-        if (! array_key_exists('id', $matches)) {
-            (new Response)->setBody(['error' => 'Bad parameter : id'])->sendBadRequest();
+        if (!array_key_exists('id', $matches)) {
+            (new Response())->setBody(['error' => 'Bad parameter : id'])->sendBadRequest();
         }
 
         $cart = new Cart((int) $matches['id']);
 
-        if (! $cart->id) {
-            (new Response)->setBody(['error' => 'Cart not found'])->sendNotFound();
+        if (!$cart->id) {
+            (new Response())->setBody(['error' => 'Cart not found'])->sendNotFound();
         }
 
         $this->cartResponse($cart);
@@ -54,20 +54,20 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $cartFingerprint = Tools::getValue('fingerprint', null);
 
         if (is_null($cartFingerprint)) {
-            (new Response)->setBody(['error' => 'Missing parameter : fingerprint'])->sendBadRequest();
+            (new Response())->setBody(['error' => 'Missing parameter : fingerprint'])->sendBadRequest();
         }
 
         $cartFingerprintData = CartFingerprintData::unserialize($cartFingerprint);
 
         $customer = new Customer($cartFingerprintData->id_customer);
 
-        if (! $customer->id) {
-            (new Response)->setBody(['error' => 'Customer not found'])->sendNotFound();
+        if (!$customer->id) {
+            (new Response())->setBody(['error' => 'Customer not found'])->sendNotFound();
         }
 
         $carrier = Carrier::getCarrierByReference($cartFingerprintData->id_carrier_reference);
 
-        if (! $carrier->id) {
+        if (!$carrier->id) {
             $carrier = new Carrier((int) Configuration::get('PS_CARRIER_DEFAULT'));
         }
 
@@ -86,11 +86,11 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $variants = Tools::getValue('products', null);
 
         if (is_null($variants)) {
-            (new Response)->setBody(['error' => 'Missing parameter : products'])->sendBadRequest();
+            (new Response())->setBody(['error' => 'Missing parameter : products'])->sendBadRequest();
         }
 
-        if (! is_array($variants)) {
-            (new Response)->setBody(['error' => 'Bad parameter : products'])->sendBadRequest();
+        if (!is_array($variants)) {
+            (new Response())->setBody(['error' => 'Bad parameter : products'])->sendBadRequest();
         }
 
         foreach ($variants as $variant) {
@@ -101,11 +101,11 @@ class CartGateway extends AbstractGateway implements EntityGateway
             $query->where('`id_product_attribute` = "' . (int) $id_variant . '"');
             $id_product = Db::getInstance()->getValue($query);
 
-            if (! $id_product) {
-                (new Response)->setBody(['error' => "Product not found for variant {$id_variant}"])->sendNotFound();
+            if (!$id_product) {
+                (new Response())->setBody(['error' => "Product not found for variant {$id_variant}"])->sendNotFound();
             }
 
-            $cart->updateQty($quantity, (int)($id_product),(int)($id_variant));
+            $cart->updateQty($quantity, (int) ($id_product), (int) ($id_variant));
         }
 
         $cart->update();
@@ -120,7 +120,6 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $summary = $cart->getRawSummaryDetails((int) Configuration::get('PS_LANG_DEFAULT'));
 
         foreach ($summary['products'] as $product) {
-
             $frequency = CiklikFrequency::getByIdProductAttribute((int) $product['id_product_attribute']);
 
             $items[] = [
@@ -132,10 +131,8 @@ class CartGateway extends AbstractGateway implements EntityGateway
                 'quantity' => $product['cart_quantity'],
                 'interval' => $frequency['interval'] ?? null,
                 'interval_count' => $frequency['interval_count'] ?? null,
-                'name' => $product['name']
+                'name' => $product['name'],
             ];
-
-
         }
 
         if ($summary['total_shipping_tax_exc'] > 0) {
@@ -177,7 +174,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
             $body['cancel_url'] = $context->link->getPageLink('order', true, (int) $context->language->id, ['step' => 1]);
         }
 
-        (new Response)
+        (new Response())
             ->setBody([$body])
             ->send();
     }

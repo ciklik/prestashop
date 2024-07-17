@@ -64,7 +64,7 @@ class Ciklik extends PaymentModule
         $this->currencies_mode = 'checkbox';
         $this->ps_versions_compliancy = [
             'min' => '1.7.7',
-            'max' => '8.99.99'
+            'max' => '8.99.99',
         ];
         $this->controllers = [
             'account',
@@ -93,7 +93,6 @@ class Ciklik extends PaymentModule
         if (!parent::install()) {
             return false;
         }
-
 
         $this->getService('prestashop.module.ciklik.ps_accounts_installer')->install();
 
@@ -125,12 +124,12 @@ class Ciklik extends PaymentModule
      */
     public function hookActionAttributeSave(array $params)
     {
-        if (CiklikAttribute::isFrequencyAttribute((int)$params['id_attribute'])) {
+        if (CiklikAttribute::isFrequencyAttribute((int) $params['id_attribute'])) {
             CiklikFrequency::save(
-                (int)$params['id_attribute'],
+                (int) $params['id_attribute'],
                 Tools::getValue('interval'),
-                (int)Tools::getValue('interval_count'),
-                (int)Tools::getValue('id_frequency', 0)
+                (int) Tools::getValue('interval_count'),
+                (int) Tools::getValue('id_frequency', 0)
             );
         }
     }
@@ -142,7 +141,7 @@ class Ciklik extends PaymentModule
      */
     public function hookActionAttributeDelete(array $params)
     {
-        CiklikFrequency::deleteByIdAttribute((int)$params['id_attribute']);
+        CiklikFrequency::deleteByIdAttribute((int) $params['id_attribute']);
     }
 
     /**
@@ -163,13 +162,13 @@ class Ciklik extends PaymentModule
             return;
         }
 
-        $this->addCheckboxCarrierRestrictionsForModule([(int)$shop->id]);
-        $this->addCheckboxCountryRestrictionsForModule([(int)$shop->id]);
+        $this->addCheckboxCarrierRestrictionsForModule([(int) $shop->id]);
+        $this->addCheckboxCountryRestrictionsForModule([(int) $shop->id]);
 
         if ($this->currencies_mode === 'checkbox') {
-            $this->addCheckboxCurrencyRestrictionsForModule([(int)$shop->id]);
+            $this->addCheckboxCurrencyRestrictionsForModule([(int) $shop->id]);
         } elseif ($this->currencies_mode === 'radio') {
-            $this->addRadioCurrencyRestrictionsForModule([(int)$shop->id]);
+            $this->addRadioCurrencyRestrictionsForModule([(int) $shop->id]);
         }
     }
 
@@ -178,12 +177,11 @@ class Ciklik extends PaymentModule
      */
     public function hookDisplayAttributeForm(array $params)
     {
-        if (CiklikAttribute::isFrequencyAttribute((int)$params['id_attribute'])) {
-
+        if (CiklikAttribute::isFrequencyAttribute((int) $params['id_attribute'])) {
             $translator = $this->getTranslator();
 
             $this->context->smarty->assign([
-                'frequency' => CiklikFrequency::getByIdAttribute((int)$params['id_attribute']),
+                'frequency' => CiklikFrequency::getByIdAttribute((int) $params['id_attribute']),
                 'intervals' => [
                     [
                         'label' => $translator->trans('Mensuel', [], 'Modules.Ciklik'),
@@ -211,7 +209,7 @@ class Ciklik extends PaymentModule
     */
     public function hookActionAfterUpdateProductFormHandler(array $params): void
     {
-        CiklikSubscribable::handle((int)$params['form_data']['id']);
+        CiklikSubscribable::handle((int) $params['form_data']['id']);
     }
 
     /*
@@ -219,20 +217,20 @@ class Ciklik extends PaymentModule
      */
     public function hookActionObjectProductUpdateAfter(array $params): void
     {
-        CiklikSubscribable::handle((int)$params['object']->id);
+        CiklikSubscribable::handle((int) $params['object']->id);
     }
 
     public function hookActionObjectProductAddAfter(array $params): void
     {
-        CiklikSubscribable::handle((int)$params['object']->id);
+        CiklikSubscribable::handle((int) $params['object']->id);
     }
 
     public function hookActionProductDelete(array $params): void
     {
         if (isset($params['id_product'])) {
-            CiklikSubscribable::deleteByIdProduct((int)$params['id_product']);
+            CiklikSubscribable::deleteByIdProduct((int) $params['id_product']);
         } else {
-            CiklikSubscribable::handle((int)$params['object']->id);
+            CiklikSubscribable::handle((int) $params['object']->id);
         }
     }
 
@@ -267,11 +265,9 @@ class Ciklik extends PaymentModule
         $paymentOptions = [];
 
         if (CiklikSubscribable::cartHasSubscribable($cart)) {
-
             $shopData = (new Shop($this->context->link))->whoIAm();
 
             if ($shopData instanceof ShopData && count($shopData->paymentMethods)) {
-
                 $language = new Language($this->context->cart->id_lang);
 
                 foreach ($shopData->paymentMethods as $method) {
@@ -314,8 +310,8 @@ class Ciklik extends PaymentModule
      * @param array $params
      *
      * @return string
-     * @since PrestaShop 1.7.7 This hook replace displayAdminOrderLeft on migrated BO Order View
      *
+     * @since PrestaShop 1.7.7 This hook replace displayAdminOrderLeft on migrated BO Order View
      */
     public function hookDisplayAdminOrderMainBottom(array $params)
     {
@@ -323,13 +319,13 @@ class Ciklik extends PaymentModule
             return '';
         }
 
-        $order = new Order((int)$params['id_order']);
+        $order = new Order((int) $params['id_order']);
 
         if (false === Validate::isLoadedObject($order) || $order->module !== $this->name) {
             return '';
         }
 
-        require_once dirname(__FILE__) . "/controllers/hook/DisplayRefundsHookController.php";
+        require_once dirname(__FILE__) . '/controllers/hook/DisplayRefundsHookController.php';
 
         $controller = new DisplayRefundsHookController($this);
 
@@ -521,14 +517,14 @@ class Ciklik extends PaymentModule
                 'keywords' => [
                     'request' => [
                         'regexp' => '.*',
-                        'param' => 'request'
-                    ]
+                        'param' => 'request',
+                    ],
                 ],
                 'controller' => 'gateway',
                 'params' => [
                     'fc' => 'module',
-                    'module' => $this->name
-                ]
+                    'module' => $this->name,
+                ],
             ],
 
             'module-ciklik-subscription' => [
@@ -536,18 +532,18 @@ class Ciklik extends PaymentModule
                 'keywords' => [
                     'uuid' => [
                         'regexp' => '.*',
-                        'param' => 'uuid'
+                        'param' => 'uuid',
                     ],
                     'action' => [
                         'regexp' => '.*',
-                        'param' => 'action'
-                    ]
+                        'param' => 'action',
+                    ],
                 ],
                 'controller' => 'subscription',
                 'params' => [
                     'fc' => 'module',
-                    'module' => $this->name
-                ]
+                    'module' => $this->name,
+                ],
             ],
 
             'module-ciklik-rebill' => [
@@ -555,14 +551,14 @@ class Ciklik extends PaymentModule
                 'keywords' => [
                     'ciklik_order_id' => [
                         'regexp' => '[0-9]*',
-                        'param' => 'ciklik_order_id'
+                        'param' => 'ciklik_order_id',
                     ],
                 ],
                 'controller' => 'rebill',
                 'params' => [
                     'fc' => 'module',
-                    'module' => $this->name
-                ]
+                    'module' => $this->name,
+                ],
             ],
 
             'module-ciklik-refund' => [
@@ -570,8 +566,8 @@ class Ciklik extends PaymentModule
                 'controller' => 'refund',
                 'params' => [
                     'fc' => 'module',
-                    'module' => $this->name
-                ]
+                    'module' => $this->name,
+                ],
             ],
         ];
     }
@@ -594,7 +590,7 @@ class Ciklik extends PaymentModule
         $query->select('pac.id_attribute, a.id_attribute_group');
         $query->from('product_attribute_combination', 'pac');
         $query->leftJoin('attribute', 'a', 'a.id_attribute = pac.id_attribute');
-        $query->where('pac.id_product_attribute = ' . (int)$product['id_product_attribute']);
+        $query->where('pac.id_product_attribute = ' . (int) $product['id_product_attribute']);
         $attributes = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query);
 
         $ciklik_attributes = [
@@ -608,40 +604,40 @@ class Ciklik extends PaymentModule
         if (count($attributes)) {
             foreach ($attributes as $attribute) {
                 switch ($attribute['id_attribute_group']) {
-                    case (int)Configuration::get(self::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID):
+                    case (int) Configuration::get(self::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID):
                         $purchase_type_attribute = $attribute;
                         break;
-                    case (int)Configuration::get(self::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID):
+                    case (int) Configuration::get(self::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID):
                         $frequency_attribute = $attribute;
                         break;
                     default:
-                        $constraint_attributes_ids[] = (int)$attribute['id_attribute'];
+                        $constraint_attributes_ids[] = (int) $attribute['id_attribute'];
                 }
             }
 
             if (null !== $purchase_type_attribute) {
-                if ((int) $purchase_type_attribute['id_attribute'] === (int)Configuration::get(self::CONFIG_ONEOFF_ATTRIBUTE_ID)) {
+                if ((int) $purchase_type_attribute['id_attribute'] === (int) Configuration::get(self::CONFIG_ONEOFF_ATTRIBUTE_ID)) {
                     $ciklik_attributes['enabled'] = true;
                     $ciklik_attributes['selected'] = false;
-                    $ciklik_attributes['reference_id_product_attribute'] = (int)$product['id_product_attribute'];
+                    $ciklik_attributes['reference_id_product_attribute'] = (int) $product['id_product_attribute'];
                     $ciklik_attributes['current_id_product_attribute'] = $ciklik_attributes['reference_id_product_attribute'];
-                    $ciklik_attributes['subscription_reference_price'] = Product::getPriceStatic((int)$product['id_product'], true, (int)$product['id_product_attribute']);
-                    $ciklik_attributes['frequency_id_attribute'] = (int)Configuration::get(self::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID);
+                    $ciklik_attributes['subscription_reference_price'] = Product::getPriceStatic((int) $product['id_product'], true, (int) $product['id_product_attribute']);
+                    $ciklik_attributes['frequency_id_attribute'] = (int) Configuration::get(self::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID);
 
                     $attribute = CiklikCombination::getOne(
-                        (int)$product['id_product'],
+                        (int) $product['id_product'],
                         $ciklik_attributes['frequency_id_attribute'],
                         $constraint_attributes_ids
                     );
 
-                    if (!is_array($attribute) || !(int)$attribute['id_product_attribute']) {
+                    if (!is_array($attribute) || !(int) $attribute['id_product_attribute']) {
                         return [];
                     }
 
-                    $ciklik_attributes['id_product_attribute'] = (int)$attribute['id_product_attribute'];
+                    $ciklik_attributes['id_product_attribute'] = (int) $attribute['id_product_attribute'];
 
                     if (Tools::getValue('action') === 'refresh') {
-                        if ((bool)Configuration::get(self::CONFIG_DELEGATE_OPTIONS_DISPLAY) && Tools::getValue('ciklik')) {
+                        if ((bool) Configuration::get(self::CONFIG_DELEGATE_OPTIONS_DISPLAY) && Tools::getValue('ciklik')) {
                             $ciklik_attributes['selected'] = true;
                             $ciklik_attributes['current_id_product_attribute'] = $ciklik_attributes['id_product_attribute'];
                         } else {
@@ -649,28 +645,28 @@ class Ciklik extends PaymentModule
                             $ciklik_attributes['current_id_product_attribute'] = $ciklik_attributes['reference_id_product_attribute'];
                         }
                     }
-                } else if ((int) $purchase_type_attribute['id_attribute'] === (int) Configuration::get(self::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID)) {
+                } elseif ((int) $purchase_type_attribute['id_attribute'] === (int) Configuration::get(self::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID)) {
                     $ciklik_attributes['frequency_id_attribute'] = (int) $frequency_attribute['id_attribute'];
                     $ciklik_attributes['enabled'] = true;
                     $ciklik_attributes['selected'] = true;
-                    $ciklik_attributes['id_product_attribute'] = (int)$product['id_product_attribute'];
+                    $ciklik_attributes['id_product_attribute'] = (int) $product['id_product_attribute'];
                     $ciklik_attributes['current_id_product_attribute'] = $ciklik_attributes['id_product_attribute'];
 
                     $attribute = CiklikCombination::getOne(
-                        (int)$product['id_product'],
-                        (int)Configuration::get(self::CONFIG_ONEOFF_ATTRIBUTE_ID),
+                        (int) $product['id_product'],
+                        (int) Configuration::get(self::CONFIG_ONEOFF_ATTRIBUTE_ID),
                         $constraint_attributes_ids
                     );
 
-                    if (!is_array($attribute) || !(int)$attribute['id_product_attribute']) {
+                    if (!is_array($attribute) || !(int) $attribute['id_product_attribute']) {
                         return [];
                     }
 
-                    $ciklik_attributes['reference_id_product_attribute'] = (int)$attribute['id_product_attribute'];
-                    $ciklik_attributes['subscription_reference_price'] = Product::getPriceStatic((int)$product['id_product'], true, $ciklik_attributes['reference_id_product_attribute']);
+                    $ciklik_attributes['reference_id_product_attribute'] = (int) $attribute['id_product_attribute'];
+                    $ciklik_attributes['subscription_reference_price'] = Product::getPriceStatic((int) $product['id_product'], true, $ciklik_attributes['reference_id_product_attribute']);
 
                     if (Tools::getValue('action') === 'refresh') {
-                        if ((bool)Configuration::get(self::CONFIG_DELEGATE_OPTIONS_DISPLAY) && !Tools::getValue('ciklik')) {
+                        if ((bool) Configuration::get(self::CONFIG_DELEGATE_OPTIONS_DISPLAY) && !Tools::getValue('ciklik')) {
                             $ciklik_attributes['selected'] = false;
                             $ciklik_attributes['current_id_product_attribute'] = $ciklik_attributes['reference_id_product_attribute'];
                         } else {
@@ -729,7 +725,6 @@ class Ciklik extends PaymentModule
 
         return $this->logger;
     }
-
 
     public function getService($serviceName)
     {

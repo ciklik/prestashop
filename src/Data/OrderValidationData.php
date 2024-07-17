@@ -49,14 +49,14 @@ class OrderValidationData
      */
     public $secure_key;
 
-    private function __construct(int    $id_cart,
-                                 int    $id_order_state,
-                                 float  $amount_paid,
+    private function __construct(int $id_cart,
+                                 int $id_order_state,
+                                 float $amount_paid,
                                  string $payment_method,
                                  ?string $message,
-                                 array  $extra_vars,
-                                 int    $currency_special,
-                                 bool   $dont_touch_amount,
+                                 array $extra_vars,
+                                 int $currency_special,
+                                 bool $dont_touch_amount,
                                  string $secure_key)
     {
         $this->id_cart = $id_cart;
@@ -79,7 +79,7 @@ class OrderValidationData
             $orderData->getPspName(),
             null,
             [
-                'transaction_id' => $orderData->paid_transaction_id
+                'transaction_id' => $orderData->paid_transaction_id,
             ],
             $cart->id_currency,
             false,

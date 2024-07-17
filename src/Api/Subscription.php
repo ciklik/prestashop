@@ -40,7 +40,7 @@ class Subscription extends CiklikApiClient
         $this->setRoute("subscriptions/{$ciklik_subscription_uuid}");
 
         return $this->put([
-            'json' => $data
-        ] );
+            'json' => $data,
+        ]);
     }
 }

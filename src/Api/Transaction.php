@@ -42,8 +42,8 @@ class Transaction extends CiklikApiClient
         $response = $this->put([
             'json' => [
                 'amount' => $amount,
-            ]
-        ] );
+            ],
+        ]);
 
         if ($response['status']) {
             return TransactionData::create($response['body']);

@@ -34,8 +34,7 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
         $ciklik_customer = CiklikCustomer::getByIdCustomer((int) $this->context->customer->id);
 
         if (array_key_exists('ciklik_uuid', $ciklik_customer)
-            && ! is_null($ciklik_customer['ciklik_uuid']))
-        {
+            && !is_null($ciklik_customer['ciklik_uuid'])) {
             $subscriptionsData = (new Subscription($this->context->link))
                 ->getAll(['query' => ['filter' => ['customer_id' => $ciklik_customer['ciklik_uuid']]]]);
         }
@@ -47,7 +46,7 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
             'allow_change_next_billing' => Configuration::get(Ciklik::CONFIG_ALLOW_CHANGE_NEXT_BILLING),
             'engagement_interval' => Configuration::get(Ciklik::CONFIG_ENGAGEMENT_INTERVAL),
             'engagement_interval_count' => (int) Configuration::get(Ciklik::CONFIG_ENGAGEMENT_INTERVAL_COUNT),
-            'addresses'=> $this->context->customer->getAddresses($this->context->language->id),
+            'addresses' => $this->context->customer->getAddresses($this->context->language->id),
         ]);
 
         $this->setTemplate('module:ciklik/views/templates/front/account.tpl');

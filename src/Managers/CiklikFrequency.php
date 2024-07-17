@@ -39,7 +39,7 @@ class CiklikFrequency
 
     public static function getByIdAttribute(int $id_attribute): array
     {
-        return (array) Db::getInstance()->getRow('SELECT * FROM `'._DB_PREFIX_.'ciklik_frequencies` WHERE `id_attribute` = '.$id_attribute);
+        return (array) Db::getInstance()->getRow('SELECT * FROM `' . _DB_PREFIX_ . 'ciklik_frequencies` WHERE `id_attribute` = ' . $id_attribute);
     }
 
     public static function getByIdProductAttribute(int $id_product_attribute): array

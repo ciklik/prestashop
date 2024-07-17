@@ -18,7 +18,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        if (! CiklikRefund::canRun()) {
+        if (!CiklikRefund::canRun()) {
             $this->ajaxFailAndDie(
                 $this->module->l('Unauthorized')
             );
@@ -60,7 +60,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
     {
         $transaction_id = CiklikTransaction::getIdByOrder($order);
 
-        if (! $transaction_id) {
+        if (!$transaction_id) {
             $this->ajaxFailAndDie(
                 $this->module->l('Error: Could not find Ciklik transaction')
             );
@@ -95,6 +95,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
                     $this->ajaxFailAndDie(
                         $this->module->l('Error: Amount is higher than maximum refundable'));
                 }
+
                 return $amount;
             case 'total':
                 return $maxAmount;

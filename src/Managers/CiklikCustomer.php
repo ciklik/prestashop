@@ -35,7 +35,7 @@ class CiklikCustomer
 
     public static function getByIdCustomer(int $id_customer): array
     {
-        return (array) Db::getInstance()->getRow('SELECT * FROM `'._DB_PREFIX_.'ciklik_customers` WHERE `id_customer` = '.$id_customer);
+        return (array) Db::getInstance()->getRow('SELECT * FROM `' . _DB_PREFIX_ . 'ciklik_customers` WHERE `id_customer` = ' . $id_customer);
     }
 
     public static function deleteByIdCustomer(int $id_customer): bool

@@ -20,7 +20,6 @@ class CiklikTransaction
     public static function getIdByOrder(Order $order)
     {
         if ('ciklik' === $order->module && $order->valid) {
-
             $orderPayments = OrderPayment::getByOrderReference($order->reference);
 
             if ($orderPayments && isset($orderPayments[0])) {

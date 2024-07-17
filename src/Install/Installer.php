@@ -33,23 +33,23 @@ class Installer
      */
     public function install(Module $module): bool
     {
-        if (! $this->installDatabase()) {
+        if (!$this->installDatabase()) {
             return false;
         }
 
-        if (! RelatedEntitiesManager::install()) {
+        if (!RelatedEntitiesManager::install()) {
             return false;
         }
 
-        if (! $this->registerHooks($module)) {
+        if (!$this->registerHooks($module)) {
             return false;
         }
 
-        if (! $this->installConfiguration()) {
+        if (!$this->installConfiguration()) {
             return false;
         }
 
-        if (! $this->installWebservice()) {
+        if (!$this->installWebservice()) {
             return false;
         }
 
@@ -136,7 +136,6 @@ class Installer
         $webservice->save();
 
         if ($webservice) {
-
             Configuration::updateValue(Ciklik::CONFIG_WEBSERVICE_ID, $webservice->id);
 
             $permissions = [
@@ -232,8 +231,6 @@ class Installer
                 'paymentOptions',
             ];
         }
-
-
 
         return (bool) $module->registerHook($hooks);
     }

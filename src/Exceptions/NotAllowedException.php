@@ -13,5 +13,4 @@ if (!defined('_PS_VERSION_')) {
 
 class NotAllowedException extends \Exception
 {
-
 }

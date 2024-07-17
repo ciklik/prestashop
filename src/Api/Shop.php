@@ -36,7 +36,7 @@ class Shop extends CiklikApiClient
             array_merge(
                 $options,
                 [
-                    'json' => ['metadata' => $metadata]
+                    'json' => ['metadata' => $metadata],
                 ]
             )
         );

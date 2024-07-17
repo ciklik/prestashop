@@ -32,7 +32,7 @@ class CiklikGatewayModuleFrontController extends ModuleFrontController
                 (new OrderGateway($this->module))->handle();
                 break;
             default:
-                (new Response)->setBody(['error' => "{$request} method doesn't exist"])->sendMethodNotAllowed();
+                (new Response())->setBody(['error' => "{$request} method doesn't exist"])->sendMethodNotAllowed();
                 break;
         }
     }

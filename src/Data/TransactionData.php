@@ -50,14 +50,14 @@ class TransactionData
      */
     public $created_at;
 
-    private function __construct(string             $transaction_id,
-                                 string             $gateway,
-                                 float              $amount,
-                                 bool               $paid,
-                                 bool               $refunded,
-                                 float              $amount_refunded,
-                                 ?string            $failure_message,
-                                 ?string            $failure_code,
+    private function __construct(string $transaction_id,
+                                 string $gateway,
+                                 float $amount,
+                                 bool $paid,
+                                 bool $refunded,
+                                 float $amount_refunded,
+                                 ?string $failure_message,
+                                 ?string $failure_code,
                                  \DateTimeImmutable $created_at)
     {
         $this->transaction_id = $transaction_id;

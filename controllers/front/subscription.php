@@ -72,12 +72,10 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         }
 
         $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
-
     }
 
     private function updateaddress()
     {
-
         $address = new \Address(Tools::getValue('changeAddressForm'));
 
         if ($this->context->customer->id !== (int) $address->id_customer) {
@@ -95,7 +93,6 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             Tools::getValue('uuid'),
             ['metadata' => ['prestashop_fingerprint' => $sub->external_fingerprint->serialize()]]
         );
-
 
         if (count($result['errors'])) {
             foreach ($result['errors'] as $key => $error) {

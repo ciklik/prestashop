@@ -31,5 +31,4 @@ class CiklikRefund
                 || $cookie->remote_addr == ip2long(Tools::getRemoteAddr())
                 || !Configuration::get('PS_COOKIE_CHECKIP'));
     }
-
 }

@@ -21,17 +21,13 @@ class CiklikSubscribable
         $combinations = CiklikCombination::get($id_product);
 
         if (count($combinations)) {
-
-            if (! static::isSubscribable($id_product)) {
+            if (!static::isSubscribable($id_product)) {
                 static::create($id_product);
             }
 
             CiklikSubscribableVariant::pushToCiklik($id_product, $combinations);
-
         } else {
-
             static::deleteByIdProduct($id_product);
-
         }
     }
 
@@ -65,11 +61,10 @@ class CiklikSubscribable
 
         foreach ($products as $product) {
             if (array_key_exists('id_product_attribute', $product) && (int) $product['id_product_attribute']) {
-
                 $combinations = CiklikCombination::get($product['id_product']);
 
-                foreach($combinations as $combination) {
-                    if($product['id_product_attribute'] === $combination['id_product_attribute']) {
+                foreach ($combinations as $combination) {
+                    if ($product['id_product_attribute'] === $combination['id_product_attribute']) {
                         return true;
                     }
                 }

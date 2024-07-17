@@ -19,7 +19,7 @@ class CiklikAttributeGroup
         $attributeGroup->group_type = 'radio';
         $attributeGroup->position = \AttributeGroup::getHigherPosition() + 1;
         $attributeGroupName = [
-            \Configuration::get('PS_LANG_DEFAULT') => $name
+            \Configuration::get('PS_LANG_DEFAULT') => $name,
         ];
         $attributeGroup->name = $attributeGroupName;
         $attributeGroup->public_name = $attributeGroupName;

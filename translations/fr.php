@@ -1,7 +1,7 @@
 <?php
 
 global $_MODULE;
-$_MODULE = array();
+$_MODULE = [];
 $_MODULE['<{ciklik}prestashop>ciklik_f86d81c8115472f6475fe9e0520c6dd8'] = 'Ciklik, gestion des abonnements';
 $_MODULE['<{ciklik}prestashop>ciklik_b5a7adde1af5c87d7fd797b6245c2a39'] = 'Fidélisez vos clients et augmentez votre chiffre d’affaires avec notre solution plug & play.';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a02758d758e8bec77a33d7f392eb3f8a'] = 'Aucune devise n\'a été configurée pour ce module.';

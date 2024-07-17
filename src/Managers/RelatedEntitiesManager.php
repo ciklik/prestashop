@@ -21,7 +21,7 @@ class RelatedEntitiesManager
         $purchaseTypeAttributeGroup = CiklikAttributeGroup::create("Type d'achat", 1);
         $frequenciesAttributeGroup = CiklikAttributeGroup::create("Fréquence d'abonnement", 2);
 
-        if (! $purchaseTypeAttributeGroup || ! $frequenciesAttributeGroup) {
+        if (!$purchaseTypeAttributeGroup || !$frequenciesAttributeGroup) {
             return false;
         }
 
@@ -59,7 +59,7 @@ class RelatedEntitiesManager
             $id_attribute = CiklikAttribute::create($properties['attribute_name'], $frequenciesAttributeGroup->id);
             CiklikFrequency::save($id_attribute, $properties['interval'], $properties['interval_count']);
 
-            if (! $key) {
+            if (!$key) {
                 Configuration::updateValue(Ciklik::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID, $id_attribute);
             }
         }

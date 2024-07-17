@@ -31,7 +31,7 @@ class CiklikApiResponseHandler
             'httpCode' => $response->getStatusCode(),
             'body' => array_key_exists('data', $responseContents) ? $responseContents['data'] : [],
             'message' => $response->getReasonPhrase(),
-            'errors' => $responseContents['errors'] ?? []
+            'errors' => $responseContents['errors'] ?? [],
         ];
     }
 

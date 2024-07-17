@@ -18,7 +18,7 @@ class Subscribable extends CiklikApiClient
         $this->setRoute('products');
 
         return $this->post([
-            'json' => $variant
-        ] );
+            'json' => $variant,
+        ]);
     }
 }

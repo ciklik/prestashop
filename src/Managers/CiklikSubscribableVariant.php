@@ -46,8 +46,8 @@ class CiklikSubscribableVariant
                         [
                             'interval' => $frequency['interval'],
                             'interval_count' => $frequency['interval_count'],
-                        ]
-                    ]
+                        ],
+                    ],
                 ];
             }
 
@@ -59,10 +59,10 @@ class CiklikSubscribableVariant
 
     public static function formatName(array $combination, Product $product): string
     {
-        $suffix = '' ;
+        $suffix = '';
         $suffixes = implode(',', json_decode(Configuration::get(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES), true));
 
-        if (! (string)$suffixes === '') {
+        if (!(string) $suffixes === '') {
             $query = new DbQuery();
             $query->select('al.name');
             $query->from('product_attribute', 'pa');

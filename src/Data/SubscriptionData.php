@@ -53,17 +53,16 @@ class SubscriptionData
      */
     public $external_fingerprint;
 
-    private function __construct(string                          $uuid,
-                                 bool                            $active,
-                                 string                          $display_content,
-                                 string                          $display_interval,
+    private function __construct(string $uuid,
+                                 bool $active,
+                                 string $display_content,
+                                 string $display_interval,
                                  SubscriptionDeliveryAddressData $address,
-                                 \DateTimeImmutable              $next_billing,
-                                 \DateTimeImmutable              $created_at,
-                                 \DateTimeImmutable              $end_date,
-                                 CartFingerprintData             $external_fingerprint
-    )
-    {
+                                 \DateTimeImmutable $next_billing,
+                                 \DateTimeImmutable $created_at,
+                                 \DateTimeImmutable $end_date,
+                                 CartFingerprintData $external_fingerprint
+    ) {
         $this->uuid = $uuid;
         $this->active = $active;
         $this->display_content = $display_content;

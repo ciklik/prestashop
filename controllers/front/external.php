@@ -76,7 +76,7 @@ class CiklikExternalModuleFrontController extends ModuleFrontController
      */
     private function checkIfPaymentOptionIsAvailable()
     {
-        if (! Configuration::get(Ciklik::CONFIG_HOST)) {
+        if (!Configuration::get(Ciklik::CONFIG_HOST)) {
             return false;
         }
 

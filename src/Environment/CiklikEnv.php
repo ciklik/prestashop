@@ -97,7 +97,7 @@ class CiklikEnv
     {
         return $this->ciklikApiUrl;
     }
-    
+
     /**
      * Check if the module is in SANDBOX or LIVE mode
      *

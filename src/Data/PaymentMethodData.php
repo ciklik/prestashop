@@ -30,8 +30,8 @@ class PaymentMethodData
      */
     public $description;
 
-    private function __construct(int    $id,
-                                 array  $name,
+    private function __construct(int $id,
+                                 array $name,
                                  string $class_key,
                                  ?array $description)
     {

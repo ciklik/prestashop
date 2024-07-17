@@ -28,10 +28,10 @@ abstract class AbstractGateway implements EntityGateway
     {
         $webservice = new WebserviceKey(Configuration::get(Ciklik::CONFIG_WEBSERVICE_ID));
 
-        if (! array_key_exists('HTTP_AUTHORIZATION', $_SERVER)
+        if (!array_key_exists('HTTP_AUTHORIZATION', $_SERVER)
             || 'Basic ' . base64_encode($webservice->key . ':') !== $_SERVER['HTTP_AUTHORIZATION']
         ) {
-            (new Response)->sendUnauthorized();
+            (new Response())->sendUnauthorized();
         }
 
         $this->module = $module;
@@ -47,28 +47,28 @@ abstract class AbstractGateway implements EntityGateway
                 $this->post();
                 break;
             default:
-                (new Response)->setBody(['error' => "{$_SERVER['REQUEST_METHOD']} method is not allowed"])->sendMethodNotAllowed();
+                (new Response())->setBody(['error' => "{$_SERVER['REQUEST_METHOD']} method is not allowed"])->sendMethodNotAllowed();
                 break;
         }
     }
 
     public function get()
     {
-        (new Response)->setBody(['error' => 'GET method doesn\'t exist'])->sendMethodNotAllowed();
+        (new Response())->setBody(['error' => 'GET method doesn\'t exist'])->sendMethodNotAllowed();
     }
 
     public function post()
     {
-        (new Response)->setBody(['error' => 'POST method doesn\'t exist'])->sendMethodNotAllowed();
+        (new Response())->setBody(['error' => 'POST method doesn\'t exist'])->sendMethodNotAllowed();
     }
 
     public function put()
     {
-        (new Response)->setBody(['error' => 'PUT method doesn\'t exist'])->sendMethodNotAllowed();
+        (new Response())->setBody(['error' => 'PUT method doesn\'t exist'])->sendMethodNotAllowed();
     }
 
     public function delete()
     {
-        (new Response)->setBody(['error' => 'DELETE method doesn\'t exist'])->sendMethodNotAllowed();
+        (new Response())->setBody(['error' => 'DELETE method doesn\'t exist'])->sendMethodNotAllowed();
     }
 }

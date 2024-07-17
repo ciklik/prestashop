@@ -54,7 +54,7 @@ class CiklikAttribute
 
     public static function isFrequencyAttribute(int $id_attribute): bool
     {
-        if (! $id_attribute) {
+        if (!$id_attribute) {
             return (int) Configuration::get('CIKLIK_FREQUENCIES_ATTRIBUTE_GROUP_ID') === (int) Tools::getValue('id_attribute_group');
         }
 
