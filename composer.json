@@ -46,7 +46,12 @@
         "vlucas/phpdotenv": "^3.4"
     },
     "require-dev": {
-        "prestashop/php-dev-tools": "~3.0"
+        "friendsofphp/php-cs-fixer": "^2.19",
+        "phpstan/phpstan": "^1.11",
+        "prestashop/autoindex": "^2.1",
+        "prestashop/header-stamp": "^2.3",
+        "prestashop/php-dev-tools": "^5.0",
+        "squizlabs/php_codesniffer": "^3.10"
     },
     "author": "Ciklik"
 }
