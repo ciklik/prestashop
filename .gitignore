@@ -11,3 +11,4 @@ js/node_modules
 /img/
 /.vscode/
 sftp-config.json
+.php_cs.cache
