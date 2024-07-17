@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -24,7 +25,7 @@ class IntervalHelper
     {
         $verb = $interval === 'month' ? ucfirst((string) $interval) . 'sNoOverflow' : ucfirst((string) $interval) . 's';
         $method = 'add' . $verb;
+
         return $date->$method($intervalCount);
     }
-
 }
