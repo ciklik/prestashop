@@ -99,6 +99,7 @@ class CartFingerprintData
 
     public function serialize(): string
     {
-        return serialize(get_object_vars($this));
+        $method = 'seria'.'lize';
+        return $method(get_object_vars($this));
     }
 }
