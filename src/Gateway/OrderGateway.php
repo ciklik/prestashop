@@ -10,13 +10,14 @@ declare(strict_types=1);
 namespace PrestaShop\Module\Ciklik\Gateway;
 
 use Cart;
+use Order;
+use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
+use Tools;
 use Context;
 use Db;
 use PrestaShop\Module\Ciklik\Data\OrderData;
 use PrestaShop\Module\Ciklik\Data\OrderValidationData;
-use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
-use Tools;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -51,9 +52,12 @@ class OrderGateway extends AbstractGateway implements EntityGateway
                 ]
             );
 
+            $order = new Order((int) $orderId);
+
             (new Response())->setBody([
-                'ps_order_id' => (int) $orderId,
-                'ps_customer_id' => (int) $cart->id_customer,
+                'ps_order_id'    => (int)$orderId,
+                'ps_customer_id' => (int)$cart->id_customer,
+                'ps_id_address_delivery' => (int) $order->id_address_delivery,
             ])->sendCreated();
         }
 
@@ -86,9 +90,12 @@ class OrderGateway extends AbstractGateway implements EntityGateway
             ]
         );
 
+        $order = new Order((int) $this->module->currentOrder);
+
         (new Response())->setBody([
-            'ps_order_id' => (int) $this->module->currentOrder,
+            'ps_order_id'    => (int) $this->module->currentOrder,
             'ps_customer_id' => (int) $cart->id_customer,
+            'ps_id_address_delivery' => (int) $order->id_address_delivery,
         ])->sendCreated();
     }
 }
