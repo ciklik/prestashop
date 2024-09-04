@@ -3,7 +3,7 @@
 ### Tips
 
 * Pour cacher les autres méthodes de paiement, quand il y a un abonnement dans le panier ,
-ouvrir le fichier `themes/{theme}/templates/checkout/_partials/steps/payment.tpl` et ajouter le code suivant en dessous de :
+ouvrir le fichier `themes/{theme}/templates/checkout/_partials/steps/payment.tpl` et ajouter le code suivant au-dessus de :
 `{foreach from=$module_options item="option"}`
 
 ```

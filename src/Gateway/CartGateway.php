@@ -17,6 +17,7 @@ use Customer;
 use Db;
 use DbQuery;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
+use PrestaShop\Module\Ciklik\Helpers\CartHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use Tools;
 
@@ -67,7 +68,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
         $carrier = Carrier::getCarrierByReference($cartFingerprintData->id_carrier_reference);
 
-        if (!$carrier->id) {
+        if ($carrier === false) {
             $carrier = new Carrier((int) Configuration::get('PS_CARRIER_DEFAULT'));
         }
 
@@ -77,11 +78,23 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $cart->id_address_invoice = $cartFingerprintData->id_address_invoice;
         $cart->id_lang = $cartFingerprintData->id_lang;
         $cart->id_currency = $cartFingerprintData->id_currency;
-        $cart->id_carrier = $carrier->id;
         $cart->recyclable = 0;
         $cart->gift = 0;
         $cart->secure_key = $customer->secure_key;
         $cart->add();
+
+        /*
+         * On force l'id_carrier.
+         * Sans delivery_option, le transporteur le moins cher
+         * sera ajouté et remplacera l'id_carrier.
+         * L'id_carrier doit être modifié après setDeliveryOption
+         * puisque la fonction réinitialise sa valeur à 0.
+         */
+        $delivery_option = [];
+        $delivery_option[$cart->id_address_delivery] =  sprintf('%d,', $carrier->id);
+        $cart->setDeliveryOption($delivery_option);
+        $cart->id_carrier = $carrier->id;
+        $cart->update();
 
         $variants = Tools::getValue('products', null);
 
@@ -116,6 +129,15 @@ class CartGateway extends AbstractGateway implements EntityGateway
     private function cartResponse(Cart $cart, $withLinks = true)
     {
         $items = [];
+
+        /*
+         * Ajout du customer dans le contexte
+         * Pour gérer les cart_rules.
+         * Sans customer, pas de discount
+         */
+        $context = Context::getContext();
+        $customer = new Customer($cart->id_customer);
+        $context->updateCustomer($customer);
 
         $summary = $cart->getRawSummaryDetails((int) Configuration::get('PS_LANG_DEFAULT'));
 
@@ -152,7 +174,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
             foreach ($summary['discounts'] as $discount) {
                 $items[] = [
                     'type' => 'reduction',
-                    'ref' => $discount['code'],
+                    'ref' => $discount['name'] ?? $discount['code'],
                     'price' => (float) $discount['value_real'],
                     'tax_rate' => 0,
                 ];
@@ -163,7 +185,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
         $body = [
             'id' => $cart->id,
-            'total_ttc' => $cart->getOrderTotal(),
+            'total_ttc' => $cart->getOrderTotal(true, Cart::BOTH, null, $cart->id_carrier),
             'items' => $items,
             'relay_options' => [],
             'fingerprint' => CartFingerprintData::fromCart($cart)->serialize(),
