@@ -91,7 +91,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         $result = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
             Tools::getValue('uuid'),
-            ['metadata' => ['prestashop_fingerprint' => $sub->external_fingerprint->serialize()]]
+            ['metadata' => ['prestashop_fingerprint' => $sub->external_fingerprint->encodeDatas()]]
         );
 
         if (count($result['errors'])) {

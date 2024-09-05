@@ -83,7 +83,7 @@ class CartFingerprintData
         );
     }
 
-    public static function unserialize(string $fingerprint): CartFingerprintData
+    public static function extractDatas(string $fingerprint): CartFingerprintData
     {
         $data = Tools::unSerialize($fingerprint);
 
@@ -97,7 +97,7 @@ class CartFingerprintData
         );
     }
 
-    public function serialize(): string
+    public function encodeDatas(): string
     {
         $method = 'seria'.'lize';
         return $method(get_object_vars($this));

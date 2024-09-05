@@ -58,7 +58,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
             (new Response())->setBody(['error' => 'Missing parameter : fingerprint'])->sendBadRequest();
         }
 
-        $cartFingerprintData = CartFingerprintData::unserialize($cartFingerprint);
+        $cartFingerprintData = CartFingerprintData::extractDatas($cartFingerprint);
 
         $customer = new Customer($cartFingerprintData->id_customer);
 
@@ -188,7 +188,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
             'total_ttc' => $cart->getOrderTotal(true, Cart::BOTH, null, $cart->id_carrier),
             'items' => $items,
             'relay_options' => [],
-            'fingerprint' => CartFingerprintData::fromCart($cart)->serialize(),
+            'fingerprint' => CartFingerprintData::fromCart($cart)->encodeDatas(),
         ];
 
         if ($withLinks) {

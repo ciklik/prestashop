@@ -77,7 +77,7 @@ class SubscriptionData
 
     public static function create(array $data): SubscriptionData
     {
-        $fingerprint = CartFingerprintData::unserialize($data['external_fingerprint']);
+        $fingerprint = CartFingerprintData::extractDatas($data['external_fingerprint']);
 
         return new self(
             $data['uuid'],
