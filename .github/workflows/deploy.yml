@@ -27,7 +27,7 @@ jobs:
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ciklik-site.zip
+          name: ciklik-site
           path: |
             .
   deploy-addons:
@@ -54,6 +54,6 @@ jobs:
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ciklik-addons.zip
+          name: ciklik-addons
           path: |
             .
