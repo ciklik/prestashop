@@ -2,15 +2,19 @@
 
 namespace PrestaShop\Module\Ciklik\Helpers;
 
-use Cart;
-use Carrier;
-use Context;
-use Tools;
-use Product;
-use AddressFormat;
-use State;
 use Address;
+use AddressFormat;
+use Carrier;
+use Cart;
+use Context;
 use Hook;
+use Product;
+use State;
+use Tools;
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 /**
  * Class Cart
  *
