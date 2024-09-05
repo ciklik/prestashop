@@ -19,7 +19,7 @@ jobs:
           rm -rf .docker
           rm src/Addons/Addons.php
           mkdir ciklik
-          rsync -aRr ./ ./ciklik
+          rsync -aRr . ./ciklik
           shopt -s extglob
           rm -r !(ciklik)
           find . -maxdepth 1 -type f -exec rm "{}" \;
@@ -46,7 +46,7 @@ jobs:
           rm -rf .docker
           mv -f src/Addons/Addons.php src/Addons/Account.php
           mkdir ciklik
-          rsync -aRr ./ ./ciklik
+          rsync -aRr . ./ciklik
           shopt -s extglob
           rm -r !(ciklik)
           find . -maxdepth 1 -type f -exec rm "{}" \;
