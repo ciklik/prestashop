@@ -5,6 +5,7 @@
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
 
+use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Data\ShopData;
 
@@ -14,6 +15,8 @@ if (!defined('_PS_VERSION_')) {
 
 class AdminConfigureCiklikController extends ModuleAdminController
 {
+    use Account;
+
     protected $moduleContainer;
 
     public function __construct()
@@ -34,7 +37,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
         $product_suffixes_choices = [];
         $product_suffixes_values = [];
 
-        $this->injectAccount();
+        Account::injectAccount($this);
 
         foreach ($attributes_groups as $group) {
             $product_suffixes_choices[$group['id_attribute_group']] = $group['name'];
@@ -46,58 +49,6 @@ class AdminConfigureCiklikController extends ModuleAdminController
         } else {
             $this->fields_options = $this->get18Fields($attributes_groups, $product_suffixes_values, $product_suffixes_choices);
         }
-    }
-
-    public function injectAccount()
-    {
-        /*********************
-         * PrestaShop Account *
-         * *******************/
-        /** @var PrestaShop\Module\PsAccounts\Service\PsAccountsService $accountsService */
-        $accountsService = null;
-        try {
-            $accountsFacade = $this->getService('prestashop.module.ciklik.ps_accounts_facade');
-            $accountsService = $accountsFacade->getPsAccountsService();
-        } catch (PrestaShop\PsAccountsInstaller\Installer\Exception\InstallerException $e) {
-            $accountsInstaller = $this->getService('prestashop.module.ciklik.ps_accounts_installer');
-            $accountsInstaller->install();
-            $accountsFacade = $this->getService('prestashop.module.ciklik.ps_accounts_facade');
-            $accountsService = $accountsFacade->getPsAccountsService();
-        }
-
-        Media::addJsDef([
-            'contextPsAccounts' => $accountsFacade->getPsAccountsPresenter()
-                ->present($this->module->name),
-        ]);
-
-        // Retrieve the PrestaShop Account CDN
-        $this->context->smarty->assign('urlAccountsCdn', $accountsService->getAccountsCdn());
-
-        /**********************
-         * PrestaShop Billing *
-         * *******************/
-        // Load the context for PrestaShop Billing
-        $billingFacade = $this->getService('prestashop.module.ciklik.ps_billings_facade');
-        $partnerLogo = 'https://www.ciklik.co/uploads/2022/05/logo-ciklik-dark.svg';
-
-        // PrestaShop Billing
-        Media::addJsDef($billingFacade->present([
-            'logo' => $partnerLogo,
-            'tosLink' => 'https://www.ciklik.co/',
-            'privacyLink' => 'https://www.ciklik.co/',
-            // This field is deprecated but a valid email must be provided to ensure backward compatibility
-            'emailSupport' => 'some@email.com',
-        ]));
-
-        $currentSubscription = $this->getService('prestashop.module.ciklik.ps_billings_service')->getCurrentSubscription();
-        $subscription = [];
-        // We test here the success of the request in the response's body.
-        if (!empty($currentSubscription['success'])) {
-            $subscription = $currentSubscription['body'];
-        }
-
-        $this->context->smarty->assign('urlBilling', 'https://unpkg.com/@prestashopcorp/billing-cdc/dist/bundle.js');
-        $this->context->smarty->assign('hasSubscription', !empty($subscription));
     }
 
     public function get17Fields($attributes_groups)
