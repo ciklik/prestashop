@@ -10,9 +10,6 @@ use PrestaShop\Module\Ciklik\Data\ShopData;
 
 class AdminConfigureCiklikController extends ModuleAdminController
 {
-
-    protected $moduleContainer = null;
-
     public function __construct()
     {
         $this->bootstrap = true;
@@ -31,76 +28,19 @@ class AdminConfigureCiklikController extends ModuleAdminController
         $product_suffixes_choices = [];
         $product_suffixes_values = [];
 
-        $this->injectAccount();
-
         foreach ($attributes_groups as $group) {
             $product_suffixes_choices[$group['id_attribute_group']] = $group['name'];
             $product_suffixes_values[$group['id_attribute_group']] = in_array($group['id_attribute_group'], $product_suffixes);
         }
 
         if (version_compare(_PS_VERSION_, '8.0.0', '<')) {
-            $this->fields_options = $this->get17Fields($attributes_groups);
+            $this->fields_options = $this->get17Fileds($attributes_groups);
         } else {
-            $this->fields_options = $this->get18Fields($attributes_groups, $product_suffixes_values, $product_suffixes_choices);
+            $this->fields_options = $this->get18Fileds($attributes_groups, $product_suffixes_values, $product_suffixes_choices);
         }
-
     }
 
-    public function injectAccount()
-    {
-        /*********************
-         * PrestaShop Account *
-         * *******************/
-        /** @var PrestaShop\Module\PsAccounts\Service\PsAccountsService $accountsService */
-        $accountsService = null;
-        try {
-            $accountsFacade = $this->getService('prestashop.module.ciklik.ps_accounts_facade');
-            $accountsService = $accountsFacade->getPsAccountsService();
-        } catch (\PrestaShop\PsAccountsInstaller\Installer\Exception\InstallerException $e) {
-            $accountsInstaller = $this->getService('prestashop.module.ciklik.ps_accounts_installer');
-            $accountsInstaller->install();
-            $accountsFacade = $this->getService('prestashop.module.ciklik.ps_accounts_facade');
-            $accountsService = $accountsFacade->getPsAccountsService();
-        }
-
-        Media::addJsDef([
-            'contextPsAccounts' => $accountsFacade->getPsAccountsPresenter()
-                ->present($this->module->name),
-        ]);
-
-        // Retrieve the PrestaShop Account CDN
-        $this->context->smarty->assign('urlAccountsCdn', $accountsService->getAccountsCdn());
-
-        /**********************
-         * PrestaShop Billing *
-         * *******************/
-        // Load the context for PrestaShop Billing
-        $billingFacade = $this->getService('prestashop.module.ciklik.ps_billings_facade');
-        $partnerLogo = 'https://www.ciklik.co/uploads/2022/05/logo-ciklik-dark.svg';
-
-        // PrestaShop Billing
-        Media::addJsDef($billingFacade->present([
-            'logo' => $partnerLogo,
-            'tosLink' => 'https://www.ciklik.co/',
-            'privacyLink' => 'https://www.ciklik.co/',
-            // This field is deprecated but a valid email must be provided to ensure backward compatibility
-            'emailSupport' => 'some@email.com'
-        ]));
-
-        $currentSubscription = $this->getService('prestashop.module.ciklik.ps_billings_service')->getCurrentSubscription();
-        $subscription = [];
-        // We test here the success of the request in the response's body.
-        if (!empty($currentSubscription['success']))
-        {
-            $subscription = $currentSubscription['body'];
-        }
-
-
-        $this->context->smarty->assign('urlBilling', "https://unpkg.com/@prestashopcorp/billing-cdc/dist/bundle.js");
-        $this->context->smarty->assign('hasSubscription', !empty($subscription));
-    }
-
-    public function get17Fields($attributes_groups)
+    public function get17Fileds($attributes_groups)
     {
         $available_order_states = self::getCiklikPaidOrderStates((int) Configuration::get('PS_LANG_DEFAULT'));
         $purchase_type_attributes = self::getCiklikAttributes(Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID);
@@ -231,7 +171,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
         ];
     }
 
-    public function get18Fields($attributes_groups, $product_suffixes_values, $product_suffixes_choices)
+    public function get18Fileds($attributes_groups, $product_suffixes_values, $product_suffixes_choices)
     {
         $available_order_states = self::getCiklikPaidOrderStates((int) Configuration::get('PS_LANG_DEFAULT'));
         $purchase_type_attributes = self::getCiklikAttributes(Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID);
@@ -444,16 +384,5 @@ class AdminConfigureCiklikController extends ModuleAdminController
                 $this->errors[] = $this->trans('Connection failed', [$e->getMessage()], 'Modules.Ciklik.Admin');
             }
         }
-    }
-
-    public function getService(string $serviceName)
-    {
-        if ($this->moduleContainer === null) {
-            $this->moduleContainer = new \PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer(
-                $this->module->name,
-                $this->module->getLocalPath()
-            );
-        }
-        return $this->moduleContainer->getService($serviceName);
     }
 }
