@@ -356,7 +356,16 @@ class AdminConfigureCiklikController extends ModuleAdminController
 
     public function beforeUpdateOptions()
     {
+
+        if (isset($_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES]) && is_array($_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES])) {
+            $_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES] = implode(',', $_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES] ?? []);
+        } else {
+            $_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES] = [];
+        }
+
+
         if (Configuration::get(Ciklik::CONFIG_API_TOKEN) !== Tools::getValue(Ciklik::CONFIG_API_TOKEN)) {
+
             try {
                 $ciklikShopApi = new Shop($this->context->link);
 
