@@ -1,4 +1,4 @@
-<small><u data-toggle="modal" data-target="#changeDeliveryAddress"{$subscription->uuid}>
+<small><u data-toggle="modal" data-target="#changeDeliveryAddress" data-bs-toggle="modal" data-bs-target="#changeDeliveryAddress" {$subscription->uuid}>
         Modifier
     </u></small>
 
@@ -10,7 +10,7 @@
             <!-- En-tête de la boîte modale -->
             <div class="modal-header">
                 <h4 class="modal-title">Changer l'adresse de la prochaine livraison</h4>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal">&times;</button>
             </div>
 
             <!-- Corps de la boîte modale -->
@@ -32,13 +32,13 @@
                         {/foreach}
 
                     </select>
-                    <button type="submit">Modifier</button>
+                    <button type="submit" class="btn btn-primary">Modifier</button>
                 </form>
             </div>
 
             <!-- Pied de la boîte modale -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-bs-dismiss="modal">Annuler</button>
             </div>
 
         </div>
