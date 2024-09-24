@@ -12,7 +12,7 @@
     ],
     "config": {
         "platform": {
-            "php": "7.2"
+            "php": "7.2.5"
         },
         "preferred-install": "dist",
         "classmap-authoritative": true,
