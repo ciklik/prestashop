@@ -1,0 +1,56 @@
+{
+    "type": "prestashop-module",
+    "name": "ciklik/prestashop",
+    "description": "Ciklik module for Prestashop",
+    "homepage": "https://github.com/ciklik/prestashop",
+    "license": "AFL-3.0",
+    "authors": [
+        {
+            "name": "Metrogeek",
+            "email": "support@ciklik.co"
+        }
+    ],
+    "config": {
+        "platform": {
+            "php": "7.2"
+        },
+        "preferred-install": "dist",
+        "classmap-authoritative": true,
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "prepend-autoloader": false
+    },
+    "autoload": {
+        "psr-4": {
+            "PrestaShop\\Module\\Ciklik\\": "src/"
+        },
+        "classmap": [
+            "controllers",
+            "ciklik.php"
+        ]
+    },
+    "scripts": {
+        "set-license-header": [
+            "@php ./vendor/bin/header-stamp --license=\"assets/afl.txt\" --exclude=\".github,vendor\""
+        ]
+    },
+    "require": {
+        "php": ">7.1",
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "~5.0",
+        "nesbot/carbon": "^2.72.3",
+        "prestashop/module-lib-mbo-installer": "^1.0",
+        "prestashop/module-lib-service-container": "^2.0",
+        "prestashop/prestashop-accounts-installer": "^1.0",
+        "prestashopcorp/module-lib-billing": "^3.3",
+        "vlucas/phpdotenv": "^3.4"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^1.11",
+        "prestashop/autoindex": "^2.1",
+        "prestashop/header-stamp": "^2.3",
+        "prestashop/php-dev-tools": "^5.0",
+        "squizlabs/php_codesniffer": "^3.10"
+    },
+    "author": "Ciklik"
+}

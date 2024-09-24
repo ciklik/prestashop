@@ -1,0 +1,59 @@
+name: Deploy
+
+on: [workflow_dispatch, pull_request]
+
+jobs:
+  deploy-site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: build
+        run: |
+          composer install --no-dev --optimize-autoloader --classmap-authoritative
+          composer dump-autoload --no-dev --optimize --classmap-authoritative
+          rm -rf .git
+          rm -rf .github
+          rm -rf tests
+          rm -rf cypress
+          rm -rf .docker
+          rm src/Addons/Addons.php
+          mkdir ciklik
+          rsync -Rr ./ ./ciklik
+          shopt -s extglob
+          rm -r !(ciklik)
+          find . -maxdepth 1 -type f -exec rm "{}" \;
+          cd ciklik && rm -rf ciklik
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ciklik-site
+          path: |
+            .
+  deploy-addons:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: build
+        run: |
+          composer install --no-dev --optimize-autoloader --classmap-authoritative
+          composer dump-autoload --no-dev --optimize --classmap-authoritative
+          rm -rf .git
+          rm -rf .github
+          rm -rf tests
+          rm -rf cypress
+          rm -rf .docker
+          mv -f src/Addons/Addons.php src/Addons/Account.php
+          mkdir ciklik
+          rsync -Rr ./ ./ciklik
+          shopt -s extglob
+          rm -r !(ciklik)
+          find . -maxdepth 1 -type f -exec rm "{}" \;
+          cd ciklik && rm -rf ciklik
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ciklik-addons
+          path: |
+            .
