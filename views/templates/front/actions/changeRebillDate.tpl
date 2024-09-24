@@ -3,7 +3,7 @@
  * @copyright Since 2017 Metrogeek SAS
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  *}
- <small><u data-toggle="modal" data-target="#updateNextBilling"{$subscription->uuid}>
+ <small><u data-toggle="modal" data-target="#updateNextBilling"{$subscription->uuid} data-bs-toggle="modal" data-bs-target="#updateNextBilling" >
         Modifier
     </u></small>
 
@@ -15,7 +15,7 @@
             <!-- En-tête de la boîte modale -->
             <div class="modal-header">
                 <h4 class="modal-title">Modifier la date de mon prochain paiement</h4>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal">&times;</button>
             </div>
 
             <!-- Corps de la boîte modale -->
@@ -32,7 +32,7 @@
 
             <!-- Pied de la boîte modale -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-bs-dismiss="modal">Annuler</button>
             </div>
 
         </div>
