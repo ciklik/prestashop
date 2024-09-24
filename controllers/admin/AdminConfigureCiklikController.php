@@ -37,7 +37,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
         $product_suffixes_choices = [];
         $product_suffixes_values = [];
 
-        Account::injectAccount($this);
+        Account::injectAccount($this, $this->context);
 
         foreach ($attributes_groups as $group) {
             $product_suffixes_choices[$group['id_attribute_group']] = $group['name'];

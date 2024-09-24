@@ -12,7 +12,7 @@
     ],
     "config": {
         "platform": {
-            "php": "7.4"
+            "php": "7.2"
         },
         "preferred-install": "dist",
         "classmap-authoritative": true,
@@ -39,13 +39,13 @@
         "ext-json": "*",
         "guzzlehttp/guzzle": "~5.0",
         "nesbot/carbon": "^2.72.3",
+        "prestashop/module-lib-mbo-installer": "^1.0",
         "prestashop/module-lib-service-container": "^2.0",
         "prestashop/prestashop-accounts-installer": "^1.0",
         "prestashopcorp/module-lib-billing": "^3.3",
         "vlucas/phpdotenv": "^3.4"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.59.3",
         "phpstan/phpstan": "^1.11",
         "prestashop/autoindex": "^2.1",
         "prestashop/header-stamp": "^2.3",

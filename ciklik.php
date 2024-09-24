@@ -10,6 +10,7 @@ if (file_exists($autoloadPath)) {
     require_once $autoloadPath;
 }
 
+use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Data\PaymentMethodData;
 use PrestaShop\Module\Ciklik\Data\ShopData;
@@ -28,6 +29,8 @@ if (!defined('_PS_VERSION_')) {
 
 class Ciklik extends PaymentModule
 {
+    use Account;
+
     const VERSION = '1.3.3';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
@@ -58,7 +61,7 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.3.2';
+        $this->version = self::VERSION;
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -114,6 +117,20 @@ class Ciklik extends PaymentModule
      */
     public function getContent()
     {
+        if (self::isCiklikAddonsBuild()) {
+            # Load dependencies manager
+            $mboInstaller = new \Prestashop\ModuleLibMboInstaller\DependencyBuilder($this);
+
+            if( !$mboInstaller->areDependenciesMet() )
+            {
+                $dependencies = $mboInstaller->handleDependencies();
+
+                $this->smarty->assign('dependencies', $dependencies);
+
+                return $this->display(__FILE__, 'views/templates/admin/dependency_builder.tpl');
+            }
+
+        }
         Tools::redirectAdmin($this->context->link->getAdminLink(static::MODULE_ADMIN_CONTROLLER));
     }
 

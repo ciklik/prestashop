@@ -16,8 +16,9 @@ services:
   # PrestaShop Account
   prestashop.module.ciklik.ps_accounts_installer:
     class: 'PrestaShop\PsAccountsInstaller\Installer\Installer'
+    public: true
     arguments:
-      - '5.0'
+      - "5.0"
 
   prestashop.module.ciklik.ps_accounts_facade:
     class: 'PrestaShop\PsAccountsInstaller\Installer\Facade\PsAccounts'

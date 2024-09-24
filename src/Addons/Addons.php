@@ -8,6 +8,7 @@
 namespace PrestaShop\Module\Ciklik\Addons;
 
 use ModuleAdminController;
+use Media;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -15,7 +16,11 @@ if (!defined('_PS_VERSION_')) {
 
 trait Account
 {
-    public static function injectAccount(ModuleAdminController $controller)
+    public static function isCiklikAddonsBuild()
+    {
+        return true;
+    }
+    public static function injectAccount(ModuleAdminController $controller, $context)
     {
         /*********************
          * PrestaShop Account *
@@ -38,7 +43,7 @@ trait Account
         ]);
 
         // Retrieve the PrestaShop Account CDN
-        $controller->context->smarty->assign('urlAccountsCdn', $accountsService->getAccountsCdn());
+        $context->smarty->assign('urlAccountsCdn', $accountsService->getAccountsCdn());
 
         /**********************
          * PrestaShop Billing *
@@ -53,7 +58,8 @@ trait Account
             'tosLink' => 'https://www.ciklik.co/',
             'privacyLink' => 'https://www.ciklik.co/',
             // This field is deprecated but a valid email must be provided to ensure backward compatibility
-            'emailSupport' => 'some@email.com',
+            'emailSupport' => 'support@ciklik.co',
+            'sandbox' => true,
         ]));
 
         $currentSubscription = $controller->getService('prestashop.module.ciklik.ps_billings_service')->getCurrentSubscription();
@@ -63,9 +69,9 @@ trait Account
             $subscription = $currentSubscription['body'];
         }
 
-        $controller->context->smarty->assign('urlBilling', 'https://unpkg.com/@prestashopcorp/billing-cdc/dist/bundle.js');
-        $controller->context->smarty->assign('hasSubscription', !empty($subscription));
+        $context->smarty->assign('urlBilling', 'https://unpkg.com/@prestashopcorp/billing-cdc/dist/bundle.js');
+        $context->smarty->assign('hasSubscription', !empty($subscription));
 
-        $controller->context->smarty->assign('usePsAccounts', true);
+        $context->smarty->assign('usePsAccounts', true);
     }
 }
