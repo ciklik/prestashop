@@ -17,7 +17,9 @@ jobs:
           rm -rf tests
           rm -rf cypress
           rm -rf .docker
+          rm -rf .idea
           rm src/Addons/Addons.php
+          rm .php-cs-fixer.dist.php
           mkdir ciklik
           rsync -Rr ./ ./ciklik
           shopt -s extglob
@@ -44,7 +46,9 @@ jobs:
           rm -rf tests
           rm -rf cypress
           rm -rf .docker
+          rm -rf .idea
           mv -f src/Addons/Addons.php src/Addons/Account.php
+          rm .php-cs-fixer.dist.php
           mkdir ciklik
           rsync -Rr ./ ./ciklik
           shopt -s extglob
