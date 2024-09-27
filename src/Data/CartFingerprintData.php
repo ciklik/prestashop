@@ -99,7 +99,8 @@ class CartFingerprintData
 
     public function encodeDatas(): string
     {
-        $method = 'seria'.'lize';
+        $method = 'seria' . 'lize';
+
         return $method(get_object_vars($this));
     }
 }

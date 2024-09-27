@@ -17,7 +17,6 @@ use Customer;
 use Db;
 use DbQuery;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
-use PrestaShop\Module\Ciklik\Helpers\CartHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use Tools;
 
@@ -91,7 +90,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
          * puisque la fonction réinitialise sa valeur à 0.
          */
         $delivery_option = [];
-        $delivery_option[$cart->id_address_delivery] =  sprintf('%d,', $carrier->id);
+        $delivery_option[$cart->id_address_delivery] = sprintf('%d,', $carrier->id);
         $cart->setDeliveryOption($delivery_option);
         $cart->id_carrier = $carrier->id;
         $cart->update();
