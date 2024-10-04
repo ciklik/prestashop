@@ -11,13 +11,23 @@ jobs:
       matrix:
         php: [7.2, 7.3]
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup PHP with PECL extension
+      - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-      - name: build
+      - name: Output PHP Version
+        run: php --version
+      - name: Update Account Class for marketplace management
+        if: ${{ matrix.addons == 'with-addon' }}
+        run: mv -f src/Addons/Addons.php src/Addons/Account.php
+      - name: remove non psr4 and marketplace dependencies
+        if: ${{ matrix.addons == 'raw' }}
+        run: |
+          rm module_dependencies.json
+          src/Addons/Addons.php
+      - name: Generate Zip
         run: |
           zip -r app.zip ./ -x "/.git*" -x "/.github*" -x "tests" -x "/.idea" -x "/.docker" -x "/.php-cs-fixer.dist.php" -x "src/Addons/Addons.php"  -x "module_dependencies.json"
           mkdir -p output
@@ -28,10 +38,10 @@ jobs:
           cd ../
           zip -r ciklik-site-${{ matrix.php }}.zip ./
           rm -rf ciklik
-      - name: Archive production artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ciklik-site-${{ matrix.php }}
+          name: ciklik-${{ matrix.addons }}-${{ matrix.php }}
           path: output
           include-hidden-files: true
   release:
