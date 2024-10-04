@@ -1,7 +1,9 @@
 name: Deploy
 
-on: [workflow_dispatch, pull_request, push]
-
+on:
+  push:
+    tags:
+      - 0.*
 jobs:
   deploy-site:
     runs-on: ubuntu-latest
