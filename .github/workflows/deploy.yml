@@ -17,20 +17,18 @@ jobs:
           php-version: ${{ matrix.php }}
       - name: build
         run: |
-          zip -r app.zip ./ -x ".git" -x ".github" -x "tests" -x "idea" -x ".docker" -x ".php-cs-fixer.dist.php" -x "src/Addons/Addons.php"  -x "module_dependencies.json" 
-          mkdir -p output 
+          zip -r app.zip ./ -x "/.git*" -x "/.github*" -x "tests" -x "/.idea" -x "/.docker" -x "/.php-cs-fixer.dist.php" -x "src/Addons/Addons.php"  -x "module_dependencies.json"
+          mkdir -p output
           unzip app.zip -d output/ciklik
           rm app.zip
           cd output/ciklik
           composer install --no-dev --optimize-autoloader --classmap-authoritative
-#          cd ../
-#          zip -r ciklik-${{ matrix.php }}.zip ./ciklik
-#          rm -rf ciklik
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ciklik-site-${{ matrix.php }}
           path: output
+          include-hidden-files: true
 #  deploy-addons:
 #    runs-on: ubuntu-latest
 #    steps:
