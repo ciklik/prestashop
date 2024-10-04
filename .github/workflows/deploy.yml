@@ -37,6 +37,10 @@ jobs:
         uses: actions/download-artifact@v4
       - name: Creating release
         uses: softprops/action-gh-release@v2
+        with:
+          name: "First release"
+          files: |
+            *
 #  deploy-addons:
 #    runs-on: ubuntu-latest
 #    steps:
