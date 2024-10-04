@@ -22,8 +22,6 @@ if (!defined('_PS_VERSION_')) {
 }
 /**
  * Class Cart
- *
- * @package \PrestaShop\Module\Ciklik\Helpers
  */
 class CartHelper
 {

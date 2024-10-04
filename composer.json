@@ -11,9 +11,6 @@
         }
     ],
     "config": {
-        "platform": {
-            "php": "7.2.5"
-        },
         "preferred-install": "dist",
         "classmap-authoritative": true,
         "optimize-autoloader": true,
@@ -46,8 +43,8 @@
         "vlucas/phpdotenv": "^3.4"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.4",
         "phpstan/phpstan": "^1.11",
-        "prestashop/autoindex": "^2.1",
         "prestashop/header-stamp": "^2.3",
         "prestashop/php-dev-tools": "^5.0",
         "squizlabs/php_codesniffer": "^3.10"

@@ -7,8 +7,8 @@
 
 namespace PrestaShop\Module\Ciklik\Addons;
 
-use ModuleAdminController;
 use Media;
+use ModuleAdminController;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -20,6 +20,7 @@ trait Account
     {
         return true;
     }
+
     public static function injectAccount(ModuleAdminController $controller, $context)
     {
         /*********************

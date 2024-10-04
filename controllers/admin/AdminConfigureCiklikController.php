@@ -8,6 +8,7 @@
 use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Data\ShopData;
+use Tools;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -325,6 +326,12 @@ class AdminConfigureCiklikController extends ModuleAdminController
 
     protected function updateOptionCiklikProductNameSuffixes($values)
     {
+        if ( Tools::getIsset(Tools::getValue(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES)) && is_array(Tools::getValue(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES))) {
+            $values = implode(',', $values ?? []);
+        } else {
+            $values = [];
+        }
+
         Configuration::updateValue(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES, json_encode($values));
     }
 
@@ -356,13 +363,6 @@ class AdminConfigureCiklikController extends ModuleAdminController
 
     public function beforeUpdateOptions()
     {
-
-        if (isset($_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES]) && is_array($_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES])) {
-            $_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES] = implode(',', $_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES] ?? []);
-        } else {
-            $_POST[Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES] = [];
-        }
-
 
         if (Configuration::get(Ciklik::CONFIG_API_TOKEN) !== Tools::getValue(Ciklik::CONFIG_API_TOKEN)) {
 
