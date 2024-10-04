@@ -37,14 +37,17 @@ jobs:
     steps:
       - name: Downloading Artifacts
         uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
       - name: Display structure of downloaded files
-        run: ls -R
+        run: ls -R artifacts
       - name: Creating release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            ciklik-site-*.zip
+            artifacts/ciklik-site-*.zip
 #  deploy-addons:
 #    runs-on: ubuntu-latest
 #    steps:
