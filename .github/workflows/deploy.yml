@@ -18,9 +18,10 @@ jobs:
       - name: build
         run: |
           zip -r app.zip ./ -x ".git" -x ".github" -x "tests" -x "idea" -x ".docker" -x ".php-cs-fixer.dist.php" -x "src/Addons/Addons.php"  -x "module_dependencies.json" 
-          unzip app.zip -d ciklik
+          mkdir -p output 
+          unzip app.zip -d output/ciklik
           rm app.zip
-          cd ciklik
+          cd output/ciklik
           composer install --no-dev --optimize-autoloader --classmap-authoritative
 #          cd ../
 #          zip -r ciklik-${{ matrix.php }}.zip ./ciklik
@@ -29,7 +30,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ciklik-site-${{ matrix.php }}
-          path: ciklik
+          path: output
 #  deploy-addons:
 #    runs-on: ubuntu-latest
 #    steps:
