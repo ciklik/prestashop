@@ -5,59 +5,58 @@ on: [workflow_dispatch, pull_request]
 jobs:
   deploy-site:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [7.2]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
       - name: build
         run: |
+          zip -r app.zip ./ -x ".git" -x ".github" -x "tests" -x "idea" -x ".docker" -x ".php-cs-fixer.dist.php" -x "src/Addons/Addons.php"  -x "module_dependencies.json" 
+          unzip app.zip -d ciklik
+          rm app.zip
+          cd ciklik
           composer install --no-dev --optimize-autoloader --classmap-authoritative
-          composer dump-autoload --no-dev --optimize --classmap-authoritative
-          rm -rf .git
-          rm -rf .github
-          rm -rf tests
-          rm -rf cypress
-          rm -rf .docker
-          rm -rf .idea
-          rm src/Addons/Addons.php
-          rm .php-cs-fixer.dist.php
-          mkdir ciklik
-          rsync -Rr ./ ./ciklik
-          shopt -s extglob
-          rm -r !(ciklik)
-          find . -maxdepth 1 -type f -exec rm "{}" \;
-          cd ciklik && rm -rf ciklik
+          cd ../
+          zip -r ciklik-${{ matrix.php }}.zip ./ciklik
+          rm -rf ciklik
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ciklik-site
+          name: ciklik-site-${{ matrix.php }}
           path: |
             .
-  deploy-addons:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: build
-        run: |
-          composer install --no-dev --optimize-autoloader --classmap-authoritative
-          composer dump-autoload --no-dev --optimize --classmap-authoritative
-          rm -rf .git
-          rm -rf .github
-          rm -rf tests
-          rm -rf cypress
-          rm -rf .docker
-          rm -rf .idea
-          mv -f src/Addons/Addons.php src/Addons/Account.php
-          rm .php-cs-fixer.dist.php
-          mkdir ciklik
-          rsync -Rr ./ ./ciklik
-          shopt -s extglob
-          rm -r !(ciklik)
-          find . -maxdepth 1 -type f -exec rm "{}" \;
-          cd ciklik && rm -rf ciklik
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ciklik-addons
-          path: |
-            .
+#  deploy-addons:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#      - name: build
+#        run: |
+#          mv -f src/Addons/Addons.php src/Addons/Account.php
+#          composer install --no-dev --optimize-autoloader --classmap-authoritative
+#          composer dump-autoload --no-dev --optimize --classmap-authoritative
+#          rm -rf .git
+#          rm -rf .github
+#          rm -rf tests
+#          rm -rf cypress
+#          rm -rf .docker
+#          rm -rf .idea
+#          rm .php-cs-fixer.dist.php
+#          mkdir ciklik
+#          rsync -Rr ./ ./ciklik
+#          shopt -s extglob
+#          rm -r !(ciklik)
+#          find . -maxdepth 1 -type f -exec rm "{}" \;
+#          cd ciklik && rm -rf ciklik
+#      - name: Archive production artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ciklik-addons
+#          path: |
+#            .
