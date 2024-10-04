@@ -27,7 +27,7 @@ jobs:
         if: ${{ matrix.addons == 'raw' }}
         run: |
           rm module_dependencies.json
-          src/Addons/Addons.php
+          rm src/Addons/Addons.php
       - name: Generate Zip
         run: |
           zip -r app.zip ./ -x "/.git*" -x "/.github*" -x "tests" -x "/.idea" -x "/.docker" -x "/.php-cs-fixer.dist.php"
