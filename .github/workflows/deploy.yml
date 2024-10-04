@@ -22,15 +22,14 @@ jobs:
           rm app.zip
           cd ciklik
           composer install --no-dev --optimize-autoloader --classmap-authoritative
-          cd ../
-          zip -r ciklik-${{ matrix.php }}.zip ./ciklik
-          rm -rf ciklik
+#          cd ../
+#          zip -r ciklik-${{ matrix.php }}.zip ./ciklik
+#          rm -rf ciklik
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ciklik-site-${{ matrix.php }}
-          path: |
-            .
+          path: ciklik
 #  deploy-addons:
 #    runs-on: ubuntu-latest
 #    steps:
