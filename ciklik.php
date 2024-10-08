@@ -30,7 +30,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.3.3';
+    const VERSION = '1.3.4';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -60,7 +60,7 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.3.3';
+        $this->version = '1.3.4';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -74,6 +74,7 @@ class Ciklik extends PaymentModule
             'external',
             'validation',
         ];
+        $this->module_key = 'ad787a7f180e5ed32bf2effd4ca36520';
 
         parent::__construct();
 
