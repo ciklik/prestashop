@@ -33,7 +33,7 @@ services:
     arguments:
       - '@prestashop.module.ciklik.ps_accounts_facade'
       - '@prestashop.module.ciklik.context'
-      - true # if true, enables the sandbox mode, if false or empty, disables it
+      - false # if true, enables the sandbox mode, if false or empty, disables it
 
   prestashop.module.ciklik.ps_billings_facade:
     class: 'PrestaShopCorp\Billing\Presenter\BillingPresenter'

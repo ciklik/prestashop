@@ -60,7 +60,7 @@ trait Account
             'privacyLink' => 'https://www.ciklik.co/',
             // This field is deprecated but a valid email must be provided to ensure backward compatibility
             'emailSupport' => 'support@ciklik.co',
-            'sandbox' => true,
+            //'sandbox' => true,
         ]));
 
         $currentSubscription = $controller->getService('prestashop.module.ciklik.ps_billings_service')->getCurrentSubscription();
