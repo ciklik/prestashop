@@ -27,7 +27,7 @@ class CiklikCustomer
 
         Db::getInstance()->execute('
             INSERT INTO `' . _DB_PREFIX_ . 'ciklik_customers` (`id_customer`, `ciklik_uuid`, `metadata`) 
-            VALUES (' . $id_customer . ', \'' . $ciklik_uuid . '\', \'' . json_encode($metadata) . '\')
+            VALUES (' . $id_customer . ', \'' . pSQL($ciklik_uuid) . '\', \'' . json_encode($metadata) . '\')
         ');
 
         return (int) Db::getInstance()->Insert_ID();

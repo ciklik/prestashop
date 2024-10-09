@@ -28,7 +28,7 @@ class CiklikFrequency
         } else {
             Db::getInstance()->execute('
             INSERT INTO `' . _DB_PREFIX_ . 'ciklik_frequencies` (`id_attribute`, `interval`, `interval_count`) 
-            VALUES (' . $id_attribute . ', \'' . $interval . '\', ' . $interval_count . ')
+            VALUES (' . $id_attribute . ', \'' . pSQL($interval) . '\', ' . $interval_count . ')
         ');
 
             return (int) Db::getInstance()->Insert_ID();
