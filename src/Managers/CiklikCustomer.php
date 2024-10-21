@@ -42,4 +42,9 @@ class CiklikCustomer
     {
         return Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'ciklik_customers` WHERE `id_customer` = ' . $id_customer);
     }
+
+    public static function getByCiklikUuid(string $ciklik_uuid): array
+    {
+        return (array) Db::getInstance()->getRow('SELECT * FROM `' . _DB_PREFIX_ . 'ciklik_customers` WHERE `ciklik_uuid` = "' . pSQL($ciklik_uuid) . '"');
+    }
 }

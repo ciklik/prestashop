@@ -8,7 +8,7 @@
 use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Data\ShopData;
-use Tools;
+
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -42,7 +42,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
 
         foreach ($attributes_groups as $group) {
             $product_suffixes_choices[$group['id_attribute_group']] = $group['name'];
-            $product_suffixes_values[$group['id_attribute_group']] = in_array($group['id_attribute_group'], $product_suffixes);
+            $product_suffixes_values[$group['id_attribute_group']] = in_array($group['id_attribute_group'], $product_suffixes === null ? [] : $product_suffixes);
         }
 
         if (version_compare(_PS_VERSION_, '8.0.0', '<')) {
@@ -140,21 +140,21 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     Ciklik::CONFIG_ENABLE_ENGAGEMENT => [
                         'type' => 'bool',
                         'title' => $this->l('Activer l\'engagement'),
-                        'desc' => $this->l('Cette option permet de désactiver le désabonnement pendant le cycle d’engagement'),
+                        'desc' => $this->l('Cette option permet de désactiver le désabonnement pendant le cycle d\'engagement'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_ENGAGEMENT_INTERVAL => [
                         'type' => 'select',
-                        'title' => $this->l('Cycle d’engagement'),
+                        'title' => $this->l('Cycle d\'engagement'),
                         'identifier' => 'engagement_interval',
                         'cast' => 'strval',
                         'list' => $intervals,
                     ],
                     Ciklik::CONFIG_ENGAGEMENT_INTERVAL_COUNT => [
                         'type' => 'select',
-                        'title' => $this->l('Nombre de cycles d’engagement'),
+                        'title' => $this->l('Nombre de cycles d\'engagement'),
                         'identifier' => 'engagement_interval_count',
                         'cast' => 'intval',
                         'list' => array_map(function ($value) {
@@ -174,6 +174,22 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
+                    ],
+                    Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT => [
+                        'type' => 'bool',
+                        'title' => $this->l('Activer l\'attribution de groupe client'),
+                        'desc' => $this->l('Cette option permet d\'attribuer un groupe client en fonction de certaines conditions'),
+                        'validation' => 'isBool',
+                        'cast' => 'intval',
+                        'required' => false,
+                    ],
+                    Ciklik::CONFIG_CUSTOMER_GROUP_TO_ASSIGN => [
+                        'type' => 'select',
+                        'title' => $this->l('Groupe client à attribuer'),
+                        'desc' => $this->l('Sélectionnez le groupe client à attribuer lorsque les conditions sont remplies'),
+                        'cast' => 'intval',
+                        'identifier' => 'id_group',
+                        'list' => Group::getGroups(Context::getContext()->language->id),
                     ],
                 ],
                 'submit' => [
@@ -315,6 +331,22 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
+                    ],
+                    Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT => [
+                        'type' => 'bool',
+                        'title' => $this->l('Activer l\'attribution de groupe client'),
+                        'desc' => $this->l('Cette option permet d\'attribuer un groupe client en fonction de certaines conditions'),
+                        'validation' => 'isBool',
+                        'cast' => 'intval',
+                        'required' => false,
+                    ],
+                    Ciklik::CONFIG_CUSTOMER_GROUP_TO_ASSIGN => [
+                        'type' => 'select',
+                        'title' => $this->l('Groupe client à attribuer'),
+                        'desc' => $this->l('Sélectionnez le groupe client à attribuer lorsque les conditions sont remplies'),
+                        'cast' => 'intval',
+                        'identifier' => 'id_group',
+                        'list' => Group::getGroups(Context::getContext()->language->id),
                     ],
                 ],
                 'submit' => [

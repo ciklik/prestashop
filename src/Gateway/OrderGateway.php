@@ -15,9 +15,11 @@ use Db;
 use Order;
 use PrestaShop\Module\Ciklik\Data\OrderData;
 use PrestaShop\Module\Ciklik\Data\OrderValidationData;
+use PrestaShop\Module\Ciklik\Helpers\CustomerHelper;
 use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 use Tools;
+use Ciklik;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -53,6 +55,10 @@ class OrderGateway extends AbstractGateway implements EntityGateway
             );
 
             $order = new Order((int) $orderId);
+
+            if (Tools::getValue('order_type') === 'subscription_creation' && Configuration::get(\Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT)) {
+                CustomerHelper::assignCustomerGroup((int) $cart->id_customer);
+            }
 
             (new Response())->setBody([
                 'ps_order_id' => (int) $orderId,
@@ -91,6 +97,10 @@ class OrderGateway extends AbstractGateway implements EntityGateway
         );
 
         $order = new Order((int) $this->module->currentOrder);
+
+        if (Tools::getValue('order_type') === 'subscription_creation' && Configuration::get(Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT)) {
+            CustomerHelper::assignCustomerGroup((int) $cart->id_customer);
+        }
 
         (new Response())->setBody([
             'ps_order_id' => (int) $this->module->currentOrder,

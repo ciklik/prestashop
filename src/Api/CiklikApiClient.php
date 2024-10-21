@@ -97,8 +97,13 @@ class CiklikApiClient
      */
     protected function get(array $options = [])
     {
+        try {
+            $response = $this->getClient()->get($this->getRoute(), $options);
+        } catch (ClientException $e) {
+            $response = $e->getResponse();
+        }
         return $this->handleResponse(
-            $this->getClient()->get($this->getRoute(), $options),
+            $response,
             $options
         );
     }
@@ -112,8 +117,13 @@ class CiklikApiClient
      */
     protected function post(array $options = []): array
     {
+        try {
+            $response = $this->getClient()->post($this->getRoute(), $options);
+        } catch (ClientException $e) {
+            $response = $e->getResponse();
+        }
         return $this->handleResponse(
-            $this->getClient()->post($this->getRoute(), $options),
+            $response,
             $options
         );
     }

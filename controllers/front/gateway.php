@@ -8,6 +8,7 @@
 use PrestaShop\Module\Ciklik\Gateway\CartGateway;
 use PrestaShop\Module\Ciklik\Gateway\OrderGateway;
 use PrestaShop\Module\Ciklik\Gateway\Response;
+use PrestaShop\Module\Ciklik\Gateway\SubscriptionGateway;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -30,6 +31,9 @@ class CiklikGatewayModuleFrontController extends ModuleFrontController
                 break;
             case 'orders':
                 (new OrderGateway($this->module))->handle();
+                break;
+            case 'subscriptions':
+                (new SubscriptionGateway($this->module))->handle();
                 break;
             default:
                 (new Response())->setBody(['error' => "{$request} method doesn't exist"])->sendMethodNotAllowed();
