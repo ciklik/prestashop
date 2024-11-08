@@ -3,12 +3,12 @@
  * @copyright Since 2017 Metrogeek SAS
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  *}
- <small><u data-toggle="modal" data-target="#updateInterval"{$subscription->uuid} data-bs-toggle="modal" data-bs-target="#updateInterval" >
+ <small><u data-toggle="modal" data-target="#updateInterval{$subscription->uuid}" data-bs-toggle="modal" data-bs-target="#updateInterval{$subscription->uuid}">
         Modifier
     </u></small>
 
 <!-- La boîte modale -->
-<div class="modal fade" id="updateInterval"{$subscription->uuid}">
+<div class="modal fade" id="updateInterval{$subscription->uuid}">
     <div class="modal-dialog">
         <div class="modal-content">
 
