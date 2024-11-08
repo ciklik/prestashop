@@ -38,7 +38,11 @@
                     </td>
                     <td>
                         <div>{$subscription->display_content}</div>
+                        
                         <div><strong>{$subscription->display_interval}</strong></div>
+                        {if $enable_change_interval === '1'}
+                            {include file="module:ciklik/views/templates/front/actions/changeInterval.tpl" subscription=$subscription}
+                        {/if}
                     </td>
                     <td>
                         {$subscription->address->first_name} {$subscription->address->last_name}<br>

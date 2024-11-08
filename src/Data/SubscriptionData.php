@@ -9,6 +9,7 @@ namespace PrestaShop\Module\Ciklik\Data;
 
 use Carbon\CarbonImmutable;
 use DateTimeImmutable;
+use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -54,6 +55,11 @@ class SubscriptionData
      */
     public $external_fingerprint;
 
+    /**
+     * @var array
+     */
+    public $contents;
+
     private function __construct(string $uuid,
         bool $active,
         string $display_content,
@@ -62,7 +68,8 @@ class SubscriptionData
         DateTimeImmutable $next_billing,
         DateTimeImmutable $created_at,
         DateTimeImmutable $end_date,
-        CartFingerprintData $external_fingerprint
+        CartFingerprintData $external_fingerprint,
+        array $contents = []
     ) {
         $this->uuid = $uuid;
         $this->active = $active;
@@ -73,23 +80,53 @@ class SubscriptionData
         $this->created_at = $created_at;
         $this->end_date = $end_date;
         $this->external_fingerprint = $external_fingerprint;
+        $this->contents = $contents;
     }
 
     public static function create(array $data): SubscriptionData
     {
+        // Extrait les données d'empreinte à partir de l'empreinte externe
         $fingerprint = CartFingerprintData::extractDatas($data['external_fingerprint']);
 
+        // Crée et retourne une nouvelle instance d'abonnement
         return new self(
             $data['uuid'],
-            $data['active'],
+            $data['active'], 
             $data['display_content'],
             $data['display_interval'],
             SubscriptionDeliveryAddressData::create($fingerprint->id_address_delivery),
             new DateTimeImmutable($data['next_billing']),
-            CarbonImmutable::parse($data['created_at']),
+            CarbonImmutable::parse($data['created_at']), 
             CarbonImmutable::parse($data['end_date']),
-            $fingerprint
+            $fingerprint,
+            self::processContents($data['content'])
         );
+    }
+
+    /**
+     * Traite le contenu d'un abonnement en ajoutant les combinaisons alternatives pour chaque article
+     * 
+     * Pour chaque article dans le contenu de l'abonnement, cette méthode récupère les autres combinaisons
+     * possibles ayant les mêmes attributs non-fréquentiels. Par exemple, pour un "T-shirt Rouge Mensuel",
+     * elle récupérera "T-shirt Rouge Hebdomadaire" et "T-shirt Rouge Trimestriel".
+     *
+     * @param array $contents Le tableau des contenus de l'abonnement à traiter
+     * @return array Le tableau des contenus enrichi avec les combinaisons alternatives
+     */
+    private static function processContents(array $contents): array 
+    {
+        if (empty($contents)) {
+            return [];
+        }
+
+        $processedContents = [];
+        foreach ($contents as $item) {
+            $processedContents[] = array_merge($item, [
+                'other_combinations' => CiklikCombination::getOtherCombinations((int)$item['external_id'])
+            ]);
+        }
+
+        return $processedContents;
     }
 
     public static function collection(array $data): array

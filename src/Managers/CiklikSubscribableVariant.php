@@ -29,7 +29,7 @@ class CiklikSubscribableVariant
             $product = new Product($id_product, true, Configuration::get('PS_LANG_DEFAULT'));
 
             foreach ($combinations as $combination) {
-                $frequency = CiklikFrequency::getByIdAttribute($combination['id_attribute']);
+                    $frequency = CiklikFrequency::getByIdAttribute($combination['id_attribute']);
 
                 $variants[] = [
                     'name' => static::formatName($combination, $product),
@@ -60,7 +60,7 @@ class CiklikSubscribableVariant
     public static function formatName(array $combination, Product $product): string
     {
         $suffix = '';
-        $suffixes = implode(',', json_decode(Configuration::get(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES), true));
+        $suffixes = implode(',', array_filter(json_decode(Configuration::get(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES), true) ?? []));
 
         if (!(string) $suffixes === '') {
             $query = new DbQuery();

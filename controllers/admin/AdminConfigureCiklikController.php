@@ -161,6 +161,14 @@ class AdminConfigureCiklikController extends ModuleAdminController
                             return ['engagement_interval_count' => $value, 'name' => $value];
                         }, range(0, 31)),
                     ],
+                    Ciklik::CONFIG_ENABLE_CHANGE_INTERVAL => [
+                        'type' => 'bool',
+                        'title' => $this->l('Modification de la fréquence'),
+                        'validation' => 'isBool',
+                        'desc' => $this->l('Cette option permet de désactiver la modification de la fréquence de l\'abonnement, appliquée à la date du prochain paiement'),
+                        'cast' => 'intval',
+                        'required' => false,
+                    ],
                     Ciklik::CONFIG_ALLOW_CHANGE_NEXT_BILLING => [
                         'type' => 'bool',
                         'title' => $this->l('Autoriser la modification de la date du prochain paiement'),
@@ -317,6 +325,14 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'list' => array_map(function ($value) {
                             return ['engagement_interval_count' => $value, 'name' => $value];
                         }, range(0, 31)),
+                    ],
+                    Ciklik::CONFIG_ENABLE_CHANGE_INTERVAL => [
+                        'type' => 'bool',
+                        'title' => $this->l('Modification de la fréquence'),
+                        'validation' => 'isBool',
+                        'desc' => $this->l('Cette option permet de désactiver la modification de la fréquence de l\'abonnement, appliquée à la date du prochain paiement'),
+                        'cast' => 'intval',
+                        'required' => false,
                     ],
                     Ciklik::CONFIG_ALLOW_CHANGE_NEXT_BILLING => [
                         'type' => 'bool',
