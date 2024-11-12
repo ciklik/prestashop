@@ -52,7 +52,7 @@ class CiklikExternalModuleFrontController extends ModuleFrontController
 
         $host = Configuration::get(Ciklik::CONFIG_HOST);
         $psp = Tools::getValue('class_key');
-        Tools::redirect("http://{$host}/vendors/prestashop/customers/{$this->context->cart->id_customer}/carts/{$this->context->cart->id}/psp/{$psp}");
+        Tools::redirect("https://{$host}/vendors/prestashop/customers/{$this->context->cart->id_customer}/carts/{$this->context->cart->id}/psp/{$psp}");
     }
 
     /**
