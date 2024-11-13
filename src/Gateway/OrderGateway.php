@@ -19,7 +19,7 @@ use PrestaShop\Module\Ciklik\Helpers\CustomerHelper;
 use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 use Tools;
-use Ciklik;
+use Configuration;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -98,7 +98,7 @@ class OrderGateway extends AbstractGateway implements EntityGateway
 
         $order = new Order((int) $this->module->currentOrder);
 
-        if (Tools::getValue('order_type') === 'subscription_creation' && Configuration::get(Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT)) {
+        if (Tools::getValue('order_type') === 'subscription_creation' && Configuration::get(\Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT)) {
             CustomerHelper::assignCustomerGroup((int) $cart->id_customer);
         }
 
