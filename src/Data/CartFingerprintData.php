@@ -44,7 +44,7 @@ class CartFingerprintData
     /**
      * @var array
      */
-    public array $upsells;
+    public $upsells;
 
     private function __construct(int $id_customer,
         int $id_address_delivery,
