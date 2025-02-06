@@ -4,7 +4,7 @@
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  *}
  <small><u data-toggle="modal" data-target="#updateInterval{$subscription->uuid}" data-bs-toggle="modal" data-bs-target="#updateInterval{$subscription->uuid}">
-        Modifier
+        {l s='Modifier la fréquence' mod='ciklik'}
     </u></small>
 
 <!-- La boîte modale -->
@@ -39,7 +39,7 @@
                         <option value="">{l s='No other combinations available' mod='ciklik'}</option>
                     {/if}
                 </select>
-                    <button type="submit">Changer de fréquence</button>
+                    <button type="submit">{l s='Modifier la fréquence' mod='ciklik'}</button>
                 </form>
             </div>
 

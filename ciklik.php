@@ -21,6 +21,8 @@ use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikRefund;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscribable;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
+use PrestaShop\Module\Ciklik\Api\Subscription;
+use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -30,7 +32,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.5.3';
+    const VERSION = '1.6.0';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -52,6 +54,7 @@ class Ciklik extends PaymentModule
     const CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT = 'CIKLIK_ENABLE_CUSTOMER_GROUP_ASSIGNMENT';
     const CONFIG_CUSTOMER_GROUP_TO_ASSIGN = 'CIKLIK_CUSTOMER_GROUP_TO_ASSIGN';
     const CONFIG_ENABLE_CHANGE_INTERVAL = 'CIKLIK_ENABLE_CHANGE_INTERVAL';
+    const CONFIG_ENABLE_UPSELL = 'CIKLIK_ENABLE_UPSELL';
     /**
      * @var \Monolog\Logger
      */
@@ -62,7 +65,7 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.5.3';
+        $this->version = '1.6.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -598,6 +601,48 @@ class Ciklik extends PaymentModule
                 $params['product']['id_product_attribute'] = $ciklik_attributes['current_id_product_attribute'];
                 $params['product']['ciklik'] = $ciklik_attributes;
             }
+        }
+
+        // Vérifie si la fonctionnalité d'upsell est activée dans la configuration
+        // et si l'utilisateur est connecté (pas un employé)
+        if ((bool) Configuration::get(self::CONFIG_ENABLE_UPSELL) 
+            && !$this->context->employee 
+            && $this->context->customer !== null 
+            && $this->context->customer->isLogged()) {
+
+            // Récupère les informations du client Ciklik à partir de l'ID client PrestaShop
+            $ciklik_customer = CiklikCustomer::getByIdCustomer((int) $this->context->customer->id);
+            $subscriptions = [];
+
+            // Si le client a un UUID Ciklik valide
+            if (array_key_exists('ciklik_uuid', $ciklik_customer)
+                && !is_null($ciklik_customer['ciklik_uuid'])) {
+                // Récupère tous les abonnements actifs du client
+                $subscriptionsData = (new Subscription($this->context->link))
+                    ->getAll(['query' => ['filter' => ['customer_id' => $ciklik_customer['ciklik_uuid']]]]);
+                
+                // Si des abonnements sont trouvés, on les stocke
+                if (!empty($subscriptionsData)) {
+                    $subscriptions = $subscriptionsData;
+                }
+            }
+
+            // Ajoute les informations d'upsell aux paramètres du produit :
+            // - la liste des abonnements disponibles
+            // - active la fonctionnalité d'upsell
+            // - l'URL de base pour les actions sur l'abonnement
+            $params['product']['available_subscriptions'] = $subscriptions;
+            $params['product']['upsell'] = true;
+            $params['product']['subcription_base_link'] = Tools::getShopDomainSsl(true) . '/ciklik/subscription';
+        }
+    }
+
+    public function hookDisplayProductActions(array $params)
+    {
+        // Vérifie si le produit peut être proposé à l'upsell
+        if (!empty($params['product']['upsell']) && $params['product']['upsell'] === true && !Pack::isPack($params['product']['id_product'])) {
+            // Affiche le template pour les actions du produit pour proposer l'upsell
+            return $this->context->smarty->fetch('module:ciklik/views/templates/hook/displayProductActions.tpl', ['product' => $params['product']]);
         }
     }
 

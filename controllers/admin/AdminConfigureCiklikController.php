@@ -199,6 +199,12 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'identifier' => 'id_group',
                         'list' => Group::getGroups(Context::getContext()->language->id),
                     ],
+                    Ciklik::CONFIG_ENABLE_UPSELL => [
+                        'type' => 'bool',
+                        'title' => $this->l('Activer l\'upsell'),
+                        'validation' => 'isBool',
+                        'cast' => 'intval',
+                    ],
                 ],
                 'submit' => [
                     'title' => $this->l('Save'),
@@ -363,6 +369,12 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'cast' => 'intval',
                         'identifier' => 'id_group',
                         'list' => Group::getGroups(Context::getContext()->language->id),
+                    ],
+                    Ciklik::CONFIG_ENABLE_UPSELL => [
+                        'type' => 'bool',
+                        'title' => $this->l('Activer l\'upsell'),
+                        'validation' => 'isBool',
+                        'cast' => 'intval',
                     ],
                 ],
                 'submit' => [

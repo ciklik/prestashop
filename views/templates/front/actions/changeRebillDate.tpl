@@ -4,7 +4,7 @@
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  *}
  <small><u data-toggle="modal" data-target="#updateNextBilling{$subscription->uuid}" data-bs-toggle="modal" data-bs-target="#updateNextBilling{$subscription->uuid}">
-        Modifier
+        {l s='Modifier la date' mod='ciklik'}
     </u></small>
 
 <!-- La boîte modale -->

@@ -121,11 +121,52 @@ class CartGateway extends AbstractGateway implements EntityGateway
         }
 
         $cart->update();
+        
 
-        $this->cartResponse($cart, false);
+        // Récupération des produits additionnels (upsells) depuis les paramètres de la requête
+        $upsells = Tools::getValue('upsells', null);
+
+        // Si des upsells sont présents dans la requête
+        if(!is_null($upsells) && !empty($upsells)) {
+            foreach($upsells as $product) {
+                // Décomposition de la chaîne "id_product:id_product_attribute:quantity"
+                list($id_product, $id_product_attribute, $quantity) = explode(':', $product);
+                // Si pas d'attribut de produit, on met 0 par défaut
+                $id_product_attribute = empty($id_product_attribute) ? 0 : $id_product_attribute;
+                
+                // Vérification de l'existence du produit dans la base
+                $query = new DbQuery();
+                $query->select('COUNT(*)');
+                $query->from('product');
+                $query->where('`id_product` = ' . (int)$id_product);
+                
+                // Si le produit existe
+                if (Db::getInstance()->getValue($query)) {
+                    // Si un attribut de produit est spécifié, on vérifie son existence
+                    if ($id_product_attribute > 0) {
+                        $query = new DbQuery();
+                        $query->select('COUNT(*)');
+                        $query->from('product_attribute');
+                        $query->where('`id_product` = ' . (int)$id_product);
+                        $query->where('`id_product_attribute` = ' . (int)$id_product_attribute);
+    
+                        // Si la combinaison n'existe pas, on renvoie une erreur 404
+                        if (!Db::getInstance()->getValue($query)) {
+                            (new Response())->setBody(['error' => "Product combination {$id_product_attribute} not found"])->sendNotFound();
+                        }
+                    }
+
+                    // Mise à jour de la quantité du produit dans le panier
+                    $cart->updateQty($quantity, (int) $id_product, (int) $id_product_attribute);
+                }
+                            
+            }
+        }
+
+        $this->cartResponse($cart, false, $cartFingerprintData->upsells);
     }
 
-    private function cartResponse(Cart $cart, $withLinks = true)
+    private function cartResponse(Cart $cart, $withLinks = true, $upsells = [])
     {
         $items = [];
 
@@ -187,7 +228,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
             'total_ttc' => $cart->getOrderTotal(true, Cart::BOTH, null, $cart->id_carrier),
             'items' => $items,
             'relay_options' => [],
-            'fingerprint' => CartFingerprintData::fromCart($cart)->encodeDatas(),
+            'fingerprint' => CartFingerprintData::fromCart($cart, $upsells)->encodeDatas(),
         ];
 
         if ($withLinks) {

@@ -60,6 +60,11 @@ class SubscriptionData
      */
     public $contents;
 
+    /**
+     * @var array
+     */
+    public $upsells;
+
     private function __construct(string $uuid,
         bool $active,
         string $display_content,
@@ -69,7 +74,8 @@ class SubscriptionData
         DateTimeImmutable $created_at,
         DateTimeImmutable $end_date,
         CartFingerprintData $external_fingerprint,
-        array $contents = []
+        array $contents = [],
+        array $upsells = []
     ) {
         $this->uuid = $uuid;
         $this->active = $active;
@@ -81,6 +87,7 @@ class SubscriptionData
         $this->end_date = $end_date;
         $this->external_fingerprint = $external_fingerprint;
         $this->contents = $contents;
+        $this->upsells = $upsells;
     }
 
     public static function create(array $data): SubscriptionData
@@ -99,7 +106,8 @@ class SubscriptionData
             CarbonImmutable::parse($data['created_at']), 
             CarbonImmutable::parse($data['end_date']),
             $fingerprint,
-            self::processContents($data['content'])
+            self::processContents($data['content']),
+            isset($fingerprint->upsells) ? self::processUpsells($fingerprint->upsells) : []
         );
     }
 
@@ -129,6 +137,55 @@ class SubscriptionData
         return $processedContents;
     }
 
+    /**
+     * Traite les produits additionnels (upsells) d'un abonnement en ajoutant un nom d'affichage
+     * pour chaque produit.
+     * 
+     * Pour chaque upsell, cette méthode récupère le nom du produit et, s'il existe, le nom de sa
+     * combinaison (ex: taille, couleur...) pour créer un nom d'affichage complet. Par exemple,
+     * "T-shirt - Rouge, XL".
+     *
+     * @param array $upsells Le tableau des produits additionnels à traiter
+     * @return array Le tableau des produits additionnels enrichi avec les noms d'affichage
+     */
+    private static function processUpsells(array $upsells): array
+    {
+        if (empty($upsells)) {
+            return [];
+        }
+        $processedUpsells = [];
+        foreach ($upsells as $upsell) {
+            // Récupère le nom du produit
+            $product = new \Product((int)$upsell['product_id'], false, \Context::getContext()->language->id);
+            $productName = $product->name;
+
+            // Récupère le nom de la combinaison si elle existe
+            $combinationName = '';
+            if (!empty($upsell['product_attribute_id'])) {
+                $combination = new \Combination((int)$upsell['product_attribute_id']);
+                $attributes = $combination->getAttributesName(\Context::getContext()->language->id);
+                
+                // Si des attributs existent, on les concatène avec des virgules
+                if (!empty($attributes)) {
+                    $combinationName = ' - ' . implode(', ', array_column($attributes, 'name'));
+                }
+            }
+
+            // Ajoute le nom d'affichage aux données du produit additionnel
+            $upsell['display_name'] = $productName . $combinationName;
+            $processedUpsells[] = $upsell;
+        }
+        $upsells = $processedUpsells;
+
+        return $upsells;
+    }   
+
+    /**
+     * Crée une collection d'instances de SubscriptionData à partir d'un tableau de données.
+     * 
+     * @param array $data Le tableau de données à partir duquel les instances seront créées
+     * @return array Un tableau contenant les instances de SubscriptionData 
+     */
     public static function collection(array $data): array
     {
         $collection = [];

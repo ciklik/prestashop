@@ -41,13 +41,18 @@ class CartFingerprintData
      * @var int
      */
     public $id_carrier_reference;
+    /**
+     * @var array
+     */
+    public array $upsells;
 
     private function __construct(int $id_customer,
         int $id_address_delivery,
         int $id_address_invoice,
         int $id_lang,
         int $id_currency,
-        int $id_carrier_reference)
+        int $id_carrier_reference,
+        array $upsells = [])
     {
         $this->id_customer = $id_customer;
         $this->id_address_delivery = $id_address_delivery;
@@ -55,6 +60,7 @@ class CartFingerprintData
         $this->id_lang = $id_lang;
         $this->id_currency = $id_currency;
         $this->id_carrier_reference = $id_carrier_reference;
+        $this->upsells = $upsells;
     }
 
     public static function create(array $data): CartFingerprintData
@@ -65,11 +71,12 @@ class CartFingerprintData
             $data['id_address_invoice'],
             $data['id_lang'],
             $data['id_currency'],
-            $data['id_carrier_reference']
+            $data['id_carrier_reference'],
+            isset($data['upsells']) ? $data['upsells'] : []
         );
     }
 
-    public static function fromCart(Cart $cart): CartFingerprintData
+    public static function fromCart(Cart $cart, array $upsells = []): CartFingerprintData
     {
         $carrier = new Carrier($cart->id_carrier);
 
@@ -79,7 +86,8 @@ class CartFingerprintData
             $cart->id_address_invoice,
             $cart->id_lang,
             $cart->id_currency,
-            $carrier->id_reference
+            $carrier->id_reference,
+            $upsells
         );
     }
 
@@ -93,7 +101,8 @@ class CartFingerprintData
             $data['id_address_invoice'],
             $data['id_lang'],
             $data['id_currency'],
-            $data['id_carrier_reference']
+            $data['id_carrier_reference'],
+            isset($data['upsells']) ? $data['upsells'] : []
         );
     }
 

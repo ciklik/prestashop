@@ -5,8 +5,10 @@
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
 
+use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -34,6 +36,9 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                 break;
             case 'contents':
                 $this->updateContent();
+                break;
+            case 'addUpsell':
+                $this->addUpsell();
                 break;
         }
     }
@@ -179,5 +184,64 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         }
 
         $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+    }
+
+    /**
+     * Ajoute un produit à un abonnement existant
+     * 
+     * Cette fonction permet d'ajouter un produit à un abonnement existant
+     * en utilisant l'UUID de l'abonnement et les informations du produit.
+     * 
+     * @return void
+     */
+    private function addUpsell()
+    {
+        $productId = Tools::getValue('id_product');
+        $productAttributeId = Tools::getValue('id_product_attribute');
+        $quantity = Tools::getValue('quantity');
+        
+        $uuid = Tools::getValue('uuid');
+        
+
+        $subscriptionApi = new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link);
+    
+        $upsell[] = [
+            'product_id' => $productId,
+            'product_attribute_id' => $productAttributeId,
+            'quantity' => $quantity,
+        ];
+       
+
+        $subscriptionApi->update(
+            $uuid,
+            ['upsells' => $upsell]
+        );
+    
+
+        $this->ajaxRenderAndExit(json_encode([
+            'success' => true,
+            'message' => $this->module->l('Le produit a bien été ajouté à votre abonnement'),
+        ]));
+        
+    }
+
+
+    protected function ajaxRenderAndExit($value = null, $responseCode = null, $controller = null, $method = null)
+    {
+        $this->renderAndExit($value, $controller, $method);
+    }
+
+    protected function ajaxFailAndDie($msg = null, $statusCode = 500)
+    {
+        header("X-PHP-Response-Code: $statusCode", true, $statusCode);
+        $json = ['error' => true, 'message' => $msg];
+
+        $this->ajaxRenderAndExit(json_encode($json));
+    }
+
+    protected function renderAndExit($value = null, $controller = null, $method = null)
+    {
+        $this->ajaxRender($value, $controller, $method);
+        exit;
     }
 }
