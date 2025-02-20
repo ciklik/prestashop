@@ -32,7 +32,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.6.2';
+    const VERSION = '1.6.3';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -65,7 +65,7 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.6.2';
+        $this->version = '1.6.3';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -605,8 +605,8 @@ class Ciklik extends PaymentModule
 
         // Vérifie si la fonctionnalité d'upsell est activée dans la configuration
         // et si l'utilisateur est connecté (pas un employé)
-        if ((bool) Configuration::get(self::CONFIG_ENABLE_UPSELL) 
-            && !$this->context->employee 
+        if ((bool) Configuration::get(self::CONFIG_ENABLE_UPSELL)
+            && $this->context->controller instanceof ProductController // On ignore si nous sommes sur une page de catégorie
             && $this->context->customer !== null 
             && $this->context->customer->isLogged()) {
             // Récupère les informations du client Ciklik à partir de l'ID client PrestaShop

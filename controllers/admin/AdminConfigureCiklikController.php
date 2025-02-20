@@ -403,7 +403,6 @@ class AdminConfigureCiklikController extends ModuleAdminController
             LEFT JOIN ' . _DB_PREFIX_ . 'order_state_lang osl ON (os.id_order_state = osl.id_order_state AND osl.id_lang = ' . (int) $id_lang . ')'
             . 'WHERE deleted = 0
                     AND paid = 1
-                    AND pdf_invoice = 1
                     AND invoice = 1
             ORDER BY name ASC'
         );
