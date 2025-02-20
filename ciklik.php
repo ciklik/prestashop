@@ -32,7 +32,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.6.0';
+    const VERSION = '1.6.2';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -65,7 +65,7 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.6.0';
+        $this->version = '1.6.2';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -609,7 +609,6 @@ class Ciklik extends PaymentModule
             && !$this->context->employee 
             && $this->context->customer !== null 
             && $this->context->customer->isLogged()) {
-
             // Récupère les informations du client Ciklik à partir de l'ID client PrestaShop
             $ciklik_customer = CiklikCustomer::getByIdCustomer((int) $this->context->customer->id);
             $subscriptions = [];
@@ -632,7 +631,7 @@ class Ciklik extends PaymentModule
             // - active la fonctionnalité d'upsell
             // - l'URL de base pour les actions sur l'abonnement
             $params['product']['available_subscriptions'] = $subscriptions;
-            $params['product']['upsell'] = true;
+            $params['product']['upsell'] = count($subscriptions) > 0 ? true : false;
             $params['product']['subcription_base_link'] = Tools::getShopDomainSsl(true) . '/ciklik/subscription';
         }
     }
