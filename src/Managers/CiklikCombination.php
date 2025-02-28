@@ -11,6 +11,7 @@ use Ciklik;
 use Configuration;
 use Db;
 use DbQuery;
+use PrestaShopLogger;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -158,6 +159,17 @@ class CiklikCombination
         }
 
         // Trouve la combinaison correspondante pour ce produit avec la nouvelle fréquence
+        // Récupérer d'abord les attributs de la combinaison actuelle (sauf fréquence)
+        $currentAttributesQuery = new DbQuery();
+        $currentAttributesQuery->select('pac.id_attribute');
+        $currentAttributesQuery->from('product_attribute_combination', 'pac');
+        $currentAttributesQuery->innerJoin('attribute', 'a', 'a.id_attribute = pac.id_attribute');
+        $currentAttributesQuery->where('pac.id_product_attribute = ' . (int)$current_external_id);
+        $currentAttributesQuery->where('a.id_attribute_group != ' . (int)$interval_id);
+        
+        $currentAttributes = array_column(Db::getInstance()->executeS($currentAttributesQuery), 'id_attribute');
+
+        // Construire la requête pour trouver la combinaison avec les mêmes attributs mais une fréquence différente
         $query = new DbQuery();
         $query->select('DISTINCT pac.id_product_attribute, cf.interval, cf.interval_count');
         $query->from('product_attribute_combination', 'pac');
@@ -166,7 +178,27 @@ class CiklikCombination
         $query->where('pa.id_product = ' . (int)$product_id);
         $query->where('pac.id_attribute = ' . (int)$frequency_id);
 
+        // Pour chaque attribut actuel, ajouter une condition EXISTS
+        foreach ($currentAttributes as $attributeId) {
+            $query->where('EXISTS (
+                SELECT 1 FROM ' . _DB_PREFIX_ . 'product_attribute_combination pac2 
+                WHERE pac2.id_product_attribute = pac.id_product_attribute 
+                AND pac2.id_attribute = ' . (int)$attributeId . '
+            )');
+        }
+
         $matching = Db::getInstance()->getRow($query);
+
+        if (!$matching) {
+            PrestaShopLogger::addLog(
+                'No matching combination found for product ' . $product_id . ' with frequency ' . $frequency_id . ' and current attributes ' . implode(',', $currentAttributes), // Message
+                2, // Niveau de sévérité (1 = Erreur, 2 = Avertissement, 3 = Info)
+                null, // Objet à l'origine du log (null si aucun)
+                'ciklik', // Nom du module ou du composant (optionnel)
+                null, // Identifiant de l'objet lié (optionnel)
+                true // Permet d'afficher ou non l'erreur aux administrateurs (true = affiché)
+            );
+        }
         
         return $matching ? $matching : null;
     }
