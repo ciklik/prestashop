@@ -108,13 +108,9 @@ class CiklikCombination
 
         // Enrichit les résultats avec des informations supplémentaires
         foreach ($results as &$result) {
-            // Récupère le prix de la combinaison
-            //$result['price'] = \Product::getPriceStatic($result['id_product'], true, $result['id_product_attribute']);
-            
             // Récupère les informations du produit, de l'attribut et du groupe d'attributs
             $language_id = \Context::getContext()->language->id;
-            $product = new \Product($result['id_product'], false, $language_id);
-            $attribute = new \Attribute($result['frequency_id'], $language_id);
+            $attribute = self::getAttributeInstance($result['frequency_id'], $language_id);
             $attributeGroup = new \AttributeGroup($result['interval_id'], $language_id);
             
             // Formate le nom d'affichage de la combinaison
@@ -393,5 +389,22 @@ class CiklikCombination
 
         // Retourne true si un attribut de fréquence est trouvé
         return (int) Db::getInstance()->getValue($query) > 0;
+    }
+
+    /**
+     * Récupère l'attribut en fonction de la version de PrestaShop
+     * 
+     * @param int $attributeId ID de l'attribut
+     * @param int $languageId ID de la langue
+     * @return object Instance de Attribute ou ProductAttribute selon la version
+     */
+    private static function getAttributeInstance(int $attributeId, int $languageId): object
+    {
+        // Vérifie si la version de PrestaShop est >= 8.0.0
+        if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
+            return new \ProductAttribute($attributeId, $languageId);
+        }
+        
+        return new \Attribute($attributeId, $languageId);
     }
 }
