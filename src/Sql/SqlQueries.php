@@ -53,7 +53,7 @@ class SqlQueries
     /**
      * Uninstall database queries.
      *
-     * @return bool
+     * @return array
      */
     public static function uninstallQueries(): array
     {
@@ -63,4 +63,52 @@ class SqlQueries
             'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_customers`',
         ];
     }
+
+    public static function installFrequencyModeDatabase(): array
+    {
+        return [
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'ciklik_frequency` (
+                `id_frequency` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                `name` varchar(128) NOT NULL,
+                `interval` varchar(20) NOT NULL,
+                `interval_count` int(10) unsigned NOT NULL,
+                `discount_percent` decimal(5,2)",
+                `discount_price` decimal(20,6)",
+                PRIMARY KEY (`id_frequency`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;',
+            
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'ciklik_product_frequency` (
+                `id_product` int(10) unsigned NOT NULL,
+                `id_frequency` int(10) unsigned NOT NULL,
+                PRIMARY KEY (`id_product`,`id_frequency`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;',
+
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'ciklik_items_frequency` (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `cart_id` int(11) DEFAULT NULL,
+                `order_id` int(11) DEFAULT NULL,
+                `frequency_id` int(11) NOT NULL,
+                `product_id` int(11) NOT NULL,
+                `id_product_attribute` int(11) DEFAULT NULL,
+                `customer_id` int(11) DEFAULT NULL,
+                `guest_id` int(11) DEFAULT NULL,
+                PRIMARY KEY (`id`),
+                KEY `cart_id` (`cart_id`),
+                KEY `order_id` (`order_id`),
+                KEY `product_id` (`product_id`),
+                KEY `customer_id` (`customer_id`),
+                KEY `guest_id` (`guest_id`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        ];
+    }
+
+    public static function uninstallFrequencyModeDatabase(): array
+    {
+        return [
+            'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_frequency`',
+            'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_product_frequency`',
+            'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_items_frequency`',
+        ];
+    }
+    
 }

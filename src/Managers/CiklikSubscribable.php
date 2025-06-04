@@ -8,7 +8,9 @@
 namespace PrestaShop\Module\Ciklik\Managers;
 
 use Cart;
+use Ciklik;
 use Db;
+use Configuration;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -59,7 +61,20 @@ class CiklikSubscribable
     {
         $products = $cart->getProducts();
 
+        if(Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)){ 
+            foreach ($products as $product) { 
+                // Vérifie si le produit a des personnalisations pour l'abonnement
+                $frequencyData = CiklikItemFrequency::getByCartAndProduct($cart->id, $product['id_product']);
+        
+                if ($frequencyData && (int)$frequencyData['frequency_id'] > 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         foreach ($products as $product) {
+            // Fallback sur le comportement existant pour la rétrocompatibilité
             if (array_key_exists('id_product_attribute', $product) && (int) $product['id_product_attribute']) {
                 $combinations = CiklikCombination::get($product['id_product']);
 

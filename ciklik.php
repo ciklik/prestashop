@@ -19,10 +19,13 @@ use PrestaShop\Module\Ciklik\Managers\CiklikAttribute;
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikRefund;
+use PrestaShop\Module\Ciklik\Managers\CiklikSpecificPrice;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscribable;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 use PrestaShop\Module\Ciklik\Api\Subscription;
+use PrestaShop\Module\Ciklik\Helpers\SubscriptionHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
+use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -32,7 +35,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.6.5';
+    const VERSION = '1.7.0';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -55,22 +58,24 @@ class Ciklik extends PaymentModule
     const CONFIG_CUSTOMER_GROUP_TO_ASSIGN = 'CIKLIK_CUSTOMER_GROUP_TO_ASSIGN';
     const CONFIG_ENABLE_CHANGE_INTERVAL = 'CIKLIK_ENABLE_CHANGE_INTERVAL';
     const CONFIG_ENABLE_UPSELL = 'CIKLIK_ENABLE_UPSELL';
+    const CONFIG_USE_FREQUENCY_MODE = 'CIKLIK_FREQUENCY_MODE';
     /**
      * @var \Monolog\Logger
      */
     private $logger;
     private $container;
+    private $hooks;
 
     public function __construct()
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.6.5';
+        $this->version = '1.7.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
         $this->ps_versions_compliancy = [
-            'min' => '1.7.7',
+            'min' => '1.7.0',
             'max' => '8.99.99',
         ];
         $this->controllers = [
@@ -102,7 +107,9 @@ class Ciklik extends PaymentModule
             return false;
         }
 
-        $this->getService('prestashop.module.ciklik.ps_accounts_installer')->install();
+        if (self::isCiklikAddonsBuild()) {
+            $this->getService('prestashop.module.ciklik.ps_accounts_installer')->install();
+        }
 
         return (new Installer())->install($this);
     }
@@ -341,19 +348,27 @@ class Ciklik extends PaymentModule
 
         $order = new Order((int) $params['id_order']);
 
-        if (false === Validate::isLoadedObject($order) || $order->module !== $this->name) {
+        if (false === Validate::isLoadedObject($order)) {
             return '';
         }
 
         require_once dirname(__FILE__) . '/controllers/hook/DisplayRefundsHookController.php';
+        require_once dirname(__FILE__) . '/controllers/hook/DisplayOrderSubscriptionInfoHookController.php';
 
-        $controller = new DisplayRefundsHookController($this);
+        $refundsController = new DisplayRefundsHookController($this);
+        $subscriptionController = new DisplayOrderSubscriptionInfoHookController($this);
 
-        if (CiklikRefund::canRun()) {
-            return $controller->run($params);
-        } else {
-            return null;
+        $output = '';
+
+        // Afficher les informations d'abonnement
+        $output .= $subscriptionController->run($params);
+
+        // Afficher les informations de remboursement si nécessaire
+        if ($order->module === $this->name && CiklikRefund::canRun()) {
+            $output .= $refundsController->run($params);
         }
+
+        return $output;
     }
 
     /**
@@ -594,7 +609,7 @@ class Ciklik extends PaymentModule
 
     public function hookActionGetProductPropertiesBefore(array $params)
     {
-        if (array_key_exists('quantity_wanted', $params['product'])) {
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE) && array_key_exists('quantity_wanted', $params['product'])) {
             $ciklik_attributes = static::getCiklikProductAttributes($params['product'], $this->context);
 
             if (count($ciklik_attributes) && isset($ciklik_attributes['current_id_product_attribute'])) {
@@ -608,7 +623,10 @@ class Ciklik extends PaymentModule
         if ((bool) Configuration::get(self::CONFIG_ENABLE_UPSELL)
             && $this->context->controller instanceof ProductController // On ignore si nous sommes sur une page de catégorie
             && $this->context->customer !== null 
-            && $this->context->customer->isLogged()) {
+            && $this->context->customer->isLogged()
+            //on vérifie que le produit est le même que celui qui est affiché,
+            // pour éviter les requêtes sur les produits de la même catégorie
+            && $this->context->controller->getProduct()->id == $params['product']['id_product']) {
             // Récupère les informations du client Ciklik à partir de l'ID client PrestaShop
             $ciklik_customer = CiklikCustomer::getByIdCustomer((int) $this->context->customer->id);
             $subscriptions = [];
@@ -638,11 +656,38 @@ class Ciklik extends PaymentModule
 
     public function hookDisplayProductActions(array $params)
     {
-        // Vérifie si le produit peut être proposé à l'upsell
-        if (!empty($params['product']['upsell']) && $params['product']['upsell'] === true && !Pack::isPack($params['product']['id_product'])) {
-            // Affiche le template pour les actions du produit pour proposer l'upsell
-            return $this->context->smarty->fetch('module:ciklik/views/templates/hook/displayProductActions.tpl', ['product' => $params['product']]);
+        $idProduct = (int) $params['product']['id_product'];
+
+        // Vérifier si au moins une des fonctionnalités est activée
+        $hasUpsell = !empty($params['product']['upsell']) && $params['product']['upsell'] === true && !Pack::isPack($idProduct);
+        $hasSubscriptionMode = Configuration::get(self::CONFIG_USE_FREQUENCY_MODE);
+
+        // Si aucune fonctionnalité n'est activée, ne rien afficher
+        if (!$hasUpsell && !$hasSubscriptionMode) {
+            return '';
         }
+
+        // Préparer les variables pour le template
+        $templateVars = [
+            'product' => $params['product'],
+            'has_upsell' => $hasUpsell,
+            'has_subscription_mode' => $hasSubscriptionMode,
+            'ciklik_subscription_enabled' => false,
+            'ciklik_frequencies' => []
+        ];
+
+        // Si le mode fréquence est activé, récupérer les données d'abonnement
+        if ($hasSubscriptionMode) {
+            $frequencies = CiklikFrequency::getFrequenciesForProduct($idProduct);
+            $templateVars['ciklik_subscription_enabled'] = SubscriptionHelper::isSubscriptionEnabled($idProduct);
+            $templateVars['ciklik_frequencies'] = $frequencies;
+        }
+
+        // Assigner toutes les variables au template
+        $this->context->smarty->assign($templateVars);
+
+        // Afficher le template principal qui gère les deux cas
+        return $this->context->smarty->fetch('module:ciklik/views/templates/hook/displayProductActions.tpl');
     }
 
     public static function getCiklikProductAttributes($product, Context $context)
@@ -790,5 +835,314 @@ class Ciklik extends PaymentModule
     public function getService($serviceName)
     {
         return $this->container->getService($serviceName);
+    }
+
+    public function hookDisplayAdminProductsExtra($params)
+    {
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            return;
+        }
+
+        $idProduct = (int)$params['id_product'];
+        
+        $frequencies = CiklikFrequency::getFrequenciesForFrequencyMode();
+        
+        // Récupère les fréquences sélectionnées pour ce produit
+        $query = new DbQuery();
+        $query->select('id_frequency');
+        $query->from('ciklik_product_frequency');
+        $query->where('id_product = ' . $idProduct);
+        $selectedFrequencies = Db::getInstance()->executeS($query);
+        $selectedFrequencies = array_column($selectedFrequencies, 'id_frequency');
+        
+        
+        $this->context->smarty->assign([
+            'ciklik_subscription_enabled' => SubscriptionHelper::isSubscriptionEnabled($idProduct),
+            'ciklik_frequencies' => $frequencies,
+            'selected_frequencies' => $selectedFrequencies
+        ]);
+        
+        return $this->display(__FILE__, 'views/templates/admin/product_subscription_tab.tpl');
+    }
+    
+    public function hookActionProductUpdate($params)
+    {
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            return;
+        }
+
+        $idProduct = (int)$params['id_product'];
+        
+        // Vérifie si l'abonnement est activé
+        $enabled = (bool)Tools::getValue('ciklik_subscription_enabled');
+        
+        if ($enabled) {
+            // Sauvegarde les fréquences sélectionnées
+            $frequencies = Tools::getValue('ciklik_frequencies', []);
+            
+            // Supprime les anciennes fréquences
+            Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
+            
+            // Ajoute les nouvelles fréquences
+            if (!empty($frequencies)) {
+                foreach ($frequencies as $frequencyId) {
+                    Db::getInstance()->insert('ciklik_product_frequency', [
+                        'id_product' => $idProduct,
+                        'id_frequency' => (int)$frequencyId
+                    ]);
+                }
+            }
+            
+            // Sauvegarde le texte d'information
+            $subscriptionInfo = Tools::getValue('ciklik_subscription_info');
+            
+            // Vérifie si une entrée existe déjà
+            $exists = Db::getInstance()->getValue('
+                SELECT COUNT(*) 
+                FROM `'._DB_PREFIX_.'ciklik_product_subscription` 
+                WHERE id_product = ' . $idProduct
+            );
+            
+            if ($exists) {
+                // Mise à jour
+                Db::getInstance()->update(
+                    'ciklik_product_subscription',
+                    ['subscription_info' => pSQL($subscriptionInfo)],
+                    'id_product = ' . $idProduct
+                );
+            } else {
+                // Insertion
+                Db::getInstance()->insert(
+                    'ciklik_product_subscription',
+                    [
+                        'id_product' => $idProduct,
+                        'subscription_info' => pSQL($subscriptionInfo)
+                    ]
+                );
+            }
+            
+        } else {
+            // Supprime les fréquences et le texte d'information
+            Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
+            Db::getInstance()->delete('ciklik_product_subscription', 'id_product = ' . $idProduct);
+        }
+    }
+
+
+    public function hookActionCartUpdateQuantityBefore($params)
+    {
+        
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            return;
+        }
+
+        // Les paramètres sont différents dans ce hook
+        $idProduct = (int) $params['product']->id;
+        $idProductAttribute = (int) $params['id_product_attribute'];
+        $cart = $params['cart'];
+
+        // Log de débogage
+        PrestaShopLogger::addLog(
+            'hookActionCartUpdateQuantityBefore - Product: ' . $idProduct . ', Cart: ' . $cart->id,
+            1,
+            null,
+            'ciklik',
+            $idProduct
+        );
+
+        // Vérifie si le produit a des abonnements activés
+        if (!SubscriptionHelper::isSubscriptionEnabled($idProduct)) {
+            PrestaShopLogger::addLog(
+                'Product ' . $idProduct . ' is not subscription enabled',
+                1,
+                null,
+                'ciklik',
+                $idProduct
+            );
+            return;
+        }
+
+        // Récupère la fréquence sélectionnée
+        $selectedFrequency = Tools::getValue('ciklik_frequency');
+        
+        PrestaShopLogger::addLog(
+            'Selected frequency: ' . ($selectedFrequency ?: 'none'),
+            1,
+            null,
+            'ciklik',
+            $idProduct
+        );
+        
+        // Si aucune fréquence n'est sélectionnée pour un produit en abonnement, on supprime les données de fréquence
+        if (!$selectedFrequency) {
+            CiklikItemFrequency::deleteByCartAndProduct($cart->id, $idProduct);
+            // Supprimer aussi les prix spécifiques existants
+            CiklikSpecificPrice::remove($idProduct, $idProductAttribute, $cart->id);
+            return;
+        }
+
+        // Récupère les informations de la fréquence pour calculer la réduction
+        $frequency = CiklikFrequency::getFrequencyById($selectedFrequency);
+
+        PrestaShopLogger::addLog(
+            'Frequency data: ' . json_encode($frequency),
+            1,
+            null,
+            'ciklik',
+            $idProduct
+        );
+
+        if ($frequency) {
+            // Supprimer les anciens prix spécifiques pour ce produit/panier
+            CiklikSpecificPrice::remove($idProduct, $idProductAttribute, $cart->id);
+
+            // Si une réduction est définie, crée un nouveau prix spécifique en utilisant le manager
+            if ($frequency['discount_percent'] > 0 || $frequency['discount_price'] > 0) {
+                PrestaShopLogger::addLog(
+                    'Creating specific price with discount_percent: ' . $frequency['discount_percent'] . ', discount_price: ' . $frequency['discount_price'],
+                    1,
+                    null,
+                    'ciklik',
+                    $idProduct
+                );
+                
+                $created = CiklikSpecificPrice::createForFrequency(
+                    $idProduct,
+                    $idProductAttribute,
+                    $cart,
+                    $frequency,
+                    $cart->id_customer ? (int)$cart->id_customer : null,
+                    !$cart->id_customer ? (int)$cart->id_guest : null
+                );
+                
+                PrestaShopLogger::addLog(
+                    'Specific price creation result: ' . ($created ? 'success' : 'failed'),
+                    1,
+                    null,
+                    'ciklik',
+                    $idProduct
+                );
+            } else {
+                PrestaShopLogger::addLog(
+                    'No discount to apply - discount_percent: ' . $frequency['discount_percent'] . ', discount_price: ' . $frequency['discount_price'],
+                    1,
+                    null,
+                    'ciklik',
+                    $idProduct
+                );
+            }
+
+            // Utilise la nouvelle classe CiklikItemFrequency pour stocker la fréquence
+            try {
+                CiklikItemFrequency::save(
+                    (int)$cart->id,
+                    (int)$selectedFrequency,
+                    (int)$idProduct,
+                    (int)$idProductAttribute,
+                    $cart->id_customer ? (int)$cart->id_customer : null,
+                    !$cart->id_customer ? (int)$cart->id_guest : null
+                );
+            } catch (Exception $e) {
+                PrestaShopLogger::addLog(
+                    'Error storing frequency data: ' . $e->getMessage(),
+                    3,
+                    null,
+                    'ciklik',
+                    $idProduct
+                );
+            }
+        }
+    }
+
+    public function hookDisplayShoppingCart($params)
+    {
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            return '';
+        }
+
+        $cart = $this->context->cart;
+        $products = $cart->getProducts();
+        $subscriptionInfos = [];
+
+        foreach ($products as $product) {
+            // Récupère la fréquence depuis la table ciklik_items_frequency
+            $frequencyData = CiklikItemFrequency::getByCartAndProduct($cart->id, $product['id_product']);
+            
+            if ($frequencyData) {
+                // Récupère le nom de la fréquence depuis la base de données
+                $query = new DbQuery();
+                $query->select('name');
+                $query->from('ciklik_frequency');
+                $query->where('id_frequency = ' . (int)$frequencyData['frequency_id']);
+                $frequencyName = Db::getInstance()->getValue($query);
+                
+                if ($frequencyName) {
+                    $subscriptionInfos[$product['id_product']] = $frequencyName;
+                }
+            }
+        }
+
+        if (empty($subscriptionInfos)) {
+            return '';
+        }
+
+        $this->context->smarty->assign([
+            'subscription_infos' => $subscriptionInfos
+        ]);
+
+        return $this->display(__FILE__, 'views/templates/hook/displayShoppingCart.tpl');
+    }
+
+    public function hookActionAuthentication($params)
+    {
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            return;
+        }
+
+        $customer = $params['customer'];
+        $cart = $this->context->cart;
+
+        if (!$cart || !$cart->id) {
+            return;
+        }
+
+        // Mise à jour des données de fréquence pour le panier actuel
+        CiklikItemFrequency::updateCustomerFromGuest(
+            (int)$cart->id_guest,
+            (int)$customer->id,
+            (int)$cart->id
+        );
+
+        // Transfert des prix spécifiques de l'invité vers le client connecté
+        CiklikSpecificPrice::transferFromGuestToCustomer(
+            (int)$cart->id,
+            (int)$customer->id
+        );
+    }
+
+    public function hookActionFrontControllerSetMedia($params)
+    {
+        // Charge les assets uniquement sur la page produit et si le mode fréquence est activé
+        if ($this->context->controller instanceof ProductController && Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            // Charge le CSS pour les options d'abonnement
+            $this->context->controller->registerStylesheet(
+                'ciklik-subscription-options',
+                'modules/' . $this->name . '/views/css/subscription-options.css',
+                [
+                    'media' => 'all',
+                    'priority' => 200,
+                ]
+            );
+
+            // Charge le JavaScript pour les options d'abonnement
+            $this->context->controller->registerJavascript(
+                'ciklik-subscription-options',
+                'modules/' . $this->name . '/views/js/subscription-options.js',
+                [
+                    'position' => 'bottom',
+                    'priority' => 200,
+                ]
+            );
+        }
     }
 }

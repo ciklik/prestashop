@@ -5,10 +5,9 @@
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
 
-use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -134,56 +133,86 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
     {
         // Récupérer les données du formulaire
         $subscriptionUuid = Tools::getValue('uuid');
-        $newCombinationId = (int)Tools::getValue('product_combination');
+
+        $useFrequencyMode = Tools::getValue('use_frequency_mode');
 
         // Récupérer l'abonnement actuel
         $subscriptionApi = new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link);
         $currentSubscription = $subscriptionApi->getOne($subscriptionUuid);
         $subscriptionData = SubscriptionData::create($currentSubscription['body']);
 
-        // Récupérer les informations de la nouvelle combinaison
-        $newCombination = CiklikCombination::getCombinationDetails($newCombinationId);
-        if (!$newCombination) {
-            $this->errors[] = 'Combinaison invalide.';
+        if ($useFrequencyMode === '1') {
+            $frequencyId = (int) Tools::getValue('product_combination');
+            $frequency = CiklikFrequency::getFrequencyById($frequencyId);
+            $subscriptionData->external_fingerprint->frequency_id = $frequencyId;
+
+            $result = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))
+            ->update(
+                $subscriptionUuid,
+                [
+                    'metadata' => ['prestashop_fingerprint' => $subscriptionData->external_fingerprint->encodeDatas()],
+                    'interval' => $frequency['interval'],
+                    'interval_count' => (int) $frequency['interval_count']
+                ]
+            );
+
+            if (count($result['errors'])) {
+                foreach ($result['errors'] as $key => $error) {
+                    $this->errors[] = $error[0];
+                }
+            } else {
+                $this->success[] = 'Votre nouvelle adresse a bien été prise en compte';
+            }
+
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
-            return;
-        }
 
-        // Mettre à jour le contenu de l'abonnement
-        $updatedContents = [];
-   
-        foreach ($subscriptionData->contents as $content) {
-            $matchingCombination = CiklikCombination::getMatchingCombinations($newCombination, $content['external_id']);
-            if ($matchingCombination) {
-                $updatedContents[] = [
-                    'external_id' => $matchingCombination['id_product_attribute'],
-                    'quantity' => $content['quantity'],
-                    'interval' => $matchingCombination['interval'],
-                    'interval_count' => $matchingCombination['interval_count']
-                ];
-            }
-        }
-
-        // Préparer les données pour la mise à jour de l'API
-        $updateData = [
-            'content' => $updatedContents
-        ];
-
-        // Envoyer la mise à jour à l'API
-        $result = $subscriptionApi->update(
-            $subscriptionUuid,
-            $updateData
-        );
-
-        if (isset($result['errors']) && count($result['errors'])) {
-            foreach ($result['errors'] as $error) {
-                $this->errors[] = $error[0];
-            }
         } else {
-            $this->success[] = 'Le contenu de votre abonnement a été mis à jour avec succès.';
-        }
+            $newCombinationId = (int)Tools::getValue('product_combination');
+            // Récupérer les informations de la nouvelle combinaison
+            $newCombination = CiklikCombination::getCombinationDetails($newCombinationId);
+            if (!$newCombination) {
+                $this->errors[] = 'Combinaison invalide.';
+                $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+                return;
+            }
 
-        $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+            // Mettre à jour le contenu de l'abonnement
+            $updatedContents = [];
+
+            foreach ($subscriptionData->contents as $content) {
+                $matchingCombination = CiklikCombination::getMatchingCombinations($newCombination, $content['external_id']);
+                if ($matchingCombination) {
+                    $updatedContents[] = [
+                        'external_id' => $matchingCombination['id_product_attribute'],
+                        'quantity' => $content['quantity'],
+                        'interval' => $matchingCombination['interval'],
+                        'interval_count' => $matchingCombination['interval_count']
+                    ];
+                }
+            }
+
+            // Préparer les données pour la mise à jour de l'API
+            $updateData = [
+                'content' => $updatedContents
+            ];
+
+            // Envoyer la mise à jour à l'API
+            $result = $subscriptionApi->update(
+                $subscriptionUuid,
+                $updateData
+            );
+
+            if (isset($result['errors']) && count($result['errors'])) {
+                foreach ($result['errors'] as $error) {
+                    $this->errors[] = $error[0];
+                }
+            } else {
+                $this->success[] = 'Le contenu de votre abonnement a été mis à jour avec succès.';
+            }
+
+            $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+        }
+        
     }
 
     /**

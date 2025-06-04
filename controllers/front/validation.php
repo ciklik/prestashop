@@ -9,6 +9,7 @@ use PrestaShop\Module\Ciklik\Data\OrderData;
 use PrestaShop\Module\Ciklik\Data\OrderValidationData;
 use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
+use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -55,6 +56,11 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
             $orderValidationData->dont_touch_amount,
             $orderValidationData->secure_key
         );
+
+        if(Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)){ 
+            // Lier les fréquences du panier à la commande
+            CiklikItemFrequency::updateOrderIdFromCart($this->context->cart->id, $this->module->currentOrder);
+        }
 
         CiklikCustomer::save($customer->id, $orderData->ciklik_user_uuid);
 

@@ -1,0 +1,159 @@
+.ciklik-subscription-options {
+  margin: 15px 0;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.subscription-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.subscription-frequencies {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.frequency-option {
+  position: relative;
+}
+
+.frequency-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.frequency-card {
+  display: block;
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: calc(100% - 30px);
+  max-width: 400px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.frequency-card:hover {
+  border-color: #007cba;
+  box-shadow: 0 2px 8px rgba(0, 124, 186, 0.1);
+}
+
+.frequency-option input[type="radio"]:checked + .frequency-card {
+  border-color: #007cba;
+  background-color: #f0f8ff;
+  box-shadow: 0 2px 8px rgba(0, 124, 186, 0.2);
+}
+
+.frequency-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.frequency-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 10px;
+}
+
+.discount-badge {
+  background-color: #e74c3c;
+  color: white;
+  padding: 0px 5px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: bold;
+  min-width: 40px;
+  text-align: center;
+}
+
+.frequency-price {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.current-price,
+.discounted-price {
+  font-size: 16px;
+  font-weight: bold;
+  color: #007cba;
+}
+
+.original-price {
+  font-size: 14px;
+  color: #999;
+  text-decoration: line-through;
+}
+
+.discount-card {
+  position: relative;
+}
+
+.discount-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #007cba, #0099d4);
+  border-radius: 10px;
+  z-index: -1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .frequency-card {
+    width: calc(100% - 20px);
+    padding: 12px;
+  }
+  
+  .frequency-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .discount-badge {
+    align-self: flex-end;
+  }
+  
+  .frequency-price {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ciklik-subscription-options {
+    padding: 10px;
+  }
+  
+  .frequency-card {
+    width: calc(100% - 10px);
+    padding: 10px;
+  }
+  
+  .subscription-title {
+    font-size: 10px;
+  }
+  
+  .frequency-name {
+    font-size: 10px;
+  }
+} 

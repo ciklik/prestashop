@@ -20,6 +20,8 @@ use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 use Tools;
 use Configuration;
+use PrestaShop\Module\Ciklik\Managers\CiklikCustomization;
+use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -44,7 +46,7 @@ class OrderGateway extends AbstractGateway implements EntityGateway
         if ($cart->orderExists()) {
             $sql = 'SELECT id_order FROM ' . _DB_PREFIX_ . 'orders WHERE id_cart = ' . (int) $cart->id;
             $orderId = Db::getInstance()->getValue($sql);
-
+        
             $this->addDataToOrder(
                 (int) $orderId,
                 [
@@ -59,11 +61,14 @@ class OrderGateway extends AbstractGateway implements EntityGateway
             if (Tools::getValue('order_type') === 'subscription_creation' && Configuration::get(\Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT)) {
                 CustomerHelper::assignCustomerGroup((int) $cart->id_customer);
             }
-
+            
+            $customizationData = CiklikCustomization::getCustomizationDataFromCart($cart);
+            
             (new Response())->setBody([
                 'ps_order_id' => (int) $orderId,
                 'ps_customer_id' => (int) $cart->id_customer,
                 'ps_id_address_delivery' => (int) $order->id_address_delivery,
+                'customization_data' => $customizationData
             ])->sendCreated();
         }
 
@@ -85,6 +90,12 @@ class OrderGateway extends AbstractGateway implements EntityGateway
             $orderValidationData->secure_key
         );
 
+        // Lier les items avec fréquences du panier à la commande
+        if(Configuration::get('CIKLIK_FREQUENCY_MODE')){ 
+            CiklikItemFrequency::updateOrderIdFromCart($cart->id, $this->module->currentOrder);
+        }
+
+        //Lien client Ciklik et Prestashop
         CiklikCustomer::save((int) $cart->id_customer, $orderData->ciklik_user_uuid);
 
         $this->addDataToOrder(
@@ -102,10 +113,13 @@ class OrderGateway extends AbstractGateway implements EntityGateway
             CustomerHelper::assignCustomerGroup((int) $cart->id_customer);
         }
 
+        $customizationData = CiklikCustomization::getCustomizationDataFromOrder($order);
+
         (new Response())->setBody([
             'ps_order_id' => (int) $this->module->currentOrder,
             'ps_customer_id' => (int) $cart->id_customer,
             'ps_id_address_delivery' => (int) $order->id_address_delivery,
+            'customization_data' => $customizationData,
         ])->sendCreated();
     }
 }

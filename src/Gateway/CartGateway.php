@@ -11,6 +11,7 @@ namespace PrestaShop\Module\Ciklik\Gateway;
 
 use Carrier;
 use Cart;
+use Ciklik;
 use Configuration;
 use Context;
 use Customer;
@@ -18,6 +19,7 @@ use Db;
 use DbQuery;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
+use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use Tools;
 
 if (!defined('_PS_VERSION_')) {
@@ -50,7 +52,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
     }
 
     public function post()
-    {
+    {        
         $cartFingerprint = Tools::getValue('fingerprint', null);
 
         if (is_null($cartFingerprint)) {
@@ -81,6 +83,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $cart->gift = 0;
         $cart->secure_key = $customer->secure_key;
         $cart->add();
+        
 
         /*
          * On force l'id_carrier.
@@ -97,6 +100,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
         $variants = Tools::getValue('products', null);
 
+
         if (is_null($variants)) {
             (new Response())->setBody(['error' => 'Missing parameter : products'])->sendBadRequest();
         }
@@ -104,16 +108,26 @@ class CartGateway extends AbstractGateway implements EntityGateway
         if (!is_array($variants)) {
             (new Response())->setBody(['error' => 'Bad parameter : products'])->sendBadRequest();
         }
+        
 
         foreach ($variants as $variant) {
-            list($id_variant, $quantity) = explode(':', $variant);
-            $query = new DbQuery();
-            $query->select('`id_product`');
-            $query->from('product_attribute');
-            $query->where('`id_product_attribute` = "' . (int) $id_variant . '"');
-            $id_product = Db::getInstance()->getValue($query);
+            $parts = explode(':', $variant);
+            
+            // Format: id_product_attribute:quantity
+            if (count($parts) === 2) {
+                list($id_variant, $quantity) = $parts;
+                $query = new DbQuery();
+                $query->select('`id_product`');
+                $query->from('product_attribute');
+                $query->where('`id_product_attribute` = "' . (int) $id_variant . '"');
+                $id_product = Db::getInstance()->getValue($query);
+            }
+            // Format: id_product:id_product_attribute:quantity
+            else if (count($parts) === 3) {
+                list($id_product, $id_variant, $quantity) = $parts;
+            }
 
-            if (!$id_product) {
+            if (!$id_product && count($parts) === 2) {
                 (new Response())->setBody(['error' => "Product not found for variant {$id_variant}"])->sendNotFound();
             }
 
@@ -181,12 +195,31 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
         $summary = $cart->getRawSummaryDetails((int) Configuration::get('PS_LANG_DEFAULT'));
 
+        $ciklik_frequency = Tools::getValue('ciklik_frequency', null);
+
         foreach ($summary['products'] as $product) {
-            $frequency = CiklikFrequency::getByIdProductAttribute((int) $product['id_product_attribute']);
+        
+            if (Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE) && $withLinks === true) {
+                // Récupère la fréquence depuis la personnalisation
+                // si on est dans un contexte de panier utilisateur (en ligne)
+                $frequencyItem = CiklikItemFrequency::getByCartAndProduct((int) $cart->id, (int) $product['id_product']);
+                $frequency = CiklikFrequency::getFrequencyById((int) $frequencyItem['frequency_id']);
+                
+            }
+            if (Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE) && $withLinks === false && $ciklik_frequency) {
+                // Récupère la fréquence depuis la personnalisation
+                // si on est dans un contexte de panier rebill
+                $frequency = CiklikFrequency::getFrequencyById((int) $ciklik_frequency);
+                
+            }
+
+            if (!Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
+                $frequency = CiklikFrequency::getByIdProductAttribute((int) $product['id_product_attribute']);
+            }
 
             $items[] = [
                 'type' => 'product',
-                'external_id' => $product['id_product_attribute'] ?? $product['id_product'],
+                'external_id' => $this->getExternalId($product),
                 'ref' => $product['reference'],
                 'price' => $product['price_with_reduction_without_tax'] ?? $product['price_without_reduction_without_tax'],
                 'tax_rate' => (float) $product['rate'] ? (float) $product['rate'] / 100 : 0,
@@ -228,7 +261,8 @@ class CartGateway extends AbstractGateway implements EntityGateway
             'total_ttc' => $cart->getOrderTotal(true, Cart::BOTH, null, $cart->id_carrier),
             'items' => $items,
             'relay_options' => [],
-            'fingerprint' => CartFingerprintData::fromCart($cart, $upsells)->encodeDatas(),
+            'fingerprint' => CartFingerprintData::fromCart($cart, $upsells, isset($frequency['id_frequency']) ? (int) $frequency['id_frequency'] : null)->encodeDatas(),
+            'use_frequency_mode' => (bool) Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)
         ];
 
         if ($withLinks) {
@@ -239,5 +273,20 @@ class CartGateway extends AbstractGateway implements EntityGateway
         (new Response())
             ->setBody([$body])
             ->send();
+    }
+
+    /**
+     * Récupère l'ID externe au format approprié selon la configuration
+     * 
+     * @param array $product Les données du produit
+     * @return string L'ID externe formaté
+     */
+    private function getExternalId(array $product)
+    {
+        if (!Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
+            return $product['id_product_attribute'] ?? $product['id_product'];
+        }
+
+        return $product['id_product'] . ':' . ($product['id_product_attribute'] ?? 0);
     }
 }

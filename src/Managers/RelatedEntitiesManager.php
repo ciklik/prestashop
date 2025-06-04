@@ -37,31 +37,60 @@ class RelatedEntitiesManager
 
         $frequencies = [
             [
-                'attribute_name' => 'Mensuel',
+                'name' => 'Mensuel',
                 'interval' => 'month',
                 'interval_count' => 1,
             ],
 
             [
-                'attribute_name' => 'Tous les 2 mois',
+                'name' => 'Tous les 2 mois',
                 'interval' => 'month',
                 'interval_count' => 2,
             ],
 
             [
-                'attribute_name' => 'Tous les 3 mois',
+                'name' => 'Tous les 3 mois',
                 'interval' => 'month',
                 'interval_count' => 3,
+            ],
+            [
+                'name' => 'Tous les 4 mois',
+                'interval' => 'month',
+                'interval_count' => 4,
+            ],
+            [
+                'name' => 'Tous les 6 mois',
+                'interval' => 'month',
+                'interval_count' => 6,
+            ],
+            [
+                'name' => 'Tous les 8 mois',
+                'interval' => 'month',
+                'interval_count' => 8,
+            ],
+            [
+                'name' => 'Tous les 10 mois',
+                'interval' => 'month',
+                'interval_count' => 10,
+            ],
+            [
+                'name' => 'Tous les 12 mois',
+                'interval' => 'month',
+                'interval_count' => 12,
             ],
         ];
 
         foreach ($frequencies as $key => $properties) {
-            $id_attribute = CiklikAttribute::create($properties['attribute_name'], $frequenciesAttributeGroup->id);
+            $id_attribute = CiklikAttribute::create($properties['name'], $frequenciesAttributeGroup->id);
             CiklikFrequency::save($id_attribute, $properties['interval'], $properties['interval_count']);
 
             if (!$key) {
                 Configuration::updateValue(Ciklik::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID, $id_attribute);
             }
+        }
+
+        foreach ($frequencies as $frequency) {
+            CiklikFrequency::saveFrequency($frequency);
         }
 
         return (bool) Configuration::updateValue(Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID, $purchaseTypeAttributeGroup->id)

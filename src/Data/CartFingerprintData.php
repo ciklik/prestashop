@@ -45,14 +45,29 @@ class CartFingerprintData
      * @var array
      */
     public $upsells;
+    /**
+     * @var int|null
+     */
+    public $frequency_id;
 
+    /**
+     * @param int $id_customer
+     * @param int $id_address_delivery
+     * @param int $id_address_invoice
+     * @param int $id_lang
+     * @param int $id_currency
+     * @param int $id_carrier_reference
+     * @param array $upsells
+     * @param int|null $frequency_id
+     */
     private function __construct(int $id_customer,
         int $id_address_delivery,
         int $id_address_invoice,
         int $id_lang,
         int $id_currency,
         int $id_carrier_reference,
-        array $upsells = [])
+        array $upsells = [],
+        $frequency_id = null)
     {
         $this->id_customer = $id_customer;
         $this->id_address_delivery = $id_address_delivery;
@@ -61,6 +76,7 @@ class CartFingerprintData
         $this->id_currency = $id_currency;
         $this->id_carrier_reference = $id_carrier_reference;
         $this->upsells = $upsells;
+        $this->frequency_id = $frequency_id;
     }
 
     public static function create(array $data): CartFingerprintData
@@ -72,11 +88,12 @@ class CartFingerprintData
             $data['id_lang'],
             $data['id_currency'],
             $data['id_carrier_reference'],
-            isset($data['upsells']) ? $data['upsells'] : []
+            isset($data['upsells']) ? $data['upsells'] : [],
+            isset($data['frequency_id']) ? $data['frequency_id'] : null
         );
     }
 
-    public static function fromCart(Cart $cart, array $upsells = []): CartFingerprintData
+    public static function fromCart(Cart $cart, array $upsells = [], $frequency_id = null): CartFingerprintData
     {
         $carrier = new Carrier($cart->id_carrier);
 
@@ -87,7 +104,8 @@ class CartFingerprintData
             $cart->id_lang,
             $cart->id_currency,
             $carrier->id_reference,
-            $upsells
+            $upsells,
+            $frequency_id
         );
     }
 
@@ -102,7 +120,8 @@ class CartFingerprintData
             $data['id_lang'],
             $data['id_currency'],
             $data['id_carrier_reference'],
-            isset($data['upsells']) ? $data['upsells'] : []
+            isset($data['upsells']) ? $data['upsells'] : [],
+            isset($data['frequency_id']) ? $data['frequency_id'] : null
         );
     }
 

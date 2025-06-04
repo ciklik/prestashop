@@ -8,8 +8,12 @@
 namespace PrestaShop\Module\Ciklik\Data;
 
 use Carbon\CarbonImmutable;
+use Ciklik;
+use Configuration;
+use Context;
 use DateTimeImmutable;
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
+use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -128,9 +132,34 @@ class SubscriptionData
         }
 
         $processedContents = [];
+
         foreach ($contents as $item) {
+            $otherCombinations = [];
+            
+            // Si l'option de fréquence est activée, on récupère les fréquences disponibles
+            if (Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE) === '1') {
+                // Récupère les fréquences disponibles pour ce produit
+                $parts = explode(':', $item['external_id']);
+                $id_product = $parts[0];
+                $frequencies = CiklikFrequency::getFrequenciesForProduct((int)$id_product);
+                
+                foreach ($frequencies as $frequency) {
+                    $otherCombinations[] = [
+                        'frequency_id' => $frequency['id_frequency'],
+                        'display_name' => 'Fréquence : ' . $frequency['name'],
+                        'interval' => $frequency['interval'],
+                        'interval_count' => $frequency['interval_count'],
+                        'discount_percent' => $frequency['discount_percent'],
+                        'discount_price' => $frequency['discount_price'],
+                    ];
+                }
+            } else {
+                // Comportement existant pour le mode décli
+                $otherCombinations = CiklikCombination::getOtherCombinations((int)$item['external_id']);
+            }
+
             $processedContents[] = array_merge($item, [
-                'other_combinations' => CiklikCombination::getOtherCombinations((int)$item['external_id'])
+                'other_combinations' => $otherCombinations
             ]);
         }
 

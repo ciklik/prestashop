@@ -37,6 +37,10 @@ class Installer
             return false;
         }
 
+        if (!$this->installFrequencyModeDatabase()) {
+            return false;
+        }
+
         if (!RelatedEntitiesManager::install()) {
             return false;
         }
@@ -66,7 +70,8 @@ class Installer
         return RelatedEntitiesManager::uninstall()
             && $this->uninstallWebservice()
             && $this->uninstallDatabase()
-            && $this->uninstallConfiguration();
+            && $this->uninstallConfiguration()
+            && $this->uninstallFrequencyModeDatabase();
     }
 
     /**
@@ -209,6 +214,13 @@ class Installer
                 'paymentOptions',
                 'actionObjectProductUpdateAfter',
                 'actionObjectProductAddAfter',
+                //après le mode frequenty
+                'actionFrontControllerSetMedia',
+                'displayAdminProductsExtra',
+                'displayProductActions',
+                'actionCartUpdateQuantityBefore',
+                'displayShoppingCart',
+                'actionAuthentication',
             ];
         } else {
             // Hooks pour presta 8+
@@ -229,6 +241,13 @@ class Installer
                 'displayPDFInvoice',
                 'moduleRoutes',
                 'paymentOptions',
+                //après le mode frequenty
+                'actionFrontControllerSetMedia',
+                'displayAdminProductsExtra',
+                'displayProductActions',
+                'actionCartUpdateQuantityBefore',
+                'displayShoppingCart',
+                'actionAuthentication',
             ];
         }
 
@@ -251,5 +270,25 @@ class Installer
         }
 
         return true;
+    }
+
+    /**
+     * Install the database modifications required for frequency mode.
+     *
+     * @return bool
+     */
+    private function installFrequencyModeDatabase(): bool
+    {
+        return $this->executeQueries(SqlQueries::installFrequencyModeDatabase());
+    }
+
+    /**
+     * Uninstall the database modifications required for frequency mode.
+     *
+     * @return bool
+     */
+    private function uninstallFrequencyModeDatabase(): bool
+    {
+        return $this->executeQueries(SqlQueries::uninstallFrequencyModeDatabase());
     }
 }

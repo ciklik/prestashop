@@ -41,7 +41,7 @@
                         
                         <div>{$subscription->display_interval}</div>
                         {if $enable_change_interval === '1'}
-                            {include file="module:ciklik/views/templates/front/actions/changeInterval.tpl" subscription=$subscription}
+                            {include file="module:ciklik/views/templates/front/actions/changeInterval.tpl" subscription=$subscription }
                         {/if}
                         {if !empty($subscription->upsells)}
                             {include file="module:ciklik/views/templates/front/actions/ListUpsellSubscriptionAndDelete.tpl" subscription=$subscription}

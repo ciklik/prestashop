@@ -34,4 +34,17 @@ class Order extends CiklikApiClient
 
         return null;
     }
+
+    public function getOneByPsOrderId(int $ps_order_id, array $options = [])
+    {
+        $this->setRoute("orders?filter[prestashop_order_id]=" . $ps_order_id);
+
+        $response = $this->get($options);
+
+        if ($response['status'] && $response['body'] && isset($response['body'][0])) {
+            return OrderData::create($response['body'][0]);
+        }
+
+        return null;
+    }
 }

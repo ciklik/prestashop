@@ -24,21 +24,40 @@
                 <p>La date de votre prochaine commande ne sera pas modifiée, le changement de fréquence s'appliquera à compter de la commande suivante.</p>
                 <form id="newIntervalForm-{$subscription->uuid}" action="{$subcription_base_link}/{$subscription->uuid}/contents" method="POST">
                 <label for="interval">Choisir</label>
-                {* {dump($subscription->contents)} *}
-                <select name="product_combination" id="product_combination" required>
-                    {if !empty($subscription->contents)}
-                        {assign var=content value=$subscription->contents[0]}
-                        {if !empty($content.other_combinations)}
-                            {foreach from=$content.other_combinations item=combination}
-                                <option value="{$combination.id_product_attribute|escape:'html':'UTF-8'}">
-                                    {$combination.display_name|escape:'html':'UTF-8'}
-                                </option>
-                            {/foreach}
+                {if $use_frequency_mode === '1'}
+                    <select name="product_combination" id="product_combination" required>
+                        {if !empty($subscription->contents)}
+                            {assign var=content value=$subscription->contents[0]}
+                            {if !empty($content.other_combinations)}
+                                {foreach from=$content.other_combinations item=combination}
+                                    <option value="{$combination.frequency_id|escape:'html':'UTF-8'}">
+                                        {$combination.display_name|escape:'html':'UTF-8'}
+                                    </option>
+                                {/foreach}
+                            {/if}
+                        {else}
+                            <option value="">{l s='No other combinations available' mod='ciklik'}</option>
                         {/if}
-                    {else}
-                        <option value="">{l s='No other combinations available' mod='ciklik'}</option>
-                    {/if}
-                </select>
+                    </select>
+                    <input type="hidden" name="use_frequency_mode" value="1">
+                {else}
+                    <select name="product_combination" id="product_combination" required>
+                        {if !empty($subscription->contents)}
+                            {assign var=content value=$subscription->contents[0]}
+                            {if !empty($content.other_combinations)}
+                                {foreach from=$content.other_combinations item=combination}
+                                    <option value="{$combination.id_product_attribute|escape:'html':'UTF-8'}">
+                                        {$combination.display_name|escape:'html':'UTF-8'}
+                                    </option>
+                                {/foreach}
+                            {/if}
+                        {else}
+                            <option value="">{l s='No other combinations available' mod='ciklik'}</option>
+                        {/if}
+                    </select>
+                    <input type="hidden" name="use_frequency_mode" value="0">
+                {/if}
+
                     <button type="submit">{l s='Modifier la fréquence' mod='ciklik'}</button>
                 </form>
             </div>

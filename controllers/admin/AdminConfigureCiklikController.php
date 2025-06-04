@@ -205,6 +205,14 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'validation' => 'isBool',
                         'cast' => 'intval',
                     ],
+                    Ciklik::CONFIG_USE_FREQUENCY_MODE => [
+                        'type' => 'bool',
+                        'title' => $this->l('Utiliser la personnalisation des abonnements'),
+                        'desc' => $this->l('Les options d\'abonnement sont affichées via une case à cocher'),
+                        'validation' => 'isBool',
+                        'cast' => 'intval',
+                        'required' => false,
+                    ]
                 ],
                 'submit' => [
                     'title' => $this->l('Save'),
@@ -375,6 +383,14 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'title' => $this->l('Activer l\'upsell'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
+                    ],
+                    Ciklik::CONFIG_USE_FREQUENCY_MODE => [
+                        'type' => 'bool',
+                        'title' => $this->l('Utiliser la personnalisation des abonnements'),
+                        'desc' => $this->l('Les options d\'abonnement sont affichées via une case à cocher'),
+                        'validation' => 'isBool',
+                        'cast' => 'intval',
+                        'required' => false,
                     ],
                 ],
                 'submit' => [
