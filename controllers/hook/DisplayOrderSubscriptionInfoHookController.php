@@ -58,11 +58,11 @@ class DisplayOrderSubscriptionInfoHookController
         $subscriptionData = CartSubscriptionData::fromOrder($order);
 
         // Si on est sur le mode declinason, cette option n'est pas disponible
-        if (!$subscriptionData->hasSubscribableItems()) {
+        if (!Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE) || !$subscriptionData->hasSubscribableItems()) {
             $subscriptionInfos = [];
         }
 
-        if ($subscriptionData->hasSubscribableItems()) {
+        if (Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE) && $subscriptionData->hasSubscribableItems()) {
             $subscriptionInfos = [];
             foreach ($subscriptionData->getItems() as $item) {
                 if (!empty($item['frequency'])) {
