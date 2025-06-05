@@ -8,6 +8,7 @@
 namespace PrestaShop\Module\Ciklik\Data;
 
 use Cart;
+use PrestaShop\Module\Ciklik\Helpers\CartHelper;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -75,7 +76,7 @@ class OrderValidationData
         return new self(
             $cart->id,
             $orderData->getOrderState(),
-            $cart->getOrderTotal(true, Cart::BOTH),
+            $cart->getOrderTotal(CartHelper::shouldPaidWithTax($cart), Cart::BOTH),
             $orderData->getPspName(),
             null,
             [

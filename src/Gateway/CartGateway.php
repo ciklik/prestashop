@@ -18,6 +18,7 @@ use Customer;
 use Db;
 use DbQuery;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
+use PrestaShop\Module\Ciklik\Helpers\CartHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use Tools;
@@ -258,7 +259,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
         $body = [
             'id' => $cart->id,
-            'total_ttc' => $cart->getOrderTotal(true, Cart::BOTH, null, $cart->id_carrier),
+            'total_ttc' => $cart->getOrderTotal(CartHelper::shouldPaidWithTax($cart), Cart::BOTH, null, $cart->id_carrier),
             'items' => $items,
             'relay_options' => [],
             'fingerprint' => CartFingerprintData::fromCart($cart, $upsells, isset($frequency['id_frequency']) ? (int) $frequency['id_frequency'] : null)->encodeDatas(),
