@@ -12,6 +12,10 @@ namespace PrestaShop\Module\Ciklik\Helpers;
 use Db;
 use DbQuery;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class SubscriptionHelper
 {
     /**
