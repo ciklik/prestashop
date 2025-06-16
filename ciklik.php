@@ -35,7 +35,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.7.4';
+    const VERSION = '1.7.5';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -70,7 +70,7 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.7.4';
+        $this->version = '1.7.5';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -236,7 +236,47 @@ class Ciklik extends PaymentModule
     */
     public function hookActionAfterUpdateProductFormHandler(array $params): void
     {
-        CiklikSubscribable::handle((int) $params['form_data']['id']);
+        $idProduct = (int) $params['form_data']['id'];
+
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            CiklikSubscribable::handle($idProduct);
+            return;
+        }
+
+        $enabled = (bool)Tools::getValue('ciklik_subscription_enabled');
+
+        if ($enabled) {
+            $frequencies = Tools::getValue('ciklik_frequencies', []);
+            Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
+            if (!empty($frequencies)) {
+                foreach ($frequencies as $frequencyId) {
+                    Db::getInstance()->insert('ciklik_product_frequency', [
+                        'id_product' => $idProduct,
+                        'id_frequency' => (int)$frequencyId
+                    ]);
+                }
+            }
+            $subscriptionInfo = Tools::getValue('ciklik_subscription_info');
+            $exists = Db::getInstance()->getValue('SELECT COUNT(*) FROM `'._DB_PREFIX_.'ciklik_product_subscription` WHERE id_product = ' . $idProduct);
+            if ($exists) {
+                Db::getInstance()->update(
+                    'ciklik_product_subscription',
+                    ['subscription_info' => pSQL($subscriptionInfo)],
+                    'id_product = ' . $idProduct
+                );
+            } else {
+                Db::getInstance()->insert(
+                    'ciklik_product_subscription',
+                    [
+                        'id_product' => $idProduct,
+                        'subscription_info' => pSQL($subscriptionInfo)
+                    ]
+                );
+            }
+        } else {
+            Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
+            Db::getInstance()->delete('ciklik_product_subscription', 'id_product = ' . $idProduct);
+        }
     }
 
     /*
@@ -244,20 +284,26 @@ class Ciklik extends PaymentModule
      */
     public function hookActionObjectProductUpdateAfter(array $params): void
     {
-        CiklikSubscribable::handle((int) $params['object']->id);
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            CiklikSubscribable::handle((int) $params['object']->id);
+        }
     }
 
     public function hookActionObjectProductAddAfter(array $params): void
     {
-        CiklikSubscribable::handle((int) $params['object']->id);
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            CiklikSubscribable::handle((int) $params['object']->id);
+        }
     }
 
     public function hookActionProductDelete(array $params): void
     {
-        if (isset($params['id_product'])) {
-            CiklikSubscribable::deleteByIdProduct((int) $params['id_product']);
-        } else {
-            CiklikSubscribable::handle((int) $params['object']->id);
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            if (isset($params['id_product'])) {
+                CiklikSubscribable::deleteByIdProduct((int) $params['id_product']);
+            } else {
+                CiklikSubscribable::handle((int) $params['object']->id);
+            }
         }
     }
 

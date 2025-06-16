@@ -161,7 +161,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                     $this->errors[] = $error[0];
                 }
             } else {
-                $this->success[] = 'Votre nouvelle adresse a bien été prise en compte';
+                $this->success[] = 'Votre nouvelle fréquence a bien été prise en compte';
             }
 
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
