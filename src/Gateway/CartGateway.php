@@ -259,7 +259,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
         $body = [
             'id' => $cart->id,
-            'total_ttc' => $cart->getOrderTotal(CartHelper::shouldPaidWithTax($cart), Cart::BOTH, null, $cart->id_carrier),
+            'total_ttc' => $summary['total_price'],
             'items' => $items,
             'relay_options' => [],
             'fingerprint' => CartFingerprintData::fromCart($cart, $upsells, isset($frequency['id_frequency']) ? (int) $frequency['id_frequency'] : null)->encodeDatas(),

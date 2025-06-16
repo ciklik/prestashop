@@ -72,8 +72,8 @@ class SqlQueries
                 `name` varchar(128) NOT NULL,
                 `interval` varchar(20) NOT NULL,
                 `interval_count` int(10) unsigned NOT NULL,
-                `discount_percent` decimal(5,2)",
-                `discount_price` decimal(20,6)",
+                `discount_percent` decimal(5,2),
+                `discount_price` decimal(20,6),
                 PRIMARY KEY (`id_frequency`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;',
             
