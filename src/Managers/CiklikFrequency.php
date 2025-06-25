@@ -213,19 +213,7 @@ class CiklikFrequency
             return false;
         }
 
-        try {
-            return Db::getInstance()->delete('ciklik_frequency', 'id_frequency = ' . (int)$id_frequency);
-        } catch (\Exception $e) {
-            \PrestaShopLogger::addLog(
-                'Erreur lors de la suppression de la fréquence: ' . $e->getMessage(),
-                3, // Erreur
-                null,
-                'CiklikFrequency',
-                null,
-                true
-            );
-            return false;
-        }
+        return Db::getInstance()->delete('ciklik_frequency', 'id_frequency = ' . (int)$id_frequency);
     }
 
 }

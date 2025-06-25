@@ -35,7 +35,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.7.5';
+    const VERSION = '1.7.6';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -70,7 +70,7 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.7.5';
+        $this->version = '1.7.6';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -146,6 +146,8 @@ class Ciklik extends PaymentModule
 
     /**
      * This hook called after a new Attribute is created
+     * 
+     * Only for 8.0+
      *
      * @param array $params
      */
@@ -232,7 +234,7 @@ class Ciklik extends PaymentModule
     }
 
     /*
-    * Hook for 1.8+
+    * Hook for 8.0+
     */
     public function hookActionAfterUpdateProductFormHandler(array $params): void
     {
@@ -256,26 +258,8 @@ class Ciklik extends PaymentModule
                     ]);
                 }
             }
-            $subscriptionInfo = Tools::getValue('ciklik_subscription_info');
-            $exists = Db::getInstance()->getValue('SELECT COUNT(*) FROM `'._DB_PREFIX_.'ciklik_product_subscription` WHERE id_product = ' . $idProduct);
-            if ($exists) {
-                Db::getInstance()->update(
-                    'ciklik_product_subscription',
-                    ['subscription_info' => pSQL($subscriptionInfo)],
-                    'id_product = ' . $idProduct
-                );
-            } else {
-                Db::getInstance()->insert(
-                    'ciklik_product_subscription',
-                    [
-                        'id_product' => $idProduct,
-                        'subscription_info' => pSQL($subscriptionInfo)
-                    ]
-                );
-            }
         } else {
             Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
-            Db::getInstance()->delete('ciklik_product_subscription', 'id_product = ' . $idProduct);
         }
     }
 
@@ -939,38 +923,9 @@ class Ciklik extends PaymentModule
                 }
             }
             
-            // Sauvegarde le texte d'information
-            $subscriptionInfo = Tools::getValue('ciklik_subscription_info');
-            
-            // Vérifie si une entrée existe déjà
-            $exists = Db::getInstance()->getValue('
-                SELECT COUNT(*) 
-                FROM `'._DB_PREFIX_.'ciklik_product_subscription` 
-                WHERE id_product = ' . $idProduct
-            );
-            
-            if ($exists) {
-                // Mise à jour
-                Db::getInstance()->update(
-                    'ciklik_product_subscription',
-                    ['subscription_info' => pSQL($subscriptionInfo)],
-                    'id_product = ' . $idProduct
-                );
-            } else {
-                // Insertion
-                Db::getInstance()->insert(
-                    'ciklik_product_subscription',
-                    [
-                        'id_product' => $idProduct,
-                        'subscription_info' => pSQL($subscriptionInfo)
-                    ]
-                );
-            }
-            
         } else {
-            // Supprime les fréquences et le texte d'information
+            // Supprime les fréquences
             Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
-            Db::getInstance()->delete('ciklik_product_subscription', 'id_product = ' . $idProduct);
         }
     }
 
@@ -987,37 +942,9 @@ class Ciklik extends PaymentModule
         $idProductAttribute = (int) $params['id_product_attribute'];
         $cart = $params['cart'];
 
-        // Log de débogage
-        PrestaShopLogger::addLog(
-            'hookActionCartUpdateQuantityBefore - Product: ' . $idProduct . ', Cart: ' . $cart->id,
-            1,
-            null,
-            'ciklik',
-            $idProduct
-        );
-
-        // Vérifie si le produit a des abonnements activés
-        if (!SubscriptionHelper::isSubscriptionEnabled($idProduct)) {
-            PrestaShopLogger::addLog(
-                'Product ' . $idProduct . ' is not subscription enabled',
-                1,
-                null,
-                'ciklik',
-                $idProduct
-            );
-            return;
-        }
-
         // Récupère la fréquence sélectionnée
         $selectedFrequency = Tools::getValue('ciklik_frequency');
         
-        PrestaShopLogger::addLog(
-            'Selected frequency: ' . ($selectedFrequency ?: 'none'),
-            1,
-            null,
-            'ciklik',
-            $idProduct
-        );
         
         // Si aucune fréquence n'est sélectionnée pour un produit en abonnement, on supprime les données de fréquence
         if (!$selectedFrequency) {
@@ -1030,51 +957,19 @@ class Ciklik extends PaymentModule
         // Récupère les informations de la fréquence pour calculer la réduction
         $frequency = CiklikFrequency::getFrequencyById($selectedFrequency);
 
-        PrestaShopLogger::addLog(
-            'Frequency data: ' . json_encode($frequency),
-            1,
-            null,
-            'ciklik',
-            $idProduct
-        );
-
         if ($frequency) {
             // Supprimer les anciens prix spécifiques pour ce produit/panier
             CiklikSpecificPrice::remove($idProduct, $idProductAttribute, $cart->id);
 
             // Si une réduction est définie, crée un nouveau prix spécifique en utilisant le manager
             if ($frequency['discount_percent'] > 0 || $frequency['discount_price'] > 0) {
-                PrestaShopLogger::addLog(
-                    'Creating specific price with discount_percent: ' . $frequency['discount_percent'] . ', discount_price: ' . $frequency['discount_price'],
-                    1,
-                    null,
-                    'ciklik',
-                    $idProduct
-                );
-                
-                $created = CiklikSpecificPrice::createForFrequency(
+                CiklikSpecificPrice::createForFrequency(
                     $idProduct,
                     $idProductAttribute,
                     $cart,
                     $frequency,
                     $cart->id_customer ? (int)$cart->id_customer : null,
                     !$cart->id_customer ? (int)$cart->id_guest : null
-                );
-                
-                PrestaShopLogger::addLog(
-                    'Specific price creation result: ' . ($created ? 'success' : 'failed'),
-                    1,
-                    null,
-                    'ciklik',
-                    $idProduct
-                );
-            } else {
-                PrestaShopLogger::addLog(
-                    'No discount to apply - discount_percent: ' . $frequency['discount_percent'] . ', discount_price: ' . $frequency['discount_price'],
-                    1,
-                    null,
-                    'ciklik',
-                    $idProduct
                 );
             }
 

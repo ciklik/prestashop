@@ -22,6 +22,7 @@ use Tools;
 use Configuration;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomization;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
+use PrestaShop\Module\Ciklik\Managers\DeliveryModuleManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -114,6 +115,8 @@ class OrderGateway extends AbstractGateway implements EntityGateway
         }
 
         $customizationData = CiklikCustomization::getCustomizationDataFromOrder($order);
+
+        DeliveryModuleManager::updateOrderId($cart->id, $this->module->currentOrder);
 
         (new Response())->setBody([
             'ps_order_id' => (int) $this->module->currentOrder,

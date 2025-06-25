@@ -18,9 +18,9 @@ use Customer;
 use Db;
 use DbQuery;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
-use PrestaShop\Module\Ciklik\Helpers\CartHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
+use PrestaShop\Module\Ciklik\Managers\DeliveryModuleManager;
 use Tools;
 
 if (!defined('_PS_VERSION_')) {
@@ -177,6 +177,9 @@ class CartGateway extends AbstractGateway implements EntityGateway
                             
             }
         }
+
+        // Gestion des points relais
+        DeliveryModuleManager::handleDeliveryModule($cart);
 
         $this->cartResponse($cart, false, $cartFingerprintData->upsells);
     }

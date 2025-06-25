@@ -207,8 +207,8 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     ],
                     Ciklik::CONFIG_USE_FREQUENCY_MODE => [
                         'type' => 'bool',
-                        'title' => $this->l('Utiliser la personnalisation des abonnements'),
-                        'desc' => $this->l('Les options d\'abonnement sont affichées via une case à cocher'),
+                        'title' => $this->l('Utiliser le mode fréquences'),
+                        'desc' => $this->l('Permet de proposer les abonnements sans utiliser les déclinaisons de produits'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
