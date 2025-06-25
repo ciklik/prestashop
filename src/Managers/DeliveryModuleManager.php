@@ -311,6 +311,88 @@ class DeliveryModuleManager
     }
 
     /**
+     * Pour Colissimo
+     * Clone la ligne la plus récente avec le même customer pour le nouveau panier
+     */
+    protected static function handleColissimo($cart)
+    {
+        try {
+            // Vérifier que la table existe
+            if (!self::tableExists(_DB_PREFIX_ . 'colissimo_cart_pickup_point')) {
+                return;
+            }
+
+            // 1. Vérifier que l'id_cart n'a pas déjà une ligne
+            $query = new DbQuery();
+            $query->select('COUNT(*)')
+                ->from('colissimo_cart_pickup_point')
+                ->where('id_cart = ' . (int)$cart->id);
+
+            if (Db::getInstance()->getValue($query) > 0) {
+                return; // Une ligne existe déjà pour ce panier
+            }
+
+            // 2. Trouver la dernière commande payée par le customer_id, dont la colonne module vaut 'ciklik'
+            $query = new DbQuery();
+            $query->select('o.id_cart')
+                ->from('orders', 'o')
+                ->where('o.id_customer = ' . (int)$cart->id_customer)
+                ->where('o.module = \'' . pSQL('ciklik') . '\'')
+                ->where('o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)')
+                ->orderBy('o.date_add DESC')
+                ->limit(1);
+
+            $lastPaidCartId = Db::getInstance()->getValue($query);
+
+            if (!$lastPaidCartId) {
+                return; // Aucune commande payée trouvée
+            }
+
+            // 3. Trouver dans la table colissimo_cart_pickup_point la ligne avec le cart_id du résultat au point 2
+            $query = new DbQuery();
+            $query->select('*')
+                ->from('colissimo_cart_pickup_point')
+                ->where('id_cart = ' . (int)$lastPaidCartId);
+
+            $existingPickupPoint = Db::getInstance()->getRow($query);
+
+            if (!$existingPickupPoint) {
+                return; // Aucune ligne de pickup point trouvée
+            }
+
+            // 4. Dupliquer la ligne, en y remplaçant le cart_id du point 2, par le cart_id courant
+            $newPickupPoint = [
+                'id_cart' => (int)$cart->id,
+                'id_colissimo_pickup_point' => (int)$existingPickupPoint['id_colissimo_pickup_point'],
+                'mobile_phone' => pSQL($existingPickupPoint['mobile_phone'])
+            ];
+
+            // Insérer la nouvelle ligne
+            $result = Db::getInstance()->insert('colissimo_cart_pickup_point', $newPickupPoint);
+
+            if ($result) {
+                \PrestaShopLogger::addLog(
+                    'DeliveryModuleManager::handleColissimo - Ligne clonée avec succès - Cart ID: ' . (int)$cart->id,
+                    1,
+                    null,
+                    'DeliveryModuleManager',
+                    null,
+                    true
+                );
+            }
+        } catch (\Exception $e) {
+            \PrestaShopLogger::addLog(
+                'DeliveryModuleManager::handleColissimo - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int)$cart->id,
+                3,
+                null,
+                'DeliveryModuleManager',
+                null,
+                true
+            );
+        }
+    }
+
+    /**
      * Vérifie si une table existe dans la base de données
      * 
      * @param string $tableName Nom de la table (avec préfixe)
