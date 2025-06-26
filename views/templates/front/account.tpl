@@ -40,6 +40,14 @@
                         <div>{$subscription->display_content}</div>
                         
                         <div>{$subscription->display_interval}</div>
+                        {* Affichage des customizations *}
+                        {if !empty($subscription->customizations)}
+                            <div class="subscription-customizations">
+                                <h6 class="customization-title">{l s='Customizations' mod='ciklik'}</h6>
+                                {include file="module:ciklik/views/templates/front/subscription_customizations.tpl" customizations=$subscription->customizations}
+                            </div>
+                        {/if}
+                        
                         {if $enable_change_interval === '1'}
                             {include file="module:ciklik/views/templates/front/actions/changeInterval.tpl" subscription=$subscription }
                         {/if}

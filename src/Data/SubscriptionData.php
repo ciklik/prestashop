@@ -69,6 +69,11 @@ class SubscriptionData
      */
     public $upsells;
 
+    /**
+     * @var array
+     */
+    public $customizations;
+
     private function __construct(string $uuid,
         bool $active,
         string $display_content,
@@ -79,7 +84,8 @@ class SubscriptionData
         DateTimeImmutable $end_date,
         CartFingerprintData $external_fingerprint,
         array $contents = [],
-        array $upsells = []
+        array $upsells = [],
+        array $customizations = []
     ) {
         $this->uuid = $uuid;
         $this->active = $active;
@@ -92,6 +98,7 @@ class SubscriptionData
         $this->external_fingerprint = $external_fingerprint;
         $this->contents = $contents;
         $this->upsells = $upsells;
+        $this->customizations = $customizations;
     }
 
     public static function create(array $data): SubscriptionData
@@ -111,7 +118,8 @@ class SubscriptionData
             CarbonImmutable::parse($data['end_date']),
             $fingerprint,
             self::processContents($data['content']),
-            isset($fingerprint->upsells) ? self::processUpsells($fingerprint->upsells) : []
+            isset($fingerprint->upsells) ? self::processUpsells($fingerprint->upsells) : [],
+            isset($fingerprint->customizations) ? $fingerprint->customizations : []
         );
     }
 
