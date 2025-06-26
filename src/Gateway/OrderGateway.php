@@ -23,6 +23,7 @@ use Configuration;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomization;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use PrestaShop\Module\Ciklik\Managers\DeliveryModuleManager;
+use PrestaShopLogger;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -63,7 +64,17 @@ class OrderGateway extends AbstractGateway implements EntityGateway
                 CustomerHelper::assignCustomerGroup((int) $cart->id_customer);
             }
             
-            $customizationData = CiklikCustomization::getCustomizationDataFromCart($cart);
+            // Récupérer les customizations détaillées de la commande existante
+            $customizationData = CiklikCustomization::getDetailedCustomizationDataFromOrder($order);
+            
+            PrestaShopLogger::addLog(
+                'OrderGateway::post - Customizations récupérées pour la commande existante ' . $orderId,
+                1,
+                null,
+                'OrderGateway',
+                $orderId,
+                true
+            );
             
             (new Response())->setBody([
                 'ps_order_id' => (int) $orderId,
@@ -114,7 +125,17 @@ class OrderGateway extends AbstractGateway implements EntityGateway
             CustomerHelper::assignCustomerGroup((int) $cart->id_customer);
         }
 
-        $customizationData = CiklikCustomization::getCustomizationDataFromOrder($order);
+        // Récupérer les customizations détaillées de la nouvelle commande
+        $customizationData = CiklikCustomization::getDetailedCustomizationDataFromOrder($order);
+
+        PrestaShopLogger::addLog(
+            'OrderGateway::post - Customizations récupérées pour la nouvelle commande ' . $this->module->currentOrder,
+            1,
+            null,
+            'OrderGateway',
+            $this->module->currentOrder,
+            true
+        );
 
         DeliveryModuleManager::updateOrderId($cart->id, $this->module->currentOrder);
 

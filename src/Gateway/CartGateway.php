@@ -21,6 +21,7 @@ use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use PrestaShop\Module\Ciklik\Managers\DeliveryModuleManager;
+use PrestaShop\Module\Ciklik\Managers\CiklikCustomization;
 use Tools;
 
 if (!defined('_PS_VERSION_')) {
@@ -136,7 +137,32 @@ class CartGateway extends AbstractGateway implements EntityGateway
         }
 
         $cart->update();
-        
+
+        // Appliquer les customizations après l'ajout des produits
+        if (!empty($cartFingerprintData->customizations)) {
+            $customizationResult = CiklikCustomization::applyCustomizationsToCart($cart, $cartFingerprintData->customizations);
+            
+            if (!$customizationResult) {
+                PrestaShopLogger::addLog(
+                    'CartGateway::post - Échec application customizations pour le panier ' . $cart->id,
+                    3,
+                    null,
+                    'CartGateway',
+                    $cart->id,
+                    true
+                );
+                // On continue même si les customizations échouent pour ne pas bloquer le processus
+            } else {
+                PrestaShopLogger::addLog(
+                    'CartGateway::post - Customizations appliquées avec succès au panier ' . $cart->id,
+                    1,
+                    null,
+                    'CartGateway',
+                    $cart->id,
+                    true
+                );
+            }
+        }
 
         // Récupération des produits additionnels (upsells) depuis les paramètres de la requête
         $upsells = Tools::getValue('upsells', null);
