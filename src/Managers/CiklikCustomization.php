@@ -72,15 +72,13 @@ class CiklikCustomization
     {
         try {
             $customizationData = [];
-
             foreach ($cart->getProducts() as $product) {
                 $productCustomizations = self::getProductCustomizations(
                     (int) $product['id_product'],
                     (int) $product['id_product_attribute'],
                     (int) $cart->id
                 );
-
-                if (!empty($productCustomizations)) {
+                if (!empty($productCustomizations['fields']) || !empty($productCustomizations['files'])) {
                     $customizationData[] = [
                         'id_product' => (int) $product['id_product'],
                         'id_product_attribute' => (int) $product['id_product_attribute'],
@@ -88,16 +86,6 @@ class CiklikCustomization
                     ];
                 }
             }
-
-            PrestaShopLogger::addLog(
-                'CiklikCustomization::getDetailedCustomizationDataFromCart - Customizations récupérées pour le panier ' . $cart->id,
-                1,
-                null,
-                'CiklikCustomization',
-                $cart->id,
-                true
-            );
-
             return $customizationData;
         } catch (\Exception $e) {
             PrestaShopLogger::addLog(
@@ -121,273 +109,107 @@ class CiklikCustomization
      */
     public static function getDetailedCustomizationDataFromOrder(Order $order)
     {
-        try {
-            $customizationData = [];
-
-            foreach ($order->getProducts() as $product) {
-                $productCustomizations = self::getProductCustomizations(
-                    (int) $product['id_product'],
-                    (int) ($product['id_product_attribute'] ?? 0),
-                    null,
-                    (int) $order->id
-                );
-
-                if (!empty($productCustomizations)) {
-                    $customizationData[] = [
-                        'id_product' => (int) $product['id_product'],
-                        'id_product_attribute' => (int) ($product['id_product_attribute'] ?? 0),
-                        'customizations' => $productCustomizations,
-                    ];
-                }
-            }
-
-            PrestaShopLogger::addLog(
-                'CiklikCustomization::getDetailedCustomizationDataFromOrder - Customizations récupérées pour la commande ' . $order->id,
-                1,
-                null,
-                'CiklikCustomization',
-                $order->id,
-                true
-            );
-
-            return $customizationData;
-        } catch (\Exception $e) {
-            PrestaShopLogger::addLog(
-                'CiklikCustomization::getDetailedCustomizationDataFromOrder - Erreur: ' . $e->getMessage() . ' - Order ID: ' . $order->id,
-                3,
-                null,
-                'CiklikCustomization',
-                $order->id,
-                true
-            );
+        // Pour PrestaShop, il n'y a pas de lien direct entre commande et customizations, il faut passer par le cart d'origine
+        // On suppose ici que la commande a un id_cart d'origine
+        $idCart = (int)$order->id_cart;
+        if (!$idCart) {
             return [];
         }
+        // On réutilise la logique du panier
+        return self::getDetailedCustomizationDataFromCart(new Cart($idCart));
     }
 
     /**
      * Applique les customizations à un panier lors du rebill
      * 
      * @param Cart $cart
-     * @param array $customizationData
+     * @param array $customizations
      * @return bool
      */
-    public static function applyCustomizationsToCart(Cart $cart, array $customizationData)
+    public static function applyCustomizationsToCart(Cart $cart, array $customizations)
     {
-        try {
-            if (empty($customizationData)) {
-                return true; // Pas de customizations à appliquer
-            }
-
-            foreach ($customizationData as $productCustomization) {
-                $idProduct = (int) $productCustomization['id_product'];
-                $idProductAttribute = (int) $productCustomization['id_product_attribute'];
-                $customizations = $productCustomization['customizations'] ?? [];
-
-                if (empty($customizations)) {
-                    continue;
-                }
-
-                // Vérifier que le produit existe dans le panier
-                $cartProduct = $cart->getProductQuantity($idProduct, $idProductAttribute);
-                if (!$cartProduct['quantity']) {
-                    PrestaShopLogger::addLog(
-                        'CiklikCustomization::applyCustomizationsToCart - Produit non trouvé dans le panier - Product: ' . $idProduct . ', Attribute: ' . $idProductAttribute,
-                        2,
-                        null,
-                        'CiklikCustomization',
-                        $cart->id,
-                        true
-                    );
-                    continue;
-                }
-
-                // Appliquer les customizations
-                $result = self::applyProductCustomizations($cart, $idProduct, $idProductAttribute, $customizations);
-                
-                if (!$result) {
-                    PrestaShopLogger::addLog(
-                        'CiklikCustomization::applyCustomizationsToCart - Échec application customizations - Product: ' . $idProduct . ', Attribute: ' . $idProductAttribute,
-                        3,
-                        null,
-                        'CiklikCustomization',
-                        $cart->id,
-                        true
-                    );
+        foreach ($customizations as $productCustomization) {
+            $id_product = $productCustomization['id_product'];
+            $id_product_attribute = $productCustomization['id_product_attribute'];
+            if (isset($productCustomization['customizations']['fields']) && is_array($productCustomization['customizations']['fields'])) {
+                foreach ($productCustomization['customizations']['fields'] as $field) {
+                    self::applyCustomizationField($cart, $id_product, $id_product_attribute, $field);
                 }
             }
-
-            PrestaShopLogger::addLog(
-                'CiklikCustomization::applyCustomizationsToCart - Customizations appliquées avec succès au panier ' . $cart->id,
-                1,
-                null,
-                'CiklikCustomization',
-                $cart->id,
-                true
-            );
-
-            return true;
-        } catch (\Exception $e) {
-            PrestaShopLogger::addLog(
-                'CiklikCustomization::applyCustomizationsToCart - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . $cart->id,
-                3,
-                null,
-                'CiklikCustomization',
-                $cart->id,
-                true
-            );
-            return false;
+            if (isset($productCustomization['customizations']['files']) && is_array($productCustomization['customizations']['files'])) {
+                foreach ($productCustomization['customizations']['files'] as $file) {
+                    self::applyCustomizationFile($cart, $id_product, $id_product_attribute, $file);
+                }
+            }
         }
+        return true;
     }
 
     /**
-     * Récupère les customizations détaillées d'un produit
-     * 
+     * Récupère les customizations détaillées d'un produit (panier ou commande)
+     *
      * @param int $idProduct
      * @param int $idProductAttribute
      * @param int|null $idCart
-     * @param int|null $idOrder
      * @return array
      */
-    private static function getProductCustomizations(int $idProduct, int $idProductAttribute, ?int $idCart = null, ?int $idOrder = null)
+    private static function getProductCustomizations(int $idProduct, int $idProductAttribute, ?int $idCart = null)
     {
-        $customizations = [];
-
-        // Récupérer les champs de customization
-        $customizationFields = self::getCustomizationFields($idProduct, $idProductAttribute, $idCart, $idOrder);
-        if (!empty($customizationFields)) {
-            $customizations['fields'] = $customizationFields;
+        $customizations = [
+            'fields' => [],
+            'files' => [],
+        ];
+        if (!$idCart) {
+            // Pour les commandes, il faudrait retrouver le cart d'origine ou adapter la logique
+            return $customizations;
         }
-
-        // Récupérer les fichiers de customization
-        $customizationFiles = self::getCustomizationFiles($idProduct, $idProductAttribute, $idCart, $idOrder);
-        if (!empty($customizationFiles)) {
-            $customizations['files'] = $customizationFiles;
+        $idLang = (int)\Configuration::get('PS_LANG_DEFAULT');
+        // 1. Récupérer toutes les personnalisations pour ce produit dans le panier
+        $customizationRows = Db::getInstance()->executeS(
+            'SELECT id_customization FROM '._DB_PREFIX_.'customization
+             WHERE id_cart = '.(int)$idCart.'
+               AND id_product = '.(int)$idProduct.'
+               AND id_product_attribute = '.(int)$idProductAttribute
+        );
+        if (!$customizationRows) {
+            return $customizations;
         }
-
+        // 2. Récupérer les labels des champs pour ce produit
+        $fieldsLabels = [];
+        $fieldsRows = Db::getInstance()->executeS(
+            'SELECT cf.id_customization_field, cf.type, cf.required, cfl.name
+             FROM '._DB_PREFIX_.'customization_field cf
+             LEFT JOIN '._DB_PREFIX_.'customization_field_lang cfl ON cf.id_customization_field = cfl.id_customization_field AND cfl.id_lang = '.(int)$idLang.'
+             WHERE cf.id_product = '.(int)$idProduct
+        );
+        foreach ($fieldsRows as $row) {
+            $fieldsLabels[$row['id_customization_field']] = $row;
+        }
+        // 3. Pour chaque personnalisation, récupérer les valeurs
+        foreach ($customizationRows as $row) {
+            $idCustomization = (int)$row['id_customization'];
+            $dataRows = Db::getInstance()->executeS(
+                'SELECT type, value, `index` FROM '._DB_PREFIX_.'customized_data
+                 WHERE id_customization = '.(int)$idCustomization
+            );
+            foreach ($dataRows as $custom) {
+                // On tente de retrouver le label du champ si possible
+                $fieldLabel = isset($fieldsLabels[$custom['index']]) ? $fieldsLabels[$custom['index']]['name'] : '';
+                $type = $custom['type'];
+                $entry = [
+                    'type' => $type,
+                    'value' => $custom['value'],
+                    'index' => $custom['index'],
+                    'name' => $fieldLabel,
+                ];
+                if ($type === '0') {
+                    $customizations['files'][] = $entry;
+                } else {
+                    $customizations['fields'][] = $entry;
+                }
+            }
+        }
         return $customizations;
-    }
-
-    /**
-     * Récupère les champs de customization
-     * 
-     * @param int $idProduct
-     * @param int $idProductAttribute
-     * @param int|null $idCart
-     * @param int|null $idOrder
-     * @return array
-     */
-    private static function getCustomizationFields(int $idProduct, int $idProductAttribute, ?int $idCart = null, ?int $idOrder = null)
-    {
-        try {
-            $query = new DbQuery();
-            $query->select('cf.id_customization_field, cf.type, cf.required, cfd.name, cfd.description, cd.value')
-                ->from('customization_field', 'cf')
-                ->leftJoin('customization_field_lang', 'cfd', 'cf.id_customization_field = cfd.id_customization_field')
-                ->leftJoin('customization_data', 'cd', 'cf.id_customization_field = cd.id_customization_field');
-
-            if ($idCart) {
-                $query->where('cd.id_cart = ' . (int) $idCart);
-            } elseif ($idOrder) {
-                $query->where('cd.id_order = ' . (int) $idOrder);
-            }
-
-            $query->where('cf.id_product = ' . (int) $idProduct)
-                ->where('cfd.id_lang = ' . (int) \Configuration::get('PS_LANG_DEFAULT'));
-
-            $fields = Db::getInstance()->executeS($query);
-
-            if (!$fields) {
-                return [];
-            }
-
-            $customizationFields = [];
-            foreach ($fields as $field) {
-                if (!empty($field['value'])) {
-                    $customizationFields[] = [
-                        'id_customization_field' => (int) $field['id_customization_field'],
-                        'type' => $field['type'],
-                        'required' => (bool) $field['required'],
-                        'name' => $field['name'],
-                        'description' => $field['description'],
-                        'value' => $field['value'],
-                    ];
-                }
-            }
-
-            return $customizationFields;
-        } catch (\Exception $e) {
-            PrestaShopLogger::addLog(
-                'CiklikCustomization::getCustomizationFields - Erreur: ' . $e->getMessage(),
-                3,
-                null,
-                'CiklikCustomization',
-                $idProduct,
-                true
-            );
-            return [];
-        }
-    }
-
-    /**
-     * Récupère les fichiers de customization
-     * 
-     * @param int $idProduct
-     * @param int $idProductAttribute
-     * @param int|null $idCart
-     * @param int|null $idOrder
-     * @return array
-     */
-    private static function getCustomizationFiles(int $idProduct, int $idProductAttribute, ?int $idCart = null, ?int $idOrder = null)
-    {
-        try {
-            $query = new DbQuery();
-            $query->select('cf.id_customization_field, cf.type, cfd.name, cfd.description, cd.value, cd.filename')
-                ->from('customization_field', 'cf')
-                ->leftJoin('customization_field_lang', 'cfd', 'cf.id_customization_field = cfd.id_customization_field')
-                ->leftJoin('customization_data', 'cd', 'cf.id_customization_field = cd.id_customization_field');
-
-            if ($idCart) {
-                $query->where('cd.id_cart = ' . (int) $idCart);
-            } elseif ($idOrder) {
-                $query->where('cd.id_order = ' . (int) $idOrder);
-            }
-
-            $query->where('cf.id_product = ' . (int) $idProduct)
-                ->where('cf.type = \'file\'')
-                ->where('cfd.id_lang = ' . (int) \Configuration::get('PS_LANG_DEFAULT'));
-
-            $files = Db::getInstance()->executeS($query);
-
-            if (!$files) {
-                return [];
-            }
-
-            $customizationFiles = [];
-            foreach ($files as $file) {
-                if (!empty($file['filename'])) {
-                    $customizationFiles[] = [
-                        'id_customization_field' => (int) $file['id_customization_field'],
-                        'type' => $file['type'],
-                        'name' => $file['name'],
-                        'description' => $file['description'],
-                        'filename' => $file['filename'],
-                        'value' => $file['value'], // Contient le chemin du fichier
-                    ];
-                }
-            }
-
-            return $customizationFiles;
-        } catch (\Exception $e) {
-            PrestaShopLogger::addLog(
-                'CiklikCustomization::getCustomizationFiles - Erreur: ' . $e->getMessage(),
-                3,
-                null,
-                'CiklikCustomization',
-                $idProduct,
-                true
-            );
-            return [];
-        }
     }
 
     /**
@@ -402,29 +224,46 @@ class CiklikCustomization
     private static function applyProductCustomizations(Cart $cart, int $idProduct, int $idProductAttribute, array $customizations)
     {
         try {
-            // Appliquer les champs de customization
+            $idCustomization = Db::getInstance()->getValue(
+                'SELECT id_customization FROM '._DB_PREFIX_.'customization
+                 WHERE id_cart = '.(int)$cart->id.'
+                   AND id_product = '.(int)$idProduct.'
+                   AND id_product_attribute = '.(int)$idProductAttribute
+            );
+            if (!$idCustomization) {
+                // Récupérer la quantité du produit dans le panier
+                $productQuantity = 1;
+                if (isset($cart) && method_exists($cart, 'getProducts')) {
+                    foreach ($cart->getProducts() as $product) {
+                        if ($product['id_product'] == $idProduct && $product['id_product_attribute'] == $idProductAttribute) {
+                            $productQuantity = (int)$product['cart_quantity'];
+                            break;
+                        }
+                    }
+                }
+                Db::getInstance()->insert('customization', [
+                    'id_cart' => (int)$cart->id,
+                    'id_product' => (int)$idProduct,
+                    'id_product_attribute' => (int)$idProductAttribute,
+                    'id_address_delivery' => (int)$cart->id_address_delivery,
+                    'quantity' => $productQuantity,
+                    'in_cart' => 1,
+                ]);
+                $idCustomization = Db::getInstance()->Insert_ID();
+            }
             if (isset($customizations['fields']) && !empty($customizations['fields'])) {
                 foreach ($customizations['fields'] as $field) {
-                    $result = self::applyCustomizationField($cart, $idProduct, $idProductAttribute, $field);
-                    if (!$result) {
-                        return false;
-                    }
+                    self::applyCustomizationFieldById($idCustomization, $field);
                 }
             }
-
-            // Appliquer les fichiers de customization
             if (isset($customizations['files']) && !empty($customizations['files'])) {
                 foreach ($customizations['files'] as $file) {
-                    $result = self::applyCustomizationFile($cart, $idProduct, $idProductAttribute, $file);
-                    if (!$result) {
-                        return false;
-                    }
+                    self::applyCustomizationFileById($idCustomization, $file);
                 }
             }
-
             return true;
         } catch (\Exception $e) {
-            PrestaShopLogger::addLog(
+            \PrestaShopLogger::addLog(
                 'CiklikCustomization::applyProductCustomizations - Erreur: ' . $e->getMessage(),
                 3,
                 null,
@@ -445,51 +284,27 @@ class CiklikCustomization
      * @param array $field
      * @return bool
      */
-    private static function applyCustomizationField(Cart $cart, int $idProduct, int $idProductAttribute, array $field)
+    public static function applyCustomizationField(Cart $cart, int $idProduct, int $idProductAttribute, array $field)
     {
-        try {
-            // Vérifier si le champ existe déjà
-            $query = new DbQuery();
-            $query->select('id_customization_data')
-                ->from('customization_data')
-                ->where('id_cart = ' . (int) $cart->id)
-                ->where('id_customization_field = ' . (int) $field['id_customization_field']);
-
-            $existingData = Db::getInstance()->getValue($query);
-
-            if ($existingData) {
-                // Mettre à jour l'existant
-                $result = Db::getInstance()->update(
-                    'customization_data',
-                    [
-                        'value' => pSQL($field['value']),
-                        'date_upd' => pSQL(date('Y-m-d H:i:s')),
-                    ],
-                    'id_customization_data = ' . (int) $existingData
-                );
-            } else {
-                // Créer une nouvelle entrée
-                $result = Db::getInstance()->insert('customization_data', [
-                    'id_cart' => (int) $cart->id,
-                    'id_customization_field' => (int) $field['id_customization_field'],
-                    'value' => pSQL($field['value']),
-                    'date_add' => pSQL(date('Y-m-d H:i:s')),
-                    'date_upd' => pSQL(date('Y-m-d H:i:s')),
-                ]);
-            }
-
-            return $result;
-        } catch (\Exception $e) {
-            PrestaShopLogger::addLog(
-                'CiklikCustomization::applyCustomizationField - Erreur: ' . $e->getMessage(),
-                3,
-                null,
-                'CiklikCustomization',
-                $cart->id,
-                true
-            );
-            return false;
+        // Retrouver ou créer l'id_customization pour ce produit dans ce panier
+        $idCustomization = Db::getInstance()->getValue(
+            'SELECT id_customization FROM '._DB_PREFIX_.'customization
+             WHERE id_cart = '.(int)$cart->id.'
+               AND id_product = '.(int)$idProduct.'
+               AND id_product_attribute = '.(int)$idProductAttribute
+        );
+        if (!$idCustomization) {
+            Db::getInstance()->insert('customization', [
+                'id_cart' => (int)$cart->id,
+                'id_product' => (int)$idProduct,
+                'id_product_attribute' => (int)$idProductAttribute,
+                'id_address_delivery' => (int)$cart->id_address_delivery,
+                'quantity' => 1,
+                'in_cart' => 1,
+            ]);
+            $idCustomization = Db::getInstance()->Insert_ID();
         }
+        return self::applyCustomizationFieldById($idCustomization, $field);
     }
 
     /**
@@ -503,49 +318,102 @@ class CiklikCustomization
      * @param array $file
      * @return bool
      */
-    private static function applyCustomizationFile(Cart $cart, int $idProduct, int $idProductAttribute, array $file)
+    public static function applyCustomizationFile(Cart $cart, int $idProduct, int $idProductAttribute, array $file)
+    {
+        // Retrouver ou créer l'id_customization pour ce produit dans ce panier
+        $idCustomization = Db::getInstance()->getValue(
+            'SELECT id_customization FROM '._DB_PREFIX_.'customization
+             WHERE id_cart = '.(int)$cart->id.'
+               AND id_product = '.(int)$idProduct.'
+               AND id_product_attribute = '.(int)$idProductAttribute
+        );
+        if (!$idCustomization) {
+            Db::getInstance()->insert('customization', [
+                'id_cart' => (int)$cart->id,
+                'id_product' => (int)$idProduct,
+                'id_product_attribute' => (int)$idProductAttribute,
+                'id_address_delivery' => (int)$cart->id_address_delivery,
+                'quantity' => 1,
+                'in_cart' => 1,
+            ]);
+            $idCustomization = Db::getInstance()->Insert_ID();
+        }
+        return self::applyCustomizationFileById($idCustomization, $file);
+    }
+
+    // Version privée utilisée quand on a déjà l'id_customization
+    private static function applyCustomizationFieldById($idCustomization, array $field)
     {
         try {
-            // Vérifier si le fichier existe déjà
-            $query = new DbQuery();
-            $query->select('id_customization_data')
-                ->from('customization_data')
-                ->where('id_cart = ' . (int) $cart->id)
-                ->where('id_customization_field = ' . (int) $file['id_customization_field']);
-
-            $existingData = Db::getInstance()->getValue($query);
-
-            if ($existingData) {
-                // Mettre à jour l'existant
-                $result = Db::getInstance()->update(
-                    'customization_data',
+            $existing = Db::getInstance()->getValue(
+                'SELECT id_customization FROM '._DB_PREFIX_.'customized_data
+                 WHERE id_customization = '.(int)$idCustomization.'
+                   AND `index` = '.(int)$field['index'].'
+                   AND type = 1'
+            );
+            if ($existing) {
+                Db::getInstance()->update(
+                    'customized_data',
                     [
-                        'value' => pSQL($file['value']),
-                        'filename' => pSQL($file['filename']),
-                        'date_upd' => pSQL(date('Y-m-d H:i:s')),
+                        'value' => pSQL($field['value'])
                     ],
-                    'id_customization_data = ' . (int) $existingData
+                    'id_customization = '.(int)$idCustomization.' AND `index` = '.(int)$field['index'].' AND type = 1'
                 );
             } else {
-                // Créer une nouvelle entrée
-                $result = Db::getInstance()->insert('customization_data', [
-                    'id_cart' => (int) $cart->id,
-                    'id_customization_field' => (int) $file['id_customization_field'],
-                    'value' => pSQL($file['value']),
-                    'filename' => pSQL($file['filename']),
-                    'date_add' => pSQL(date('Y-m-d H:i:s')),
-                    'date_upd' => pSQL(date('Y-m-d H:i:s')),
+                Db::getInstance()->insert('customized_data', [
+                    'id_customization' => (int)$idCustomization,
+                    'type' => 1, // Champ texte
+                    'index' => (int)$field['index'],
+                    'value' => pSQL($field['value']),
                 ]);
             }
-
-            return $result;
+            return true;
         } catch (\Exception $e) {
-            PrestaShopLogger::addLog(
-                'CiklikCustomization::applyCustomizationFile - Erreur: ' . $e->getMessage(),
+            \PrestaShopLogger::addLog(
+                'CiklikCustomization::applyCustomizationFieldById - Erreur: ' . $e->getMessage(),
                 3,
                 null,
                 'CiklikCustomization',
-                $cart->id,
+                $idCustomization,
+                true
+            );
+            return false;
+        }
+    }
+
+    private static function applyCustomizationFileById($idCustomization, array $file)
+    {
+        try {
+            $existing = Db::getInstance()->getValue(
+                'SELECT id_customization FROM '._DB_PREFIX_.'customized_data
+                 WHERE id_customization = '.(int)$idCustomization.'
+                   AND `index` = '.(int)$file['index'].'
+                   AND type = 0'
+            );
+            if ($existing) {
+                Db::getInstance()->update(
+                    'customized_data',
+                    [
+                        'value' => pSQL($file['value'])
+                    ],
+                    'id_customization = '.(int)$idCustomization.' AND `index` = '.(int)$file['index'].' AND type = 0'
+                );
+            } else {
+                Db::getInstance()->insert('customized_data', [
+                    'id_customization' => (int)$idCustomization,
+                    'type' => 0, // Fichier
+                    'index' => (int)$file['index'],
+                    'value' => pSQL($file['value']),
+                ]);
+            }
+            return true;
+        } catch (\Exception $e) {
+            \PrestaShopLogger::addLog(
+                'CiklikCustomization::applyCustomizationFileById - Erreur: ' . $e->getMessage(),
+                3,
+                null,
+                'CiklikCustomization',
+                $idCustomization,
                 true
             );
             return false;
