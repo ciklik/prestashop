@@ -47,11 +47,14 @@ class DisplayOrderSubscriptionInfoHookController
 
         $orderData = (new \PrestaShop\Module\Ciklik\Api\Order($this->context->link))->getOneByPsOrderId((int) $params['id_order']);
 
-        if ($orderData !== null) {
-            $ciklikSubscriptionData = (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne($orderData->subscription_uuid);
+        $subscription = null;
+        
+        if (
+            $orderData !== null &&
+            ($ciklikSubscriptionData = (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne($orderData->subscription_uuid)) &&
+            isset($ciklikSubscriptionData['body']['external_fingerprint'])
+        ) {
             $subscription = SubscriptionData::create($ciklikSubscriptionData['body']);
-        } else {
-            $subscription = null;
         }
 
         // Récupérer les informations d'abonnement de la commande
