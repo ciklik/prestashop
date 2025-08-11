@@ -355,6 +355,18 @@ class CiklikCombination
 
             // Ajoute la dernière contrainte à la requête principale
             $query->where(end($constraint_queries));
+            $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($query);
+            if(!$result){
+                // Réessayer la requête sans les contraintes
+                $query = new DbQuery();
+                $query->select('pa.id_product_attribute, pa.id_product, pa.reference, pa.price, pac.id_attribute');
+                $query->from('product_attribute', 'pa');
+                $query->leftJoin('product_attribute_combination', 'pac', 'pa.id_product_attribute = pac.id_product_attribute');
+                $query->where('pa.id_product = ' . $id_product);
+                $query->where('pac.id_attribute = ' . $frequency_id_attribute);
+                return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($query);
+            }
+            return $result;
         }
 
         // Exécute la requête et retourne la première ligne

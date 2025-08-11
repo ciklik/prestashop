@@ -5,38 +5,25 @@
  *}
 
 <div class="customization-details">
-    {foreach from=$customizations item=productCustomization}
-
-        <div class="product-customization">
-            <div class="product-info">
-                <strong>{l s='Produit' mod='ciklik'} #{$productCustomization.id_product}</strong>
-                {if $productCustomization.id_product_attribute > 0}
-                    <span class="attribute-info">({l s='Déclinaison' mod='ciklik'} #{$productCustomization.id_product_attribute})</span>
-                {/if}
-            </div>
-            
-            {if isset($productCustomization.customizations.fields) && !empty($productCustomization.customizations.fields)}
-                <div class="customization-fields">
-                    <h6>{l s='Champs de personnalisation' mod='ciklik'}</h6>
-                    {foreach from=$productCustomization.customizations.fields item=field}
-                        <div class="customization-field">
-                            <span class="field-name">{$field.name}:</span>
-                            <span class="field-value">{$field.value}</span>
-                        </div>
-                    {/foreach}
+    {foreach from=$customizations item=custom}
+        <div class="customization-item">
+            <span class="customization-name">{$custom.name}:</span>
+            {if $custom.type == "0"}
+                {* Fichier - afficher l'image avec la logique PrestaShop *}
+                <div class="customization-image">
+                    <img src="{$urls.base_url}upload/{$custom.value}_small?reference={$custom.name|urlencode}" 
+                         alt="{$custom.name}" 
+                         class="customization-img"
+                         style="max-width: 100px; max-height: 100px; object-fit: cover; border-radius: 4px;">
                 </div>
+                
+            {else}
+                {* Texte - afficher normalement *}
+                <span class="customization-value">{$custom.value}</span>
+               
             {/if}
-            
-            {if isset($productCustomization.customizations.files) && !empty($productCustomization.customizations.files)}
-                <div class="customization-files">
-                    <h6>{l s='Fichiers de personnalisation' mod='ciklik'}</h6>
-                    {foreach from=$productCustomization.customizations.files item=file}
-                        <div class="customization-file">
-                            <span class="file-name">{$file.name}:</span>
-                            <span class="file-filename">{if isset($file.filename)}{$file.filename}{else}-{/if}</span>
-                        </div>
-                    {/foreach}
-                </div>
+            {if $custom.quantity > 1}
+                <span class="customization-quantity">({l s='Quantité' mod='ciklik'}: {$custom.quantity})</span>
             {/if}
         </div>
     {/foreach}

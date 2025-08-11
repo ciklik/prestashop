@@ -40,19 +40,52 @@
                         <div>{$subscription->display_content}</div>
                         
                         <div>{$subscription->display_interval}</div>
-                        {* Affichage des customizations *}
-                        {if !empty($subscription->customizations)}
-                            <div class="subscription-customizations">
-                                <h6 class="customization-title">{l s='Customizations' mod='ciklik'}</h6>
-                                {include file="module:ciklik/views/templates/front/subscription_customizations.tpl" customizations=$subscription->customizations}
-                            </div>
-                        {/if}
                         
                         {if $enable_change_interval === '1'}
                             {include file="module:ciklik/views/templates/front/actions/changeInterval.tpl" subscription=$subscription }
                         {/if}
                         {if !empty($subscription->upsells)}
                             {include file="module:ciklik/views/templates/front/actions/ListUpsellSubscriptionAndDelete.tpl" subscription=$subscription}
+                        {/if}
+                        {* Affichage des customizations *}
+                        {if !empty($subscription->contents)}
+                            {* Vérifier s'il y a au moins un élément avec des customizations *}
+                            {assign var="has_customizations" value=false}
+                            {foreach from=$subscription->contents item=content}
+                                {if !empty($content.customizations)}
+                                    {assign var="has_customizations" value=true}
+                                {/if}
+                            {/foreach}
+                            
+                            {if $has_customizations}
+                                <div class="subscription-customizations">
+                                    <div class="customization-title">{l s='Personnalisations' mod='ciklik'}</div>
+                                    {foreach from=$subscription->contents item=content}
+                                        {if !empty($content.customizations)}
+                                            {* Extraire les informations du produit *}
+                                            {assign var="product_info" value=":"|explode:$content.external_id}
+                                            {assign var="product_id" value=$product_info[0]}
+                                            {assign var="product_attribute_id" value=0}
+                                            {if count($product_info) > 1}
+                                                {assign var="product_attribute_id" value=$product_info[1]}
+                                            {/if}
+                                            <div>
+                                            <a class="text-muted" data-toggle="collapse" href="#customizations{$subscription->uuid}-{$content@index}" role="button" aria-expanded="false" aria-controls="customizations{$subscription->uuid}-{$content@index}">
+                                                <i class="material-icons" style="font-size: 15px;">add</i> <small> 
+                                                {if $product_attribute_id > 0}
+                                                    {Product::getProductName($product_id, $product_attribute_id)}
+                                                {else}
+                                                    {Product::getProductName($product_id)}
+                                                {/if}</small>
+                                            </a>
+                                            <div class="collapse" id="customizations{$subscription->uuid}-{$content@index}">
+                                                {include file="module:ciklik/views/templates/front/subscription_customizations.tpl" customizations=$content.customizations}
+                                            </div>
+                                            </div>
+                                        {/if}
+                                    {/foreach}
+                                </div>
+                            {/if}
                         {/if}
                     </td>
                     <td>

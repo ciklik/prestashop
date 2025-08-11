@@ -10,6 +10,7 @@ namespace PrestaShop\Module\Ciklik\Data;
 use Carrier;
 use Cart;
 use Tools;
+use Product;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -97,14 +98,18 @@ class CartFingerprintData
             $data['id_carrier_reference'],
             isset($data['upsells']) ? $data['upsells'] : [],
             isset($data['frequency_id']) ? $data['frequency_id'] : null,
-            isset($data['customizations']) ? $data['customizations'] : []
+            isset($data['customizations']) && $data['customizations'] !== false ? $data['customizations'] : []
         );
     }
 
     public static function fromCart(Cart $cart, array $upsells = [], $frequency_id = null): CartFingerprintData
     {
         $carrier = new Carrier($cart->id_carrier);
-        $customizations = \PrestaShop\Module\Ciklik\Managers\CiklikCustomization::getDetailedCustomizationDataFromCart($cart);
+        $customizations = Product::getAllCustomizedDatas($cart->id, null, true, $cart->id_shop);
+        
+        if ($customizations === false) {
+            $customizations = [];
+        }
 
         return new self(
             $cart->id_customer,

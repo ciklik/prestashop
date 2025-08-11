@@ -20,10 +20,10 @@ use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 use Tools;
 use Configuration;
+use PrestaShop\Module\Ciklik\Helpers\CustomizationHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomization;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use PrestaShop\Module\Ciklik\Managers\DeliveryModuleManager;
-use PrestaShopLogger;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -67,20 +67,11 @@ class OrderGateway extends AbstractGateway implements EntityGateway
             // Récupérer les customizations détaillées de la commande existante
             $customizationData = CiklikCustomization::getDetailedCustomizationDataFromOrder($order);
             
-            PrestaShopLogger::addLog(
-                'OrderGateway::post - Customizations récupérées pour la commande existante ' . $orderId,
-                1,
-                null,
-                'OrderGateway',
-                $orderId,
-                true
-            );
-            
             (new Response())->setBody([
                 'ps_order_id' => (int) $orderId,
                 'ps_customer_id' => (int) $cart->id_customer,
                 'ps_id_address_delivery' => (int) $order->id_address_delivery,
-                'customization_data' => $customizationData
+                'customization_data' => CiklikCustomization::adaptForApiResponse($customizationData)
             ])->sendCreated();
         }
 
@@ -128,22 +119,13 @@ class OrderGateway extends AbstractGateway implements EntityGateway
         // Récupérer les customizations détaillées de la nouvelle commande
         $customizationData = CiklikCustomization::getDetailedCustomizationDataFromOrder($order);
 
-        PrestaShopLogger::addLog(
-            'OrderGateway::post - Customizations récupérées pour la nouvelle commande ' . $this->module->currentOrder,
-            1,
-            null,
-            'OrderGateway',
-            $this->module->currentOrder,
-            true
-        );
-
         DeliveryModuleManager::updateOrderId($cart->id, $this->module->currentOrder);
 
         (new Response())->setBody([
             'ps_order_id' => (int) $this->module->currentOrder,
             'ps_customer_id' => (int) $cart->id_customer,
             'ps_id_address_delivery' => (int) $order->id_address_delivery,
-            'customization_data' => $customizationData,
+            'customization_data' => CiklikCustomization::adaptForApiResponse($customizationData),
         ])->sendCreated();
     }
 }
