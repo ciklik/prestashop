@@ -31,7 +31,12 @@ class CiklikCustomization
     {
         try {
             // Retourne la structure native PrestaShop
-            return Product::getAllCustomizedDatas($cart->id, null, true, $cart->id_shop);
+            $data = Product::getAllCustomizedDatas($cart->id, null, true, $cart->id_shop);
+            
+            if ($data === false) {
+                return [];
+            }
+            return $data;
         } catch (\Exception $e) {
             PrestaShopLogger::addLog(
                 'CiklikCustomization::getDetailedCustomizationDataFromCart - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . $cart->id,
