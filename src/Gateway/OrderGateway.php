@@ -42,6 +42,7 @@ class OrderGateway extends AbstractGateway implements EntityGateway
         }
 
         $context = Context::getContext();
+        $context->cart = $cart;
 
         $orderData = (new \PrestaShop\Module\Ciklik\Api\Order($context->link))->getOne((int) Tools::getValue('ciklik_order_id'));
 

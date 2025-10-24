@@ -18,7 +18,6 @@ use Customer;
 use Db;
 use DbQuery;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
-use PrestaShop\Module\Ciklik\Helpers\CustomizationHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomization;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
@@ -87,6 +86,9 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $cart->secure_key = $customer->secure_key;
         $cart->add();
         
+        // Ajout du panier au contexte
+        $context = Context::getContext();
+        $context->cart = $cart;
 
         /*
          * On force l'id_carrier.
