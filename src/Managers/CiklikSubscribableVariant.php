@@ -62,7 +62,7 @@ class CiklikSubscribableVariant
         $suffix = '';
         $suffixes = implode(',', array_filter(json_decode(Configuration::get(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES), true) ?? []));
 
-        if (!(string) $suffixes === '') {
+        if (!empty($suffixes) && preg_match('/^(\d+,)*\d+$/', $suffixes)) {
             $query = new DbQuery();
             $query->select('al.name');
             $query->from('product_attribute', 'pa');

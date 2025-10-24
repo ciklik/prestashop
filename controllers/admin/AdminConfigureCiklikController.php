@@ -402,12 +402,17 @@ class AdminConfigureCiklikController extends ModuleAdminController
 
     protected function updateOptionCiklikProductNameSuffixes($values)
     {
-        if ( Tools::getIsset(Tools::getValue(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES)) && is_array(Tools::getValue(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES))) {
-            $values = implode(',', $values ?? []);
-        } else {
+        // Si $values n'est pas un tableau ou est vide, on le met à vide
+        if (!is_array($values) || empty($values)) {
             $values = [];
+        } else {
+            // Filtrer pour ne garder que les entiers valides (ex. [3, 'foo', 4] => [3, 4])
+            $values = array_filter($values, function($val) {
+                return is_numeric($val) && (int)$val > 0;
+            });
         }
 
+        // Stocker le tableau JSON directement
         Configuration::updateValue(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES, json_encode($values));
     }
 
