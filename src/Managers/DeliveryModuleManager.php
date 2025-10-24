@@ -99,16 +99,23 @@ class DeliveryModuleManager
             }
 
             // Récupérer la ligne la plus récente avec le même id_address_delivery et id_customer
-            $query = new DbQuery();
-            $query->select('*')
-                ->from('mondialrelay_selected_relay')
-                ->where('id_address_delivery = ' . (int)$cart->id_address_delivery)
-                ->where('id_customer = ' . (int)$cart->id_customer)
-                ->where('id_order IS NOT NULL') // Seulement les lignes avec une commande validée
-                ->orderBy('date_add DESC')
-                ->limit(1);
+            $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'mondialrelay_selected_relay 
+                    WHERE id_address_delivery = ' . (int)$cart->id_address_delivery . '
+                      AND id_customer = ' . (int)$cart->id_customer . '
+                      AND id_order IS NOT NULL
+                    ORDER BY date_add DESC';
 
-            $existingRelay = Db::getInstance()->getRow($query);
+            $existingRelay = Db::getInstance()->getRow($sql);
+
+            if (!$existingRelay) {
+                 // Récupérer la ligne la plus récente avec le même id_address_delivery et id_customer
+                $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'mondialrelay_selected_relay 
+                WHERE id_customer = ' . (int)$cart->id_customer . '
+                AND id_order IS NOT NULL
+                ORDER BY date_add DESC';
+
+                $existingRelay = Db::getInstance()->getRow($sql);
+            }
 
             if ($existingRelay) {
                 // Cloner la ligne en excluant les champs liés à l'expédition
@@ -242,16 +249,13 @@ class DeliveryModuleManager
             }
 
             // 2. Trouver la dernière commande payée par le customer_id, dont la colonne module vaut 'ciklik'
-            $query = new DbQuery();
-            $query->select('o.id_cart')
-                ->from('orders', 'o')
-                ->where('o.id_customer = ' . (int)$cart->id_customer)
-                ->where('o.module = \'' . pSQL('ciklik') . '\'')
-                ->where('o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)')
-                ->orderBy('o.date_add DESC')
-                ->limit(1);
+            $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
+                    WHERE o.id_customer = ' . (int)$cart->id_customer . '
+                      AND o.module = \'ciklik\'
+                      AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
+                    ORDER BY o.date_add DESC';
 
-            $lastPaidCartId = Db::getInstance()->getValue($query);
+            $lastPaidCartId = Db::getInstance()->getValue($sql);
 
             if (!$lastPaidCartId) {
                 return; // Aucune commande payée trouvée
@@ -333,16 +337,13 @@ class DeliveryModuleManager
             }
 
             // 2. Trouver la dernière commande payée par le customer_id, dont la colonne module vaut 'ciklik'
-            $query = new DbQuery();
-            $query->select('o.id_cart')
-                ->from('orders', 'o')
-                ->where('o.id_customer = ' . (int)$cart->id_customer)
-                ->where('o.module = \'' . pSQL('ciklik') . '\'')
-                ->where('o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)')
-                ->orderBy('o.date_add DESC')
-                ->limit(1);
+            $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
+                    WHERE o.id_customer = ' . (int)$cart->id_customer . '
+                      AND o.module = \'ciklik\'
+                      AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
+                    ORDER BY o.date_add DESC';
 
-            $lastPaidCartId = Db::getInstance()->getValue($query);
+            $lastPaidCartId = Db::getInstance()->getValue($sql);
 
             if (!$lastPaidCartId) {
                 return; // Aucune commande payée trouvée
@@ -401,13 +402,7 @@ class DeliveryModuleManager
     private static function tableExists($tableName)
     {
         try {
-            $query = new DbQuery();
-            $query->select('COUNT(*)')
-                ->from('information_schema.tables')
-                ->where('table_schema = DATABASE()')
-                ->where('table_name = \'' . pSQL($tableName) . '\'');
-
-            return (bool)Db::getInstance()->getValue($query);
+            return (bool) Db::getInstance()->getValue("SELECT COUNT(*) FROM `information_schema`.`TABLES` WHERE `TABLE_SCHEMA` = '"._DB_NAME_."' AND `TABLE_NAME` = '".bqSQL($tableName)."'");
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
                 'DeliveryModuleManager::tableExists - Erreur: ' . $e->getMessage() . ' - Table: ' . pSQL($tableName),
@@ -419,5 +414,113 @@ class DeliveryModuleManager
             );
             return false;
         }
+    }
+
+
+
+    public static function handleChronopost($cart) {
+        try {
+            $carrier = new \Carrier($cart->id_carrier);
+            
+            // Vérifier que $carrier->id_reference est un des id dans getChronoRelaisIDs
+            if (!in_array($carrier->id_reference, self::getChronoRelaisIDs())) {
+                return;
+            }
+            
+            // Vérifier que la table existe
+            if (!self::tableExists(_DB_PREFIX_ . 'chrono_cart_relais')) {
+                return;
+            }
+
+            // 1. Vérifier que l'id_cart n'a pas déjà une ligne
+            $query = new DbQuery();
+            $query->select('COUNT(*)')
+                ->from('chrono_cart_relais')
+                ->where('id_cart = ' . (int)$cart->id);
+
+            if (Db::getInstance()->getValue($query) > 0) {
+                return; // Une ligne existe déjà pour ce panier
+            }
+
+            // 2. Trouver les commandes payées du client avec le module 'ciklik'
+            $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
+                    WHERE o.id_customer = ' . (int)$cart->id_customer . '
+                      AND o.module = \'ciklik\'
+                      AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
+                    ORDER BY o.date_add DESC';
+
+            $paidCartIds = Db::getInstance()->executeS($sql);
+
+            if (!$paidCartIds || empty($paidCartIds)) {
+                return; // Aucune commande payée trouvée
+            }
+
+            // 3. Extraire les IDs des cartes
+            $cartIds = array_column($paidCartIds, 'id_cart');
+
+            // 4. Trouver dans la table chrono_cart_relais les entrées avec ces cartes qui ont un id_pr
+            $query = new DbQuery();
+            $query->select('*')
+                ->from('chrono_cart_relais')
+                ->where('id_cart IN (' . implode(',', array_map('intval', $cartIds)) . ')')
+                ->where('id_pr IS NOT NULL AND id_pr != \'\'')
+                ->orderBy('id_cart DESC');
+
+            $existingRelais = Db::getInstance()->getRow($query);
+
+            if (!$existingRelais) {
+                return; // Aucune ligne de relais trouvée
+            }
+
+            // 5. Cloner la ligne avec le nouveau id_cart
+            $newRelais = [
+                'id_cart' => (int)$cart->id,
+                'id_pr' => pSQL($existingRelais['id_pr'])
+            ];
+
+            // Insérer la nouvelle ligne
+            $result = Db::getInstance()->insert('chrono_cart_relais', $newRelais);
+
+            if ($result) {
+                \PrestaShopLogger::addLog(
+                    'DeliveryModuleManager::handleChronopost - Ligne clonée avec succès - Cart ID: ' . (int)$cart->id . ' - PR ID: ' . (int)$existingRelais['id_pr'],
+                    1,
+                    null,
+                    'DeliveryModuleManager',
+                    null,
+                    true
+                );
+            }
+            
+        } catch (\Exception $e) {
+            \PrestaShopLogger::addLog(
+                'DeliveryModuleManager::handleChronopost - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int)$cart->id,
+                3,
+                null,
+                'DeliveryModuleManager',
+                null,
+                true
+            );
+        }
+    }
+
+
+
+    public static function getChronoRelaisIDs()
+    {
+        return [
+            (int) Configuration::get('CHRONOPOST_CHRONORELAIS_AMBIENT_ID'),
+            (int) Configuration::get('CHRONOPOST_CHRONORELAIS_ID'),
+            (int) Configuration::get('CHRONOPOST_RELAISEUROPE_ID'),
+            (int) Configuration::get('CHRONOPOST_RELAISDOM_ID'),
+        ];
+    }
+
+    public static function isRelais($idCarrier)
+    {
+
+        $carrier = new Carrier($idCarrier);
+
+        return in_array($carrier->id_reference, self::getChronoRelaisIDs());
     }
 } 
