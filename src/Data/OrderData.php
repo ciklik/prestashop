@@ -112,7 +112,7 @@ class OrderData
         return $name;
     }
 
-    public function formatPrice($price) {
+    public static function formatPrice($price) {
         $price = str_replace([' ', ','], ['', '.'], $price); // Nettoie espaces + virgule
         return number_format((float)$price, 2, '.', '');
     }
