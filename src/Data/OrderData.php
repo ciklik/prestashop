@@ -42,6 +42,14 @@ class OrderData
      * @var DateTimeImmutable
      */
     public $created_at;
+    /**
+     * @var string
+     */
+    public $subscription_uuid;
+    /**
+     * @var string
+     */
+    public $total_paid;
 
     private function __construct(int $ciklik_order_id,
         string $ciklik_user_uuid,
@@ -49,7 +57,8 @@ class OrderData
         string $paid_transaction_id,
         string $paid_class_key,
         DateTimeImmutable $created_at,
-        $subscription_uuid)
+        $subscription_uuid,
+        $total_paid)
     {
         $this->ciklik_order_id = $ciklik_order_id;
         $this->ciklik_user_uuid = $ciklik_user_uuid;
@@ -58,6 +67,7 @@ class OrderData
         $this->paid_class_key = $paid_class_key;
         $this->created_at = $created_at;
         $this->subscription_uuid = $subscription_uuid;
+        $this->total_paid = $total_paid;
     }
 
     public static function create(array $data): OrderData
@@ -69,7 +79,8 @@ class OrderData
             $data['paid_transaction_id'],
             $data['paid_class_key'],
             new DateTimeImmutable($data['created_at']),
-            $data['subscription_uuid']
+            $data['subscription_uuid'],
+            self::formatPrice($data['total_paid'])
         );
     }
 
@@ -99,5 +110,10 @@ class OrderData
         }
 
         return $name;
+    }
+
+    public function formatPrice($price) {
+        $price = str_replace([' ', ','], ['', '.'], $price); // Nettoie espaces + virgule
+        return number_format((float)$price, 2, '.', '');
     }
 }

@@ -20,7 +20,6 @@ use PrestaShop\Module\Ciklik\Helpers\ThreadHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 use Tools;
 use Configuration;
-use PrestaShop\Module\Ciklik\Helpers\CustomizationHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomization;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use PrestaShop\Module\Ciklik\Managers\DeliveryModuleManager;
