@@ -34,7 +34,7 @@
     "require": {
         "php": ">7.1",
         "ext-json": "*",
-        "guzzlehttp/guzzle": "~5.0",
+        "guzzlehttp/guzzle": "~6.0",
         "nesbot/carbon": "^2.72.3",
         "prestashop/module-lib-mbo-installer": "^1.0",
         "prestashop/module-lib-service-container": "^2.0",

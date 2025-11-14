@@ -24,7 +24,10 @@ class CiklikApiResponseHandler
      */
     public function handleResponse($response)
     {
-        $responseContents = json_decode($response->getBody()->getContents(), true);
+        // In Guzzle 6+, getBody() returns a stream that can only be read once
+        // We need to convert it to string to read it
+        $bodyContents = (string) $response->getBody();
+        $responseContents = json_decode($bodyContents, true);
 
         return [
             'status' => $this->responseIsSuccessful($responseContents, $response->getStatusCode()),

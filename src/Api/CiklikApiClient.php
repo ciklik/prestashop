@@ -10,7 +10,7 @@ namespace PrestaShop\Module\Ciklik\Api;
 use Ciklik;
 use Configuration;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
 use Link;
 use Module;
@@ -99,8 +99,13 @@ class CiklikApiClient
     {
         try {
             $response = $this->getClient()->get($this->getRoute(), $options);
-        } catch (ClientException $e) {
+            
+        } catch (RequestException $e) {
             $response = $e->getResponse();
+            // If no response (network error, timeout, etc.), create a mock response
+            if (null === $response) {
+                $response = new Response(500, [], json_encode(['errors' => ['message' => $e->getMessage()]]));
+            }
         }
         return $this->handleResponse(
             $response,
@@ -119,8 +124,12 @@ class CiklikApiClient
     {
         try {
             $response = $this->getClient()->post($this->getRoute(), $options);
-        } catch (ClientException $e) {
+        } catch (RequestException $e) {
             $response = $e->getResponse();
+            // If no response (network error, timeout, etc.), create a mock response
+            if (null === $response) {
+                $response = new Response(500, [], json_encode(['errors' => ['message' => $e->getMessage()]]));
+            }
         }
         return $this->handleResponse(
             $response,
@@ -139,8 +148,12 @@ class CiklikApiClient
     {
         try {
             $response = $this->getClient()->put($this->getRoute(), $options);
-        } catch (ClientException $e) {
+        } catch (RequestException $e) {
             $response = $e->getResponse();
+            // If no response (network error, timeout, etc.), create a mock response
+            if (null === $response) {
+                $response = new Response(500, [], json_encode(['errors' => ['message' => $e->getMessage()]]));
+            }
         }
 
         return $this->handleResponse(
