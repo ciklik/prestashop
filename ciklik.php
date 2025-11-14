@@ -35,7 +35,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.9.4';
+    const VERSION = '1.10.0';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -59,6 +59,7 @@ class Ciklik extends PaymentModule
     const CONFIG_ENABLE_CHANGE_INTERVAL = 'CIKLIK_ENABLE_CHANGE_INTERVAL';
     const CONFIG_ENABLE_UPSELL = 'CIKLIK_ENABLE_UPSELL';
     const CONFIG_USE_FREQUENCY_MODE = 'CIKLIK_FREQUENCY_MODE';
+    const CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE = 'CIKLIK_FALLBACK_TO_DEFAULT_ATTRIBUTE';
     /**
      * @var \Monolog\Logger
      */
@@ -70,7 +71,7 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.9.4';
+        $this->version = '1.10.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';

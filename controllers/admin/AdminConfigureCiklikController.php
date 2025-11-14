@@ -212,6 +212,14 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
+                    ],
+                    Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE => [
+                        'type' => 'bool',
+                        'title' => $this->l('Passer sur la déclinaison par défaut si supprimée'),
+                        'desc' => $this->l('Si une déclinaison demandée a été supprimée, utiliser automatiquement la déclinaison par défaut du produit'),
+                        'validation' => 'isBool',
+                        'cast' => 'intval',
+                        'required' => false,
                     ]
                 ],
                 'submit' => [
@@ -388,6 +396,14 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'type' => 'bool',
                         'title' => $this->l('Utiliser la personnalisation des abonnements'),
                         'desc' => $this->l('Les options d\'abonnement sont affichées via une case à cocher'),
+                        'validation' => 'isBool',
+                        'cast' => 'intval',
+                        'required' => false,
+                    ],
+                    Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE => [
+                        'type' => 'bool',
+                        'title' => $this->l('Passer sur la déclinaison par défaut si supprimée'),
+                        'desc' => $this->l('Si une déclinaison demandée a été supprimée, utiliser automatiquement la déclinaison par défaut du produit'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,

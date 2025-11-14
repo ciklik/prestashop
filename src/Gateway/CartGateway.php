@@ -22,6 +22,7 @@ use PrestaShop\Module\Ciklik\Managers\CiklikCustomization;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use PrestaShop\Module\Ciklik\Managers\DeliveryModuleManager;
+use Product;
 use Tools;
 
 if (!defined('_PS_VERSION_')) {
@@ -132,6 +133,28 @@ class CartGateway extends AbstractGateway implements EntityGateway
                     $id_product_attribute = (int) $id_product_attribute_part;
                 }
                 
+                // Vérifier l'existence de l'id_product_attribute si différent de 0 et si la configuration est activée
+                if ($id_product_attribute != 0 && Configuration::get(Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE)) {
+                    $query = new DbQuery();
+                    $query->select('COUNT(*)');
+                    $query->from('product_attribute');
+                    $query->where('`id_product` = ' . (int) $id_product);
+                    $query->where('`id_product_attribute` = ' . (int) $id_product_attribute);
+                    
+                    // Si la combinaison n'existe pas, utiliser l'attribut par défaut
+                    if (!Db::getInstance()->getValue($query)) {
+                        \PrestaShopLogger::addLog(
+                            'Falling back to default attribute for product ' . $id_product . ' with variant ' . $id_product_attribute . ' in customizations',
+                            3,
+                            null,
+                            'ciklik',
+                            $cart->id,
+                            true
+                        );
+                        $id_product_attribute = (int) Product::getDefaultAttribute((int) $id_product);
+                    }
+                }
+                
                 // Créer les customizations pour cette instance spécifique
                 $instanceCustomizations = [];
                 if (!empty($customizations)) {
@@ -185,6 +208,35 @@ class CartGateway extends AbstractGateway implements EntityGateway
                     $id_variant = (int) $id_variant_part;
                     $productKey = $id_product . '_' . $id_variant;
                 }
+                
+                // Vérifier l'existence de l'id_variant si différent de 0 et si la configuration est activée
+                if ($id_variant != 0 && Configuration::get(Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE)) {
+                    $query = new DbQuery();
+                    $query->select('COUNT(*)');
+                    $query->from('product_attribute');
+                    $query->where('`id_product` = ' . (int) $id_product);
+                    $query->where('`id_product_attribute` = ' . (int) $id_variant);
+                    
+                    // Si la combinaison n'existe pas, utiliser l'attribut par défaut
+                    if (!Db::getInstance()->getValue($query)) {
+                        \PrestaShopLogger::addLog(
+                            'Falling back to default attribute for product ' . $id_product . ' with variant ' . $id_variant,
+                            3,
+                            null,
+                            'ciklik',
+                            $cart->id,
+                            true
+                        );
+                        $id_variant = (int) Product::getDefaultAttribute((int) $id_product);
+                        // Mettre à jour le productKey si nécessaire
+                        if (strpos($id_variant_part, '_') !== false) {
+                            $productKey = $id_product . '_' . $id_variant . '_' . $id_variant_parts[1];
+                        } else {
+                            $productKey = $id_product . '_' . $id_variant;
+                        }
+                    }
+                }
+                
             }
 
             if (!$id_product && count($parts) === 2) {

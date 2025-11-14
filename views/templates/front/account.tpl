@@ -73,10 +73,17 @@
                                             <a class="text-muted" data-toggle="collapse" href="#customizations{$subscription->uuid}-{$content@index}" role="button" aria-expanded="false" aria-controls="customizations{$subscription->uuid}-{$content@index}">
                                                 <i class="material-icons" style="font-size: 15px;">add</i> <small> 
                                                 {if $product_attribute_id > 0}
-                                                    {Product::getProductName($product_id, $product_attribute_id)}
+                                                    {if Product::getProductName($product_id, $product_attribute_id)}
+                                                        {Product::getProductName($product_id, $product_attribute_id)}
+                                                    {else if Configuration::get(Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE)}
+                                                        {Product::getProductName($product_id, Product::getDefaultAttribute((int) $product_id))}
+                                                    {else}
+                                                        {Product::getProductName($product_id)}
+                                                    {/if}
                                                 {else}
                                                     {Product::getProductName($product_id)}
-                                                {/if}</small>
+                                                {/if}
+                                                </small>
                                             </a>
                                             <div class="collapse" id="customizations{$subscription->uuid}-{$content@index}">
                                                 {include file="module:ciklik/views/templates/front/subscription_customizations.tpl" customizations=$content.customizations}
