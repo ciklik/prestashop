@@ -8,6 +8,7 @@ namespace PrestaShop\Module\Ciklik\Managers;
 
 use Db;
 use DbQuery;
+use Configuration;
 
 if (!defined('_PS_VERSION_')) {
     exit;

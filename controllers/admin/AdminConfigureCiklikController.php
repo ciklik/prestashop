@@ -78,8 +78,8 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'type' => 'radio',
                         'title' => $this->l('Mode'),
                         'choices' => [
-                            'SANDBOX' => $this->trans('Test', [], 'Modules.Ciklik.Admin'),
-                            'LIVE' => $this->trans('Production', [], 'Modules.Ciklik.Admin'),
+                            'SANDBOX' => $this->trans('Démo', [], 'Modules.Ciklik.Admin'),
+                            'LIVE' => $this->trans('Production/Dev/Test', [], 'Modules.Ciklik.Admin'),
                         ],
                         'required' => true,
                     ],
