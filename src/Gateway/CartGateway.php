@@ -336,13 +336,12 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $items = [];
 
         /*
-         * Ajout du customer dans le contexte
+         * Ajout du contexte
          * Pour gérer les cart_rules.
-         * Sans customer, pas de discount
+         * Sans Context, pas de discount
          */
         $context = Context::getContext();
-        $customer = new Customer($cart->id_customer);
-        $context->updateCustomer($customer);
+        $context->cart = $cart;
 
         $summary = $cart->getRawSummaryDetails((int) Configuration::get('PS_LANG_DEFAULT'));
 
