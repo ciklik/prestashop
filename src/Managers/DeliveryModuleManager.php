@@ -395,6 +395,120 @@ class DeliveryModuleManager
     }
 
     /**
+     * Pour GLS (module nkmgls)
+     * Clone la ligne la plus récente avec le même customer pour le nouveau panier
+     */
+    protected static function handleNkmgls($cart)
+    {
+        try {
+            
+            // Vérifier que la table existe
+            if (!self::tableExists(_DB_PREFIX_ . 'gls_cart_carrier')) {
+                return;
+            }
+
+            // Vérifier que le transporteur est bien GLS point relais
+            $carrier = new \Carrier($cart->id_carrier);
+            if (!$carrier->id) {
+                return; // Transporteur invalide
+            }
+            
+            $glsRelaisId = (int)Configuration::get('GLS_GLSRELAIS_ID');
+            if (!$glsRelaisId) {
+                return; // Configuration GLS non trouvée
+            }
+            
+            // Vérifier que l'id_carrier correspond au transporteur GLS point relais
+            // ou que l'id_reference correspond (au cas où il y aurait plusieurs instances du même transporteur)
+            $glsRelaisCarrier = new \Carrier($glsRelaisId);
+            if ($cart->id_carrier != $glsRelaisId && $carrier->id_reference != $glsRelaisCarrier->id_reference) {
+                return; // Ce n'est pas le transporteur GLS point relais
+            }
+
+            // 1. Vérifier que l'id_cart n'a pas déjà une ligne
+            $query = new DbQuery();
+            $query->select('COUNT(*)')
+                ->from('gls_cart_carrier')
+                ->where('id_cart = ' . (int)$cart->id)
+                ->where('id_customer = ' . (int)$cart->id_customer);
+
+            if (Db::getInstance()->getValue($query) > 0) {
+                return; // Une ligne existe déjà pour ce panier
+            }
+
+            // 2. Trouver la dernière commande payée par le customer_id, dont la colonne module vaut 'ciklik'
+            $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
+                    WHERE o.id_customer = ' . (int)$cart->id_customer . '
+                      AND o.module = \'ciklik\'
+                      AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
+                    ORDER BY o.date_add DESC';
+
+            $lastPaidCartId = Db::getInstance()->getValue($sql);
+
+            if (!$lastPaidCartId) {
+                return; // Aucune commande payée trouvée
+            }
+
+            // 3. Trouver dans la table gls_cart_carrier la ligne avec le cart_id du résultat au point 2
+            $query = new DbQuery();
+            $query->select('*')
+                ->from('gls_cart_carrier')
+                ->where('id_cart = ' . (int)$lastPaidCartId)
+                ->where('id_customer = ' . (int)$cart->id_customer);
+
+            $existingGlsCarrier = Db::getInstance()->getRow($query);
+
+            if (!$existingGlsCarrier) {
+                return; // Aucune ligne de GLS trouvée
+            }
+
+            // 4. Dupliquer la ligne, en y remplaçant le cart_id du point 2, par le cart_id courant
+            // Utiliser l'id_carrier du panier actuel (qui est déjà validé comme GLS point relais)
+            $newGlsCarrier = [
+                'id_cart' => (int)$cart->id,
+                'id_customer' => (int)$cart->id_customer,
+                'id_carrier' => (int)$cart->id_carrier,
+                'original_id_address_delivery' => (int)$cart->id_address_delivery,
+                'gls_product' => pSQL($existingGlsCarrier['gls_product']),
+                'parcel_shop_id' => pSQL($existingGlsCarrier['parcel_shop_id']),
+                'name' => pSQL($existingGlsCarrier['name']),
+                'address1' => pSQL($existingGlsCarrier['address1']),
+                'address2' => pSQL($existingGlsCarrier['address2']),
+                'postcode' => pSQL($existingGlsCarrier['postcode']),
+                'city' => pSQL($existingGlsCarrier['city']),
+                'phone' => pSQL($existingGlsCarrier['phone']),
+                'phone_mobile' => pSQL($existingGlsCarrier['phone_mobile']),
+                'customer_phone_mobile' => pSQL($existingGlsCarrier['customer_phone_mobile']),
+                'id_country' => isset($existingGlsCarrier['id_country']) ? (int)$existingGlsCarrier['id_country'] : null,
+                'parcel_shop_working_day' => pSQL($existingGlsCarrier['parcel_shop_working_day'])
+            ];
+
+            // Insérer la nouvelle ligne
+            $result = Db::getInstance()->insert('gls_cart_carrier', $newGlsCarrier);
+
+            if ($result) {
+                \PrestaShopLogger::addLog(
+                    'DeliveryModuleManager::handleNkmgls - Ligne clonée avec succès - Cart ID: ' . (int)$cart->id . ' - Parcel Shop ID: ' . pSQL($existingGlsCarrier['parcel_shop_id']),
+                    1,
+                    null,
+                    'DeliveryModuleManager',
+                    null,
+                    true
+                );
+            }
+        } catch (\Exception $e) {
+            \PrestaShopLogger::addLog(
+                'DeliveryModuleManager::handleNkmgls - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int)$cart->id,
+                3,
+                null,
+                'DeliveryModuleManager',
+                null,
+                true
+            );
+        }
+    }
+
+    /**
      * Vérifie si une table existe dans la base de données
      * 
      * @param string $tableName Nom de la table (avec préfixe)
