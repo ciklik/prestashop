@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace PrestaShop\Module\Ciklik\Helpers;
 
+use Configuration;
 use Customer;
 use CustomerMessage;
 use CustomerThread;
@@ -26,8 +27,19 @@ trait ThreadHelper
 {
     public function addDataToOrder(int $order_id, array $data)
     {
+        // Vérifier si la création de thread est activée dans la configuration
+        if (!Configuration::get(\Ciklik::CONFIG_ENABLE_ORDER_THREAD)) {
+            return;
+        }
+
         $order = new Order($order_id);
         $customer = new Customer($order->id_customer);
+
+        // Récupérer le statut configuré, par défaut 'open' si non défini
+        $thread_status = Configuration::get(\Ciklik::CONFIG_ORDER_THREAD_STATUS);
+        if (empty($thread_status) || !in_array($thread_status, ['open', 'closed'])) {
+            $thread_status = 'open';
+        }
 
         $customer_thread = new CustomerThread();
         $customer_thread->id_contact = 0;
@@ -36,7 +48,7 @@ trait ThreadHelper
         $customer_thread->id_order = (int) $order->id;
         $customer_thread->id_lang = (int) $order->id_lang;
         $customer_thread->email = $customer->email;
-        $customer_thread->status = 'open';
+        $customer_thread->status = $thread_status;
         $customer_thread->token = Tools::passwdGen(12);
         $customer_thread->add();
 

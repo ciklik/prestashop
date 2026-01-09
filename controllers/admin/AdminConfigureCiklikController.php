@@ -65,6 +65,11 @@ class AdminConfigureCiklikController extends ModuleAdminController
             ['engagement_interval' => 'day', 'name' => $this->trans('Journalier', [], 'Modules.Ciklik')],
         ];
 
+        $thread_statuses = [
+            ['thread_status' => 'open', 'name' => $this->l('Ouvert')],
+            ['thread_status' => 'closed', 'name' => $this->l('Fermé')],
+        ];
+
         return [
             $this->module->name => [
                 'title' => $this->trans('Configuration', [], 'Admin.Global'),
@@ -221,6 +226,22 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
+                    ],
+                    Ciklik::CONFIG_ENABLE_ORDER_THREAD => [
+                        'type' => 'bool',
+                        'title' => $this->l('Créer un thread de message client pour les commandes'),
+                        'desc' => $this->l('Cette option permet de créer automatiquement un thread de message client avec les informations Ciklik pour chaque commande'),
+                        'validation' => 'isBool',
+                        'cast' => 'intval',
+                        'required' => false,
+                    ],
+                    Ciklik::CONFIG_ORDER_THREAD_STATUS => [
+                        'type' => 'select',
+                        'title' => $this->l('Statut du thread de message client'),
+                        'desc' => $this->l('Statut par défaut des threads de message client créés pour les commandes Ciklik'),
+                        'identifier' => 'thread_status',
+                        'cast' => 'strval',
+                        'list' => $thread_statuses,
                     ]
                 ],
                 'submit' => [
@@ -240,6 +261,11 @@ class AdminConfigureCiklikController extends ModuleAdminController
             ['engagement_interval' => 'month', 'name' => $this->trans('Mensuel', [], 'Modules.Ciklik')],
             ['engagement_interval' => 'week', 'name' => $this->trans('Hebdomadaire', [], 'Modules.Ciklik')],
             ['engagement_interval' => 'day', 'name' => $this->trans('Journalier', [], 'Modules.Ciklik')],
+        ];
+
+        $thread_statuses = [
+            ['thread_status' => 'open', 'name' => $this->l('Ouvert')],
+            ['thread_status' => 'closed', 'name' => $this->l('Fermé')],
         ];
 
         return [
@@ -408,6 +434,22 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
+                    ],
+                    Ciklik::CONFIG_ENABLE_ORDER_THREAD => [
+                        'type' => 'bool',
+                        'title' => $this->l('Créer un thread de message client pour les commandes'),
+                        'desc' => $this->l('Cette option permet de créer automatiquement un thread de message client avec les informations Ciklik pour chaque commande'),
+                        'validation' => 'isBool',
+                        'cast' => 'intval',
+                        'required' => false,
+                    ],
+                    Ciklik::CONFIG_ORDER_THREAD_STATUS => [
+                        'type' => 'select',
+                        'title' => $this->l('Statut du thread de message client'),
+                        'desc' => $this->l('Statut par défaut des threads de message client créés pour les commandes Ciklik'),
+                        'identifier' => 'thread_status',
+                        'cast' => 'strval',
+                        'list' => $thread_statuses,
                     ],
                 ],
                 'submit' => [

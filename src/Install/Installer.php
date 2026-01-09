@@ -93,7 +93,9 @@ class Installer
             && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_HOST, null)
             && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES, json_encode([]))
             && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_WEBSERVICE_ID, '0')
-            && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_DEBUG_LOGS_ENABLED, '0');
+            && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_DEBUG_LOGS_ENABLED, '0')
+            && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_ENABLE_ORDER_THREAD, '1')
+            && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_ORDER_THREAD_STATUS, 'open');
     }
 
     /**
@@ -108,7 +110,9 @@ class Installer
             && (bool) Configuration::deleteByName(Ciklik::CONFIG_HOST)
             && (bool) Configuration::deleteByName(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES)
             && (bool) Configuration::deleteByName(Ciklik::CONFIG_WEBSERVICE_ID)
-            && (bool) Configuration::deleteByName(Ciklik::CONFIG_DEBUG_LOGS_ENABLED);
+            && (bool) Configuration::deleteByName(Ciklik::CONFIG_DEBUG_LOGS_ENABLED)
+            && (bool) Configuration::deleteByName(Ciklik::CONFIG_ENABLE_ORDER_THREAD)
+            && (bool) Configuration::deleteByName(Ciklik::CONFIG_ORDER_THREAD_STATUS);
     }
 
     /**
