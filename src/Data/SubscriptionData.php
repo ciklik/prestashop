@@ -225,7 +225,9 @@ class SubscriptionData
         $collection = [];
 
         foreach ($data as $item) {
-            $collection[] = self::create($item);
+            if($item['external_fingerprint']) {
+                $collection[] = self::create($item);
+            }
         }
 
         return $collection;

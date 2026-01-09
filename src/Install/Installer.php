@@ -334,9 +334,20 @@ class Installer
             }
             $parentTabId = $parentTab->id;
         } else {
-            // Mise à jour de l'onglet parent existant pour s'assurer que l'icône est définie
+            // Mise à jour de l'onglet parent existant pour s'assurer qu'il est actif et bien configuré
             $parentTab = new Tab($parentTabId);
+            $parentTab->active = 1; // S'assurer qu'il est actif
             $parentTab->icon = 'extension';
+            // S'assurer que le parent est bien "IMPROVE" (menu Améliorer)
+            $improveTabId = Tab::getIdFromClassName('IMPROVE');
+            if ($improveTabId && $parentTab->id_parent != $improveTabId) {
+                $parentTab->id_parent = $improveTabId;
+            }
+            // Mettre à jour les noms dans toutes les langues
+            $parentTab->name = [];
+            foreach (Language::getLanguages(true) as $lang) {
+                $parentTab->name[$lang['id_lang']] = 'Ciklik';
+            }
             $parentTab->save();
         }
 
@@ -377,42 +388,25 @@ class Installer
             return false;
         }
 
-        // Créer les permissions d'accès pour le profil admin (ID 1)
-        $adminProfileId = 1;
-        $tabsToGrantAccess = [
-            $parentTabId,
-            $frequenciesTab->id,
-            $subscriptionsOrdersTab->id,
-        ];
-
-        foreach ($tabsToGrantAccess as $tabId) {
-            // Vérifier si l'accès existe déjà
-            $accessExists = Db::getInstance()->getValue(
-                'SELECT id_tab FROM ' . _DB_PREFIX_ . 'access 
-                 WHERE id_tab = ' . (int)$tabId . ' AND id_profile = ' . (int)$adminProfileId
-            );
-
-            if (!$accessExists) {
-                // Créer l'accès pour le profil admin
-                Db::getInstance()->insert('access', [
-                    'id_profile' => $adminProfileId,
-                    'id_tab' => (int)$tabId,
-                    'view' => 1,
-                    'add' => 1,
-                    'edit' => 1,
-                    'delete' => 1,
-                ]);
-            }
-        }
+        // Dans PrestaShop, les permissions sont créées automatiquement lors de Tab::add()
+        // pour le profil super-admin. Les autres profils héritent généralement des permissions du parent.
+        // S'assurer que tous les onglets sont correctement configurés et actifs
+        $frequenciesTab->active = $isFrequencyModeEnabled ? 1 : 0;
+        $frequenciesTab->id_parent = $parentTabId;
+        $frequenciesTab->save();
+        
+        $subscriptionsOrdersTab->active = 1;
+        $subscriptionsOrdersTab->id_parent = $parentTabId;
+        $subscriptionsOrdersTab->save();
+        
+        // S'assurer que l'onglet parent est actif
+        $parentTab = new Tab($parentTabId);
+        $parentTab->active = 1;
+        $parentTab->save();
 
         return true;
     }
 
-    /**
-     * Uninstall admin tabs for the module.
-     *
-     * @return bool
-     */
     /**
      * Met à jour la visibilité de l'onglet des fréquences selon le mode fréquence
      * 
@@ -489,6 +483,18 @@ class Installer
             // Mise à jour de l'onglet existant
             $tab = new Tab($tabId);
             $tab->active = $active;
+            $tab->id_parent = $parentTabId;
+            
+            // Mettre à jour les noms dans toutes les langues
+            foreach (Language::getLanguages(true) as $lang) {
+                $langIso = strtolower($lang['iso_code']);
+                if ($langIso === 'en' || $langIso === 'en-us' || $langIso === 'en-gb') {
+                    $tab->name[$lang['id_lang']] = $nameEn;
+                } else {
+                    $tab->name[$lang['id_lang']] = $nameFr;
+                }
+            }
+            
             if (!$tab->save()) {
                 return false;
             }

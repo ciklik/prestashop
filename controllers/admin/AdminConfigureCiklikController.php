@@ -9,6 +9,8 @@ use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Data\ShopData;
 use PrestaShop\Module\Ciklik\Install\Installer;
+use Tab;
+use Tools;
 
 
 if (!defined('_PS_VERSION_')) {
@@ -478,6 +480,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
     /**
      * Traite les données après la soumission du formulaire
      * Met à jour la visibilité de l'onglet des fréquences si le mode fréquence change
+     * et s'assure que tous les onglets sont créés
      * 
      * @return void
      */
@@ -485,9 +488,24 @@ class AdminConfigureCiklikController extends ModuleAdminController
     {
         parent::postProcess();
         
-        // Mettre à jour la visibilité de l'onglet des fréquences lorsque le mode fréquence change
+        // S'assurer que tous les onglets d'administration sont installés/mis à jour
+        // Cette méthode est idempotente et créera les onglets s'ils n'existent pas
         $installer = new Installer();
+        $installer->installAdminTabs($this->module);
+        
+        // Mettre à jour la visibilité de l'onglet des fréquences lorsque le mode fréquence change
         $installer->updateFrequenciesTabVisibility();
+        
+        // Vider le cache pour que les nouveaux onglets apparaissent immédiatement
+        if (class_exists('Tools')) {
+            Tools::clearSmartyCache();
+            Tools::clearCache();
+        }
+        
+        // Forcer la reconstruction du cache des menus si la méthode existe
+        if (method_exists('Tab', 'resetStaticCache')) {
+            Tab::resetStaticCache();
+        }
     }
 
     public static function getCiklikPaidOrderStates($id_lang)
