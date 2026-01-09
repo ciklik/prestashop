@@ -16,16 +16,16 @@ if (!defined('_PS_VERSION_')) {
 class CiklikApiResponseHandler
 {
     /**
-     * Format api response
+     * Formate la réponse de l'API
      *
-     * @param ResponseInterface $response
+     * @param ResponseInterface $response Réponse HTTP de Guzzle
      *
-     * @return array
+     * @return array Tableau formaté avec status, httpCode, body, meta, links, message, errors
      */
     public function handleResponse($response)
     {
-        // In Guzzle 6+, getBody() returns a stream that can only be read once
-        // We need to convert it to string to read it
+        // Dans Guzzle 6+, getBody() retourne un stream qui ne peut être lu qu'une seule fois
+        // Il faut le convertir en chaîne pour le lire
         $bodyContents = (string) $response->getBody();
         $responseContents = json_decode($bodyContents, true);
 
@@ -33,23 +33,25 @@ class CiklikApiResponseHandler
             'status' => $this->responseIsSuccessful($responseContents, $response->getStatusCode()),
             'httpCode' => $response->getStatusCode(),
             'body' => array_key_exists('data', $responseContents) ? $responseContents['data'] : [],
+            'meta' => $responseContents['meta'] ?? null,
+            'links' => $responseContents['links'] ?? null,
             'message' => $response->getReasonPhrase(),
             'errors' => $responseContents['errors'] ?? [],
         ];
     }
 
     /**
-     * Check if the response is successful or not (response code 200 to 299)
+     * Vérifie si la réponse est réussie ou non (code de réponse 200 à 299)
      *
-     * @param array $responseContents
-     * @param int $httpStatusCode
+     * @param array|null $responseContents Contenu de la réponse décodé
+     * @param int $httpStatusCode Code de statut HTTP
      *
-     * @return bool
+     * @return bool True si la réponse est réussie, false sinon
      */
     private function responseIsSuccessful($responseContents, $httpStatusCode)
     {
-        // Directly return true, no need to check the body for a 204 status code
-        // 204 status code is only send by /payments/order/update
+        // Retourner directement true, pas besoin de vérifier le body pour un code de statut 204
+        // Le code de statut 204 est uniquement envoyé par /payments/order/update
         if ($httpStatusCode === 204) {
             return true;
         }

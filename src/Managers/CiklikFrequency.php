@@ -150,8 +150,8 @@ class CiklikFrequency
             throw new \InvalidArgumentException("Le compteur d'intervalle ne peut pas dépasser 999");
         }
 
-        // Validation des champs optionnels de réduction
-        if (isset($frequency['discount_percent'])) {
+        // Validation des champs optionnels de réduction (seulement si non null)
+        if (isset($frequency['discount_percent']) && $frequency['discount_percent'] !== null) {
             if (!is_numeric($frequency['discount_percent']) || 
                 (float)$frequency['discount_percent'] < 0 || 
                 (float)$frequency['discount_percent'] > 100) {
@@ -159,39 +159,44 @@ class CiklikFrequency
             }
         }
 
-        if (isset($frequency['discount_price'])) {
+        if (isset($frequency['discount_price']) && $frequency['discount_price'] !== null) {
             if (!is_numeric($frequency['discount_price']) || (float)$frequency['discount_price'] < 0) {
                 throw new \InvalidArgumentException("Le prix de réduction doit être un nombre positif");
             }
         }
 
-
-
         // Préparation des données sécurisées
-        $safeData = [
-            'name' => pSQL(trim($frequency['name'])),
-            'interval' => pSQL($frequency['interval']),
-            'interval_count' => (int)$frequency['interval_count'],
-            'discount_percent' => isset($frequency['discount_percent']) ? (float)$frequency['discount_percent'] : null,
-            'discount_price' => isset($frequency['discount_price']) ? (float)$frequency['discount_price'] : null
-        ];
+        $name = pSQL(trim($frequency['name']));
+        $interval = pSQL($frequency['interval']);
+        $interval_count = (int)$frequency['interval_count'];
+        
+        // Gérer NULL explicitement pour les colonnes decimal
+        $discount_percent_value = null;
+        if (isset($frequency['discount_percent']) && $frequency['discount_percent'] !== null) {
+            $discount_percent_value = (float)$frequency['discount_percent'];
+        }
+        
+        $discount_price_value = null;
+        if (isset($frequency['discount_price']) && $frequency['discount_price'] !== null) {
+            $discount_price_value = (float)$frequency['discount_price'];
+        }
 
         try {
-            // Mise à jour ou insertion
+            // Mise à jour ou insertion avec requêtes SQL brutes pour gérer NULL correctement
             if (isset($frequency['id_frequency']) && (int)$frequency['id_frequency'] > 0) {
-                // Mise à jour
-                $result = Db::getInstance()->update('ciklik_frequency', $safeData, 'id_frequency = ' . (int)$frequency['id_frequency']);
+                $sql = self::buildUpdateSql($frequency['id_frequency'], $name, $interval, $interval_count, $discount_percent_value, $discount_price_value);
+                $result = Db::getInstance()->execute($sql);
                 return $result ? (int)$frequency['id_frequency'] : false;
             } else {
-                // Insertion
-                $result = Db::getInstance()->insert('ciklik_frequency', $safeData);
+                $sql = self::buildInsertSql($name, $interval, $interval_count, $discount_percent_value, $discount_price_value);
+                $result = Db::getInstance()->execute($sql);
                 return $result ? (int)Db::getInstance()->Insert_ID() : false;
             }
         } catch (\Exception $e) {
-            // Log l'erreur pour débuggage
+            // Logger l'erreur pour le débogage
             \PrestaShopLogger::addLog(
                 'Erreur lors de la sauvegarde de la fréquence: ' . $e->getMessage(),
-                3, // Erreur
+                3, // Niveau d'erreur
                 null,
                 'CiklikFrequency',
                 null,
@@ -214,6 +219,68 @@ class CiklikFrequency
         }
 
         return Db::getInstance()->delete('ciklik_frequency', 'id_frequency = ' . (int)$id_frequency);
+    }
+
+    /**
+     * Formate une valeur de remise pour l'insertion SQL (gère NULL)
+     * 
+     * @param float|null $value Valeur à formater
+     * @return string Valeur formatée pour SQL ('NULL' ou valeur numérique)
+     */
+    private static function formatDiscountValueForSql($value)
+    {
+        return $value !== null ? (string)(float)$value : 'NULL';
+    }
+
+    /**
+     * Construit la requête SQL UPDATE pour une fréquence
+     * 
+     * @param int $id_frequency ID de la fréquence à mettre à jour
+     * @param string $name Nom sécurisé
+     * @param string $interval Intervalle sécurisé
+     * @param int $interval_count Nombre d'intervalles
+     * @param float|null $discount_percent_value Valeur du pourcentage de remise ou null
+     * @param float|null $discount_price_value Valeur du montant de remise ou null
+     * @return string Requête SQL UPDATE
+     */
+    private static function buildUpdateSql($id_frequency, $name, $interval, $interval_count, $discount_percent_value, $discount_price_value)
+    {
+        $discount_percent_sql = self::formatDiscountValueForSql($discount_percent_value);
+        $discount_price_sql = self::formatDiscountValueForSql($discount_price_value);
+        
+        return 'UPDATE `' . _DB_PREFIX_ . 'ciklik_frequency` 
+                SET `name` = \'' . $name . '\',
+                    `interval` = \'' . $interval . '\',
+                    `interval_count` = ' . $interval_count . ',
+                    `discount_percent` = ' . $discount_percent_sql . ',
+                    `discount_price` = ' . $discount_price_sql . '
+                WHERE `id_frequency` = ' . (int)$id_frequency;
+    }
+
+    /**
+     * Construit la requête SQL INSERT pour une fréquence
+     * 
+     * @param string $name Nom sécurisé
+     * @param string $interval Intervalle sécurisé
+     * @param int $interval_count Nombre d'intervalles
+     * @param float|null $discount_percent_value Valeur du pourcentage de remise ou null
+     * @param float|null $discount_price_value Valeur du montant de remise ou null
+     * @return string Requête SQL INSERT
+     */
+    private static function buildInsertSql($name, $interval, $interval_count, $discount_percent_value, $discount_price_value)
+    {
+        $discount_percent_sql = self::formatDiscountValueForSql($discount_percent_value);
+        $discount_price_sql = self::formatDiscountValueForSql($discount_price_value);
+        
+        return 'INSERT INTO `' . _DB_PREFIX_ . 'ciklik_frequency` 
+                (`name`, `interval`, `interval_count`, `discount_percent`, `discount_price`)
+                VALUES (
+                    \'' . $name . '\',
+                    \'' . $interval . '\',
+                    ' . $interval_count . ',
+                    ' . $discount_percent_sql . ',
+                    ' . $discount_price_sql . '
+                )';
     }
 
 }

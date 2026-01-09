@@ -8,6 +8,7 @@
 use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Data\ShopData;
+use PrestaShop\Module\Ciklik\Install\Installer;
 
 
 if (!defined('_PS_VERSION_')) {
@@ -430,6 +431,21 @@ class AdminConfigureCiklikController extends ModuleAdminController
 
         // Stocker le tableau JSON directement
         Configuration::updateValue(Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES, json_encode($values));
+    }
+
+    /**
+     * Traite les données après la soumission du formulaire
+     * Met à jour la visibilité de l'onglet des fréquences si le mode fréquence change
+     * 
+     * @return void
+     */
+    public function postProcess()
+    {
+        parent::postProcess();
+        
+        // Mettre à jour la visibilité de l'onglet des fréquences lorsque le mode fréquence change
+        $installer = new Installer();
+        $installer->updateFrequenciesTabVisibility();
     }
 
     public static function getCiklikPaidOrderStates($id_lang)

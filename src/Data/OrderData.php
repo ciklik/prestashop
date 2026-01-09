@@ -31,11 +31,11 @@ class OrderData
      */
     public $status;
     /**
-     * @var string
+     * @var string|null
      */
     public $paid_transaction_id;
     /**
-     * @var string
+     * @var string|null
      */
     public $paid_class_key;
     /**
@@ -43,7 +43,7 @@ class OrderData
      */
     public $created_at;
     /**
-     * @var string
+     * @var string|null
      */
     public $subscription_uuid;
     /**
@@ -51,14 +51,20 @@ class OrderData
      */
     public $total_paid;
 
+    /**
+     * @var int|null
+     */
+    public $prestashop_order_id;
+
     private function __construct(int $ciklik_order_id,
         string $ciklik_user_uuid,
         string $status,
-        string $paid_transaction_id,
-        string $paid_class_key,
+        ?string $paid_transaction_id,
+        ?string $paid_class_key,
         DateTimeImmutable $created_at,
         $subscription_uuid,
-        $total_paid)
+        $total_paid,
+        $prestashop_order_id = null)
     {
         $this->ciklik_order_id = $ciklik_order_id;
         $this->ciklik_user_uuid = $ciklik_user_uuid;
@@ -68,6 +74,7 @@ class OrderData
         $this->created_at = $created_at;
         $this->subscription_uuid = $subscription_uuid;
         $this->total_paid = $total_paid;
+        $this->prestashop_order_id = $prestashop_order_id;
     }
 
     public static function create(array $data): OrderData
@@ -76,11 +83,12 @@ class OrderData
             $data['order_id'],
             $data['user_uuid'],
             $data['status'],
-            $data['paid_transaction_id'],
-            $data['paid_class_key'],
+            $data['paid_transaction_id'] ?? null,
+            $data['paid_class_key'] ?? null,
             new DateTimeImmutable($data['created_at']),
-            $data['subscription_uuid'],
-            self::formatPrice($data['total_paid'])
+            $data['subscription_uuid'] ?? null,
+            self::formatPrice($data['total_paid'] ?? '0'),
+            isset($data['prestashop_order_id']) ? (int)$data['prestashop_order_id'] : null
         );
     }
 
@@ -115,5 +123,22 @@ class OrderData
     public static function formatPrice($price) {
         $price = str_replace([' ', ','], ['', '.'], $price); // Nettoie espaces + virgule
         return number_format((float)$price, 2, '.', '');
+    }
+
+    /**
+     * Crée une collection d'instances de OrderData à partir d'un tableau de données.
+     * 
+     * @param array $data Le tableau de données à partir duquel les instances seront créées
+     * @return array Un tableau contenant les instances de OrderData 
+     */
+    public static function collection(array $data): array
+    {
+        $collection = [];
+
+        foreach ($data as $item) {
+            $collection[] = self::create($item);
+        }
+
+        return $collection;
     }
 }

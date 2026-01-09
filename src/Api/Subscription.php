@@ -28,6 +28,28 @@ class Subscription extends CiklikApiClient
         return null;
     }
 
+    /**
+     * Récupère la liste des commandes avec métadonnées de pagination et données transformées
+     * Cette méthode préserve la structure complète de la réponse API (status, body, meta, etc.)
+     * tout en transformant les données du body en objets OrderData
+     *
+     * @param array $options Options API (filtres, pagination, etc.)
+     * @return array Structure de réponse complète avec données transformées
+     */
+    public function index(array $options = [])
+    {
+        $this->setRoute('subscriptions');
+
+        $response = $this->get($options);
+        
+        // Si la réponse est réussie et contient des données, les transformer
+        if (isset($response['status']) && $response['status'] && isset($response['body'])) {
+            $response['body'] = SubscriptionData::collection($response['body']);
+        }
+        
+        return $response;
+    }
+
     public function getOne(string $ciklik_subscription_uuid)
     {
         $this->setRoute("subscriptions/{$ciklik_subscription_uuid}");

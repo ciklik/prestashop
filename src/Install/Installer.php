@@ -12,9 +12,11 @@ namespace PrestaShop\Module\Ciklik\Install;
 use Ciklik;
 use Configuration;
 use Db;
+use Language;
 use Module;
 use PrestaShop\Module\Ciklik\Managers\RelatedEntitiesManager;
 use PrestaShop\Module\Ciklik\Sql\SqlQueries;
+use Tab;
 use Tools;
 use WebserviceKey;
 
@@ -25,11 +27,11 @@ if (!defined('_PS_VERSION_')) {
 class Installer
 {
     /**
-     * Module's installation entry point.
+     * Point d'entrée pour l'installation du module
      *
-     * @param Module $module
+     * @param Module $module Instance du module
      *
-     * @return bool
+     * @return bool True si l'installation a réussi, false sinon
      */
     public function install(Module $module): bool
     {
@@ -57,13 +59,17 @@ class Installer
             return false;
         }
 
+        if (!$this->installAdminTabs($module)) {
+            return false;
+        }
+
         return true;
     }
 
     /**
-     * Module's uninstallation entry point.
+     * Point d'entrée pour la désinstallation du module
      *
-     * @return bool
+     * @return bool True si la désinstallation a réussi, false sinon
      */
     public function uninstall(): bool
     {
@@ -71,13 +77,14 @@ class Installer
             && $this->uninstallWebservice()
             && $this->uninstallDatabase()
             && $this->uninstallConfiguration()
-            && $this->uninstallFrequencyModeDatabase();
+            && $this->uninstallFrequencyModeDatabase()
+            && $this->uninstallAdminTabs();
     }
 
     /**
-     * Install default module configuration
+     * Installe la configuration par défaut du module
      *
-     * @return bool
+     * @return bool True si l'installation a réussi, false sinon
      */
     private function installConfiguration(): bool
     {
@@ -90,9 +97,9 @@ class Installer
     }
 
     /**
-     * Uninstall module configuration
+     * Désinstalle la configuration du module
      *
-     * @return bool
+     * @return bool True si la désinstallation a réussi, false sinon
      */
     private function uninstallConfiguration(): bool
     {
@@ -105,9 +112,9 @@ class Installer
     }
 
     /**
-     * Install the database modifications required for this module.
+     * Installe les modifications de base de données requises pour ce module
      *
-     * @return bool
+     * @return bool True si l'installation a réussi, false sinon
      */
     private function installDatabase(): bool
     {
@@ -115,9 +122,9 @@ class Installer
     }
 
     /**
-     * Uninstall database modifications.
+     * Désinstalle les modifications de base de données
      *
-     * @return bool
+     * @return bool True si la désinstallation a réussi, false sinon
      */
     private function uninstallDatabase(): bool
     {
@@ -125,9 +132,9 @@ class Installer
     }
 
     /**
-     * Install the database modifications required for this module.
+     * Installe le webservice requis pour ce module
      *
-     * @return bool
+     * @return bool True si l'installation a réussi, false sinon
      */
     private function installWebservice(): bool
     {
@@ -170,9 +177,9 @@ class Installer
     }
 
     /**
-     * Uninstall database modifications.
+     * Désinstalle le webservice
      *
-     * @return bool
+     * @return bool True si la désinstallation a réussi, false sinon
      */
     private function uninstallWebservice(): bool
     {
@@ -183,11 +190,11 @@ class Installer
     }
 
     /**
-     * Register hooks for the module.
+     * Enregistre les hooks pour le module
      *
-     * @param Module $module
+     * @param Module $module Instance du module
      *
-     * @return bool
+     * @return bool True si l'enregistrement a réussi, false sinon
      */
     private function registerHooks(Module $module): bool
     {
@@ -257,11 +264,11 @@ class Installer
     }
 
     /**
-     * A helper that executes multiple database queries.
+     * Méthode helper qui exécute plusieurs requêtes de base de données
      *
-     * @param array $queries
+     * @param array $queries Tableau de requêtes SQL à exécuter
      *
-     * @return bool
+     * @return bool True si toutes les requêtes ont réussi, false sinon
      */
     private function executeQueries(array $queries): bool
     {
@@ -275,9 +282,9 @@ class Installer
     }
 
     /**
-     * Install the database modifications required for frequency mode.
+     * Installe les modifications de base de données requises pour le mode fréquence
      *
-     * @return bool
+     * @return bool True si l'installation a réussi, false sinon
      */
     private function installFrequencyModeDatabase(): bool
     {
@@ -285,12 +292,222 @@ class Installer
     }
 
     /**
-     * Uninstall the database modifications required for frequency mode.
+     * Désinstalle les modifications de base de données requises pour le mode fréquence
      *
-     * @return bool
+     * @return bool True si la désinstallation a réussi, false sinon
      */
     private function uninstallFrequencyModeDatabase(): bool
     {
         return $this->executeQueries(SqlQueries::uninstallFrequencyModeDatabase());
+    }
+
+
+    /**
+     * Installe ou met à jour les onglets d'administration du module
+     * 
+     * @param Module $module Instance du module
+     * @return bool True si l'installation a réussi, false sinon
+     */
+    public function installAdminTabs(Module $module): bool
+    {
+        // Recherche ou création de l'onglet parent (AdminConfigureCiklik)
+        $parentTabId = Tab::getIdFromClassName('AdminConfigureCiklik');
+        if (!$parentTabId) {
+            // Si l'onglet parent n'existe pas, le créer
+            $parentTab = new Tab();
+            $parentTab->active = 1;
+            $parentTab->class_name = 'AdminConfigureCiklik';
+            $parentTab->name = [];
+            foreach (Language::getLanguages(true) as $lang) {
+                $parentTab->name[$lang['id_lang']] = 'Ciklik';
+            }
+            $parentTab->id_parent = (int) Tab::getIdFromClassName('IMPROVE');
+            $parentTab->module = $module->name;
+            $parentTab->icon = 'extension';
+            
+            if (!$parentTab->add()) {
+                return false;
+            }
+            $parentTabId = $parentTab->id;
+        } else {
+            // Mise à jour de l'onglet parent existant pour s'assurer que l'icône est définie
+            $parentTab = new Tab($parentTabId);
+            $parentTab->icon = 'extension';
+            $parentTab->save();
+        }
+
+        // Onglet pour la gestion des fréquences
+        // Toujours créer l'onglet, mais le rendre actif/inactif selon le mode fréquence
+        $isFrequencyModeEnabled = Configuration::get('CIKLIK_FREQUENCY_MODE');
+        $frequenciesTab = $this->updateOrCreateTab(
+            'AdminCiklikFrequencies',
+            'Frequency Management',
+            'Gestion des Fréquences',
+            $parentTabId,
+            $module,
+            $isFrequencyModeEnabled ? 1 : 0
+        );
+        
+        if (!$frequenciesTab) {
+            return false;
+        }
+
+        // Onglet pour les abonnements et commandes
+        // Supprimer l'onglet existant s'il existe pour éviter les conflits
+        $subscriptionsOrdersTabId = Tab::getIdFromClassName('AdminCiklikSubscriptionsOrders');
+        if ($subscriptionsOrdersTabId) {
+            $oldTab = new Tab($subscriptionsOrdersTabId);
+            $oldTab->delete();
+        }
+
+        $subscriptionsOrdersTab = $this->createMultilingualTab(
+            'AdminCiklikSubscriptionsOrders',
+            'Subscriptions and Orders',
+            'Abonnements et Commandes',
+            $parentTabId,
+            $module,
+            1
+        );
+        
+        if (!$subscriptionsOrdersTab) {
+            return false;
+        }
+
+        // Créer les permissions d'accès pour le profil admin (ID 1)
+        $adminProfileId = 1;
+        $tabsToGrantAccess = [
+            $parentTabId,
+            $frequenciesTab->id,
+            $subscriptionsOrdersTab->id,
+        ];
+
+        foreach ($tabsToGrantAccess as $tabId) {
+            // Vérifier si l'accès existe déjà
+            $accessExists = Db::getInstance()->getValue(
+                'SELECT id_tab FROM ' . _DB_PREFIX_ . 'access 
+                 WHERE id_tab = ' . (int)$tabId . ' AND id_profile = ' . (int)$adminProfileId
+            );
+
+            if (!$accessExists) {
+                // Créer l'accès pour le profil admin
+                Db::getInstance()->insert('access', [
+                    'id_profile' => $adminProfileId,
+                    'id_tab' => (int)$tabId,
+                    'view' => 1,
+                    'add' => 1,
+                    'edit' => 1,
+                    'delete' => 1,
+                ]);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Uninstall admin tabs for the module.
+     *
+     * @return bool
+     */
+    /**
+     * Met à jour la visibilité de l'onglet des fréquences selon le mode fréquence
+     * 
+     * @return bool True si la mise à jour a réussi, false sinon
+     */
+    public function updateFrequenciesTabVisibility(): bool
+    {
+        $frequenciesTabId = Tab::getIdFromClassName('AdminCiklikFrequencies');
+        $isFrequencyModeEnabled = Configuration::get('CIKLIK_FREQUENCY_MODE');
+        
+        if ($frequenciesTabId) {
+            $frequenciesTab = new Tab($frequenciesTabId);
+            $frequenciesTab->active = $isFrequencyModeEnabled ? 1 : 0;
+            $result = $frequenciesTab->save();
+            return $result !== false;
+        }
+        
+        return true; // L'onglet n'existe pas encore, sera créé lors de la prochaine mise à jour du module
+    }
+
+    /**
+     * Crée un onglet avec des noms multilingues (anglais/français)
+     * 
+     * @param string $className Nom de la classe du contrôleur
+     * @param string $nameEn Nom en anglais
+     * @param string $nameFr Nom en français
+     * @param int $parentTabId ID de l'onglet parent
+     * @param Module $module Instance du module
+     * @param int $active État actif (1) ou inactif (0)
+     * @return Tab|false Instance de Tab créée ou false en cas d'erreur
+     */
+    private function createMultilingualTab($className, $nameEn, $nameFr, $parentTabId, Module $module, $active = 1)
+    {
+        $tab = new Tab();
+        $tab->active = $active;
+        $tab->class_name = $className;
+        $tab->name = [];
+        
+        foreach (Language::getLanguages(true) as $lang) {
+            $langIso = strtolower($lang['iso_code']);
+            if ($langIso === 'en' || $langIso === 'en-us' || $langIso === 'en-gb') {
+                $tab->name[$lang['id_lang']] = $nameEn;
+            } else {
+                $tab->name[$lang['id_lang']] = $nameFr;
+            }
+        }
+        
+        $tab->id_parent = $parentTabId;
+        $tab->module = $module->name;
+        
+        if (!$tab->add()) {
+            return false;
+        }
+        
+        return $tab;
+    }
+
+    /**
+     * Met à jour ou crée un onglet selon son existence
+     * 
+     * @param string $className Nom de la classe du contrôleur
+     * @param string $nameEn Nom en anglais
+     * @param string $nameFr Nom en français
+     * @param int $parentTabId ID de l'onglet parent
+     * @param Module $module Instance du module
+     * @param int $active État actif (1) ou inactif (0)
+     * @return Tab|false Instance de Tab mise à jour/créée ou false en cas d'erreur
+     */
+    private function updateOrCreateTab($className, $nameEn, $nameFr, $parentTabId, Module $module, $active = 1)
+    {
+        $tabId = Tab::getIdFromClassName($className);
+        
+        if ($tabId) {
+            // Mise à jour de l'onglet existant
+            $tab = new Tab($tabId);
+            $tab->active = $active;
+            if (!$tab->save()) {
+                return false;
+            }
+            return $tab;
+        } else {
+            // Création d'un nouvel onglet
+            return $this->createMultilingualTab($className, $nameEn, $nameFr, $parentTabId, $module, $active);
+        }
+    }
+
+    private function uninstallAdminTabs(): bool
+    {
+
+        foreach (['AdminCiklikFrequencies', 'AdminCiklikSubscriptionsOrders'] as $tabClassName) {
+            $idTab = Tab::getIdFromClassName($tabClassName);
+            if ($idTab) {
+                $tab = new Tab($idTab);
+                if (!$tab->delete()) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }

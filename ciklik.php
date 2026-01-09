@@ -35,7 +35,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.11.0';
+    const VERSION = '1.12.0';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -71,7 +71,7 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.11.0';
+        $this->version = '1.12.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -123,6 +123,27 @@ class Ciklik extends PaymentModule
         $installer = new Installer();
 
         return $installer->uninstall() && parent::uninstall();
+    }
+
+    /**
+     * Point d'entrée pour la mise à jour du module.
+     * Appelé automatiquement par PrestaShop lors de la mise à jour du module.
+     *
+     * @param string $version La version depuis laquelle on effectue la mise à jour
+     * @return bool
+     */
+    public function upgradeModule($version)
+    {
+        $installer = new Installer();
+        
+        // S'assurer que les onglets d'administration sont installés/mis à jour lors de la mise à jour
+        // Cette méthode est idempotente, donc sûre à appeler à chaque mise à jour
+        if (!$installer->installAdminTabs($this)) {
+            return false;
+        }
+
+        // Appeler la mise à jour parente pour gérer les fichiers d'upgrade
+        return parent::upgradeModule($version);
     }
 
     /**
@@ -758,7 +779,7 @@ class Ciklik extends PaymentModule
                     $ciklik_attributes['selected'] = false;
                     $ciklik_attributes['reference_id_product_attribute'] = (int) $product['id_product_attribute'];
                     $ciklik_attributes['current_id_product_attribute'] = $ciklik_attributes['reference_id_product_attribute'];
-                    $ciklik_attributes['subscription_reference_price'] = Product::getPriceStatic((int) $product['id_product'], true, (int) $product['id_product_attribute']);
+                    $ciklik_attributes['subscription_reference_price'] = Product::getPriceStatic((int) $product['id_product'], true, (int) $product['id_product_attribute'], 6, null, false, false);
                     $ciklik_attributes['frequency_id_attribute'] = (int) Configuration::get(self::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID);
 
                     $attribute = CiklikCombination::getOne(
@@ -800,7 +821,7 @@ class Ciklik extends PaymentModule
                     }
 
                     $ciklik_attributes['reference_id_product_attribute'] = (int) $attribute['id_product_attribute'];
-                    $ciklik_attributes['subscription_reference_price'] = Product::getPriceStatic((int) $product['id_product'], true, $ciklik_attributes['reference_id_product_attribute']);
+                    $ciklik_attributes['subscription_reference_price'] = Product::getPriceStatic((int) $product['id_product'], true, $ciklik_attributes['reference_id_product_attribute'], 6, null, false, false);
 
                     if (Tools::getValue('action') === 'refresh') {
                         if ((bool) Configuration::get(self::CONFIG_DELEGATE_OPTIONS_DISPLAY) && !Tools::getValue('ciklik')) {
