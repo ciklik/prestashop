@@ -14,16 +14,16 @@
 
             <!-- En-tête de la boîte modale -->
             <div class="modal-header">
-                <h4 class="modal-title">Modifier la fréquence de mon abonnement</h4>
+                <h4 class="modal-title">{l s='Modifier la fréquence de mon abonnement' mod='ciklik'}</h4>
                 <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal">&times;</button>
             </div>
 
             <!-- Corps de la boîte modale -->
             <div class="modal-body">
-                <p>Vous pouvez sélectionner une nouvelle fréquence qui s’appliquera pour tous les produits de votre abonnement si celle-ci est disponible.</p>
-                <p>La date de votre prochaine commande ne sera pas modifiée, le changement de fréquence s'appliquera à compter de la commande suivante.</p>
+                <p>{l s='Vous pouvez sélectionner une nouvelle fréquence qui s\'appliquera pour tous les produits de votre abonnement si celle-ci est disponible.' mod='ciklik'}</p>
+                <p>{l s='La date de votre prochaine commande ne sera pas modifiée, le changement de fréquence s\'appliquera à compter de la commande suivante.' mod='ciklik'}</p>
                 <form id="newIntervalForm-{$subscription->uuid}" action="{$subcription_base_link}/{$subscription->uuid}/contents" method="POST">
-                <label for="interval">Choisir</label>
+                <label for="interval">{l s='Choisir' mod='ciklik'}</label>
                 {if $use_frequency_mode === '1'}
                     <select name="product_combination" id="product_combination" required>
                         {if !empty($subscription->contents)}
@@ -36,7 +36,7 @@
                                 {/foreach}
                             {/if}
                         {else}
-                            <option value="">{l s='No other combinations available' mod='ciklik'}</option>
+                            <option value="">{l s='Aucune autre combinaison disponible' mod='ciklik'}</option>
                         {/if}
                     </select>
                     <input type="hidden" name="use_frequency_mode" value="1">
@@ -52,7 +52,7 @@
                                 {/foreach}
                             {/if}
                         {else}
-                            <option value="">{l s='No other combinations available' mod='ciklik'}</option>
+                            <option value="">{l s='Aucune autre combinaison disponible' mod='ciklik'}</option>
                         {/if}
                     </select>
                     <input type="hidden" name="use_frequency_mode" value="0">
@@ -64,7 +64,7 @@
 
             <!-- Pied de la boîte modale -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-bs-dismiss="modal">{l s='Annuler' mod='ciklik'}</button>
             </div>
 
         </div>

@@ -504,7 +504,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             return $response['message'];
         }
         
-        return 'Erreur inconnue';
+        return $this->l('Erreur inconnue');
     }
 
     /**

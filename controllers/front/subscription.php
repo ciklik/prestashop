@@ -76,7 +76,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                 $this->errors[] = $error[0];
             }
         } else {
-            $this->success[] = 'La date de renouvellement de votre abonnement a bien été modifiée.';
+            $this->success[] = $this->module->l('Your subscription renewal date has been updated.');
         }
 
         $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
@@ -107,7 +107,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                 $this->errors[] = $error[0];
             }
         } else {
-            $this->success[] = 'Votre nouvelle adresse a bien été prise en compte';
+            $this->success[] = $this->module->l('Your new address has been saved.');
         }
 
         $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
@@ -161,7 +161,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                     $this->errors[] = $error[0];
                 }
             } else {
-                $this->success[] = 'Votre nouvelle fréquence a bien été prise en compte';
+                $this->success[] = $this->module->l('Your new frequency has been saved.');
             }
 
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
@@ -171,7 +171,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             // Récupérer les informations de la nouvelle combinaison
             $newCombination = CiklikCombination::getCombinationDetails($newCombinationId);
             if (!$newCombination) {
-                $this->errors[] = 'Combinaison invalide.';
+                $this->errors[] = $this->module->l('Invalid combination.');
                 $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
                 return;
             }
@@ -207,7 +207,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                     $this->errors[] = $error[0];
                 }
             } else {
-                $this->success[] = 'Le contenu de votre abonnement a été mis à jour avec succès.';
+                $this->success[] = $this->module->l('Your subscription content has been updated successfully.');
             }
 
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
@@ -249,7 +249,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         $this->ajaxRenderAndExit(json_encode([
             'success' => true,
-            'message' => $this->module->l('Le produit a bien été ajouté à votre abonnement'),
+            'message' => $this->module->l('The product has been successfully added to your subscription'),
         ]));
         
     }

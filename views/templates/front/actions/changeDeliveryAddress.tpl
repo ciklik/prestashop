@@ -14,20 +14,20 @@
 
             <!-- En-tête de la boîte modale -->
             <div class="modal-header">
-                <h4 class="modal-title">Changer l'adresse de la prochaine livraison</h4>
+                <h4 class="modal-title">{l s='Changer l\'adresse de la prochaine livraison' mod='ciklik'}</h4>
                 <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal">&times;</button>
             </div>
 
         <!-- Corps de la boîte modale -->
         <div class="modal-body">
-            <p>Sélectionnez l’adresse à laquelle sera expédiée votre prochaine commande.</p>
+            <p>{l s='Sélectionnez l\'adresse à laquelle sera expédiée votre prochaine commande.' mod='ciklik'}</p>
             <p>
-                Si vous souhaitez créer une nouvelle adresse de livraison, rendez-vous dans votre espace Mon compte, rubrique Mes adresses.
+                {l s='Si vous souhaitez créer une nouvelle adresse de livraison, rendez-vous dans votre espace Mon compte, rubrique Mes adresses.' mod='ciklik'}
             </p>
 
             <form id="changeAddressForm-{$subscription->uuid}" action="{$subcription_base_link}/{$subscription->uuid}/updateaddress" method="POST">
 
-                <label for="changeAddressForm">Adresse :</label>
+                <label for="changeAddressForm">{l s='Adresse :' mod='ciklik'}</label>
                 <select name="changeAddressForm" id="changeAddressForm">
                     {foreach from=$addresses item=$address}
                         <option value="{$address['id_address']}">
@@ -37,13 +37,13 @@
                     {/foreach}
 
                 </select>
-                <button type="submit" class="btn btn-primary">Modifier</button>
+                <button type="submit" class="btn btn-primary">{l s='Modifier' mod='ciklik'}</button>
             </form>
         </div>
 
         <!-- Pied de la boîte modale -->
         <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal" data-bs-dismiss="modal" data-bs-dismiss="modal">Annuler</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal" data-bs-dismiss="modal" data-bs-dismiss="modal">{l s='Annuler' mod='ciklik'}</button>
         </div>
 
     </div>

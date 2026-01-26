@@ -27,7 +27,7 @@
                                 <option value="{$subscription->uuid}" data-url="{$product.subcription_base_link}/{$subscription->uuid}/addUpsell">{$subscription->display_content}</option>
                                 {/foreach}
                                 {else}
-                                <option value="">{l s='No active subscriptions found' mod='ciklik'}</option>
+                                <option value="">{l s='Aucun abonnement actif trouvé' mod='ciklik'}</option>
                                 {/if}
                             </select>
                         </div>
@@ -53,6 +53,10 @@
 </div>
 
 <script>
+var ciklikUpsellMessages = {
+    success: '{l s='Le produit a bien été ajouté à votre abonnement' mod='ciklik' js=1}'
+};
+
 document.getElementById('subscription-select').addEventListener('change', function() {
     var selectedOption = this.options[this.selectedIndex];
     window.selectedUrl = selectedOption.dataset.url;
@@ -106,15 +110,15 @@ document.getElementById('submitUpsell').addEventListener('click', function() {
         var modalBody = document.querySelector('#upsellModal{$product.id_product} .modal-body');
         var successAlert = document.createElement('div');
         successAlert.className = 'alert alert-success';
-        successAlert.innerHTML = 'Le produit a bien été ajouté à votre abonnement';
+        successAlert.innerHTML = ciklikUpsellMessages.success;
         modalBody.appendChild(successAlert);
-        
+
         // Remove the alert after 3 seconds
         setTimeout(function() {
             successAlert.remove();
         }, 5000);
 
-       
+
         // Handle success
         //$('#upsellModal{$product->id_product}').modal('hide');
     })

@@ -20,7 +20,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
     {
         if (!CiklikRefund::canRun()) {
             $this->ajaxFailAndDie(
-                $this->module->l('Unauthorized')
+                $this->module->l('Access denied')
             );
         }
 
@@ -42,14 +42,14 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
 
         $this->ajaxRenderAndExit(json_encode([
             'success' => true,
-            'message' => $this->module->l('Refund has been processed'),
+            'message' => $this->module->l('Refund completed'),
             'refund' => [
                 'refunded' => $refundedTransactionData->amount_refunded
                     ? $this->context->currentLocale->formatPrice($refundedTransactionData->amount_refunded, $currency->iso_code)
                     : 0,
                 'available' => $newMaxRefundAmount > 0,
                 'max' => sprintf(
-                    $this->module->l('Amount (Max. %s)'),
+                    $this->module->l('Amount (max. %s)'),
                     $this->context->currentLocale->formatPrice($newMaxRefundAmount, $currency->iso_code)
                 ),
             ],
@@ -62,7 +62,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
 
         if (!$transaction_id) {
             $this->ajaxFailAndDie(
-                $this->module->l('Error: Could not find Ciklik transaction')
+                $this->module->l('Error: unable to find Ciklik transaction')
             );
         }
 
@@ -77,7 +77,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
             $transactionData = (new Transaction($this->context->link))->getOne($transaction_id);
         } catch (Exception $e) {
             $this->ajaxFailAndDie(
-                $this->module->l('There was an error while processing the refund')
+                $this->module->l('An error occurred during the refund')
             );
         }
 
@@ -93,7 +93,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
                 $amount = (float) str_replace(',', '.', Tools::getValue('amount'));
                 if ($amount > $maxAmount) {
                     $this->ajaxFailAndDie(
-                        $this->module->l('Error: Amount is higher than maximum refundable'));
+                        $this->module->l('Error: amount exceeds maximum refundable'));
                 }
 
                 return $amount;
@@ -110,7 +110,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
             $refundResult = (new Transaction($this->context->link))->refund($transactionData->transaction_id, $amount);
         } catch (Exception $e) {
             $this->ajaxFailAndDie(
-                $this->module->l('There was an error while processing the refund')
+                $this->module->l('An error occurred during the refund')
             );
         }
 

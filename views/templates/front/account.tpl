@@ -7,7 +7,7 @@
 {extends file='customer/page.tpl'}
 
 {block name='page_title'}
-    {l s='Subscriptions' mod='ciklik'}
+    {l s='Vos abonnements' mod='ciklik'}
 {/block}
 
 {block name='page_content'}
@@ -15,10 +15,10 @@
         <table class="table table-striped table-bordered table-labeled">
             <thead class="thead-default">
             <tr>
-                <th>{l s='Status' mod='ciklik'}</th>
+                <th>{l s='Statut' mod='ciklik'}</th>
                 <th>{l s='Description' mod='ciklik'}</th>
-                <th>{l s='Shipped to' mod='ciklik'}</th>
-                <th>{l s='Next billing' mod='ciklik'}</th>
+                <th>{l s='Livré à' mod='ciklik'}</th>
+                <th>{l s='Prochaine commande' mod='ciklik'}</th>
                 <th>&nbsp;</th>
             </tr>
             </thead>
@@ -28,11 +28,11 @@
                     <td>
                         {if $subscription->active}
                             <span class="label label-pill" style="background-color:#32CD32">
-                {l s='Active' mod='ciklik'}
+                {l s='Actif' mod='ciklik'}
               </span>
                         {else}
                             <span class="label label-pill" style="background-color:#8f0621">
-                {l s='Inactive' mod='ciklik'}
+                {l s='Inactif' mod='ciklik'}
               </span>
                         {/if}
                     </td>
@@ -121,13 +121,13 @@
                                 )
                             ->isPast()}
                                     {if $subscription->active}
-                                        <a href="{$subcription_base_link}/{$subscription->uuid}/stop">{l s='Stop' mod='ciklik'}</a>
+                                        <a href="{$subcription_base_link}/{$subscription->uuid}/stop">{l s='Arrêter' mod='ciklik'}</a>
                                     {else}
-                                        <a href="{$subcription_base_link}/{$subscription->uuid}/resume">{l s='Resume' mod='ciklik'}</a>
+                                        <a href="{$subcription_base_link}/{$subscription->uuid}/resume">{l s='Reprendre' mod='ciklik'}</a>
                                     {/if}
                                 {else}
                                 <small>
-                                    Résiliable à partir du : <br>
+                                    {l s='Résiliable à partir du :' mod='ciklik'} <br>
                                     {PrestaShop\Module\Ciklik\Helpers\IntervalHelper::addIntervalToDate(
                                             $subscription->created_at->toImmutable(),
                                             $engagement_interval,
@@ -137,9 +137,9 @@
                                 {/if}
                         {else}
                             {if $subscription->active}
-                                <a href="{$subcription_base_link}/{$subscription->uuid}/stop">{l s='Stop' mod='ciklik'}</a>
+                                <a href="{$subcription_base_link}/{$subscription->uuid}/stop">{l s='Arrêter' mod='ciklik'}</a>
                             {else}
-                                <a href="{$subcription_base_link}/{$subscription->uuid}/resume">{l s='Resume' mod='ciklik'}</a>
+                                <a href="{$subcription_base_link}/{$subscription->uuid}/resume">{l s='Reprendre' mod='ciklik'}</a>
                             {/if}
                         {/if}
                     </td>
@@ -148,6 +148,6 @@
             </tbody>
         </table>
     {else}
-        <div class="alert alert-info">{l s='No subscription' mod='ciklik'}</div>
+        <div class="alert alert-info">{l s='Vous n\'avez pas d\'abonnement.' mod='ciklik'}</div>
     {/if}
 {/block}
