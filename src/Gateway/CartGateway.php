@@ -89,6 +89,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
         
         // Ajout du panier au contexte
         $context = Context::getContext();
+        $context->customer = $customer;
         $context->cart = $cart;
 
         /*
@@ -341,6 +342,8 @@ class CartGateway extends AbstractGateway implements EntityGateway
          * Sans Context, pas de discount
          */
         $context = Context::getContext();
+        $customer = new Customer($cart->id_customer);
+        $context->customer = $customer;
         $context->cart = $cart;
 
         $summary = $cart->getRawSummaryDetails((int) Configuration::get('PS_LANG_DEFAULT'));

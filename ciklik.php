@@ -250,7 +250,7 @@ class Ciklik extends PaymentModule
                     ],
                 ],
 
-                'interval_counts' => range(1, 12),
+                'interval_counts' => range(1, 32),
             ]);
 
             return $this->context->smarty->fetch('module:ciklik/views/templates/hook/displayAttributeForm.tpl');
