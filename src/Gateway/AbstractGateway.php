@@ -28,9 +28,11 @@ abstract class AbstractGateway implements EntityGateway
     {
         $webservice = new WebserviceKey(Configuration::get(Ciklik::CONFIG_WEBSERVICE_ID));
 
-        if (!array_key_exists('HTTP_AUTHORIZATION', $_SERVER)
-            || 'Basic ' . base64_encode($webservice->key . ':') !== $_SERVER['HTTP_AUTHORIZATION']
-        ) {
+        $expectedAuth = 'Basic ' . base64_encode($webservice->key . ':');
+        $providedAuth = array_key_exists('HTTP_AUTHORIZATION', $_SERVER) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
+
+        // Comparaison à temps constant pour éviter les timing attacks
+        if (!hash_equals($expectedAuth, $providedAuth)) {
             (new Response())->sendUnauthorized();
         }
 

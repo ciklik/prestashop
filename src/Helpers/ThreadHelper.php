@@ -56,7 +56,10 @@ trait ThreadHelper
             $customer_message = new CustomerMessage();
             $customer_message->id_customer_thread = $customer_thread->id;
             $customer_message->id_employee = 0;
-            $customer_message->message = '[CIKLIK] ' . $key . ':' . $value;
+            // Sanitisation pour éviter le XSS stocké
+            $safeKey = Tools::htmlentitiesUTF8(strip_tags((string) $key));
+            $safeValue = Tools::htmlentitiesUTF8(strip_tags((string) $value));
+            $customer_message->message = '[CIKLIK] ' . $safeKey . ':' . $safeValue;
             $customer_message->private = true;
             $customer_message->add();
         }
