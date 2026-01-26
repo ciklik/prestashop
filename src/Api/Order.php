@@ -72,14 +72,15 @@ class Order extends CiklikApiClient
 
     /**
      * Récupère une commande par son ID PrestaShop
-     * 
+     *
      * @param int $ps_order_id ID de la commande PrestaShop
      * @param array $options Options API supplémentaires
      * @return OrderData|null Instance OrderData ou null si non trouvée
      */
     public function getOneByPsOrderId(int $ps_order_id, array $options = [])
     {
-        $this->setRoute("orders?filter[prestashop_order_id]=" . $ps_order_id);
+        $queryString = http_build_query(['filter' => ['prestashop_order_id' => $ps_order_id]]);
+        $this->setRoute('orders?' . $queryString);
 
         $response = $this->get($options);
 

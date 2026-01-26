@@ -52,14 +52,32 @@ class Subscription extends CiklikApiClient
 
     public function getOne(string $ciklik_subscription_uuid)
     {
-        $this->setRoute("subscriptions/{$ciklik_subscription_uuid}");
+        $error = $this->setRouteWithValidation(
+            'subscriptions/%s',
+            $ciklik_subscription_uuid,
+            'uuid',
+            'Invalid subscription UUID format'
+        );
+
+        if (null !== $error) {
+            return $error;
+        }
 
         return $this->get();
     }
 
     public function update(string $ciklik_subscription_uuid, array $data)
     {
-        $this->setRoute("subscriptions/{$ciklik_subscription_uuid}");
+        $error = $this->setRouteWithValidation(
+            'subscriptions/%s',
+            $ciklik_subscription_uuid,
+            'uuid',
+            'Invalid subscription UUID format'
+        );
+
+        if (null !== $error) {
+            return $error;
+        }
 
         return $this->put([
             'json' => $data,

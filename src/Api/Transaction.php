@@ -24,7 +24,16 @@ class Transaction extends CiklikApiClient
 
     public function getOne(string $ciklik_transaction_id, array $options = [])
     {
-        $this->setRoute("transactions/{$ciklik_transaction_id}");
+        $error = $this->setRouteWithValidation(
+            'transactions/%s',
+            $ciklik_transaction_id,
+            'alphanumeric',
+            'Invalid transaction ID format'
+        );
+
+        if (null !== $error) {
+            return null;
+        }
 
         $response = $this->get($options);
 
@@ -37,7 +46,16 @@ class Transaction extends CiklikApiClient
 
     public function refund(string $ciklik_transaction_id, float $amount)
     {
-        $this->setRoute("transactions/{$ciklik_transaction_id}");
+        $error = $this->setRouteWithValidation(
+            'transactions/%s',
+            $ciklik_transaction_id,
+            'alphanumeric',
+            'Invalid transaction ID format'
+        );
+
+        if (null !== $error) {
+            return null;
+        }
 
         $response = $this->put([
             'json' => [

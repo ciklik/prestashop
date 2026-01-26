@@ -23,6 +23,11 @@ if (!defined('_PS_VERSION_')) {
 class CiklikApiClient
 {
     /**
+     * UUID v4 regex pattern
+     */
+    protected const UUID_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i';
+
+    /**
      * Guzzle Client
      *
      * @var Client
@@ -277,5 +282,83 @@ class CiklikApiClient
     protected function getExceptionsMode()
     {
         return $this->catchExceptions;
+    }
+
+    /**
+     * Vérifie si une chaîne est un UUID v4 valide
+     *
+     * @param string $uuid La chaîne à valider
+     * @return bool True si UUID valide, false sinon
+     */
+    protected function isValidUuid(string $uuid): bool
+    {
+        return (bool) preg_match(self::UUID_PATTERN, $uuid);
+    }
+
+    /**
+     * Valide et nettoie un segment de route (UUID ou ID numérique)
+     *
+     * @param string $segment Le segment à valider
+     * @param string $type Type attendu : 'uuid', 'numeric', ou 'alphanumeric'
+     * @return string|null Le segment nettoyé ou null si invalide
+     */
+    protected function validateRouteSegment(string $segment, string $type = 'uuid'): ?string
+    {
+        switch ($type) {
+            case 'uuid':
+                return $this->isValidUuid($segment) ? $segment : null;
+            case 'numeric':
+                return ctype_digit($segment) ? $segment : null;
+            case 'alphanumeric':
+                return preg_match('/^[a-zA-Z0-9_-]+$/', $segment) ? $segment : null;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Construit une réponse d'erreur standardisée
+     *
+     * @param string $message Message d'erreur
+     * @param int $httpCode Code HTTP (défaut 400)
+     * @return array Réponse d'erreur standardisée
+     */
+    protected function buildErrorResponse(string $message, int $httpCode = 400): array
+    {
+        return [
+            'status' => false,
+            'httpCode' => $httpCode,
+            'body' => [],
+            'meta' => null,
+            'links' => null,
+            'message' => $message,
+            'errors' => [$message],
+        ];
+    }
+
+    /**
+     * Valide un segment et définit la route si valide
+     *
+     * @param string $routeTemplate Template de route avec %s comme placeholder
+     * @param string $segment Le segment à valider et insérer
+     * @param string $type Type de validation : 'uuid', 'numeric', ou 'alphanumeric'
+     * @param string $errorMessage Message d'erreur si la validation échoue
+     * @return array|null Null si valide (route définie), tableau d'erreur sinon
+     */
+    protected function setRouteWithValidation(
+        string $routeTemplate,
+        string $segment,
+        string $type = 'uuid',
+        string $errorMessage = 'Invalid identifier format'
+    ): ?array {
+        $validatedSegment = $this->validateRouteSegment($segment, $type);
+
+        if (null === $validatedSegment) {
+            return $this->buildErrorResponse($errorMessage);
+        }
+
+        $this->setRoute(sprintf($routeTemplate, $validatedSegment));
+
+        return null;
     }
 }

@@ -22,7 +22,16 @@ class Customer extends CiklikApiClient
 
     public function getOne(string $ciklik_customer_uuid)
     {
-        $this->setRoute("customers/{$ciklik_customer_uuid}");
+        $error = $this->setRouteWithValidation(
+            'customers/%s',
+            $ciklik_customer_uuid,
+            'uuid',
+            'Invalid customer UUID format'
+        );
+
+        if (null !== $error) {
+            return $error;
+        }
 
         return $this->get();
     }

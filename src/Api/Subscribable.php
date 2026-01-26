@@ -13,12 +13,76 @@ if (!defined('_PS_VERSION_')) {
 
 class Subscribable extends CiklikApiClient
 {
-    public function push(array $variant)
+    /**
+     * Clés autorisées pour les données produit envoyées à l'API
+     */
+    private const ALLOWED_PRODUCT_KEYS = [
+        'name',
+        'short_description',
+        'description',
+        'meta_title',
+        'meta_description',
+        'price',
+        'tax',
+        'active',
+        'ref',
+        'external_id',
+        'frequencies',
+    ];
+
+    /**
+     * Clés autorisées pour les données de fréquence
+     */
+    private const ALLOWED_FREQUENCY_KEYS = [
+        'interval',
+        'interval_count',
+    ];
+
+    public function push(array $data)
     {
         $this->setRoute('products');
 
+        $sanitizedData = $this->sanitizePayload($data);
+
         return $this->post([
-            'json' => $variant,
+            'json' => $sanitizedData,
         ]);
+    }
+
+    /**
+     * Nettoie le payload pour ne conserver que les clés autorisées
+     *
+     * @param array $data Données brutes à nettoyer
+     * @return array Données nettoyées avec uniquement les clés autorisées
+     */
+    private function sanitizePayload(array $data): array
+    {
+        if (!isset($data['products']) || !is_array($data['products'])) {
+            return $data;
+        }
+
+        $sanitizedProducts = [];
+        foreach ($data['products'] as $product) {
+            $sanitizedProduct = array_intersect_key(
+                $product,
+                array_flip(self::ALLOWED_PRODUCT_KEYS)
+            );
+
+            // Sanitize frequencies if present
+            if (isset($sanitizedProduct['frequencies']) && is_array($sanitizedProduct['frequencies'])) {
+                $sanitizedFrequencies = [];
+                foreach ($sanitizedProduct['frequencies'] as $frequency) {
+                    $sanitizedFrequencies[] = array_intersect_key(
+                        $frequency,
+                        array_flip(self::ALLOWED_FREQUENCY_KEYS)
+                    );
+                }
+                $sanitizedProduct['frequencies'] = $sanitizedFrequencies;
+            }
+
+            $sanitizedProducts[] = $sanitizedProduct;
+        }
+
+        return ['products' => $sanitizedProducts];
     }
 }
