@@ -24,7 +24,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
             );
         }
 
-        $order = new Order(Tools::getValue('orderId'));
+        $order = new Order((int) Tools::getValue('orderId'));
 
         $transactionData = $this->getTransactionData($order);
 

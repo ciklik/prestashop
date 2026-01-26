@@ -84,7 +84,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
     private function updateaddress()
     {
-        $address = new Address(Tools::getValue('changeAddressForm'));
+        $address = new Address((int) Tools::getValue('changeAddressForm'));
 
         if ($this->context->customer->id !== (int) $address->id_customer) {
             throw new PrestaShop\Module\Ciklik\Exceptions\NotAllowedException();
@@ -225,10 +225,10 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
      */
     private function addUpsell()
     {
-        $productId = Tools::getValue('id_product');
-        $productAttributeId = Tools::getValue('id_product_attribute');
-        $quantity = Tools::getValue('quantity');
-        
+        $productId = (int) Tools::getValue('id_product');
+        $productAttributeId = (int) Tools::getValue('id_product_attribute');
+        $quantity = (int) Tools::getValue('quantity');
+
         $uuid = Tools::getValue('uuid');
         
 

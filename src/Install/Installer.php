@@ -149,35 +149,34 @@ class Installer
         $webservice->description = 'Ciklik Webservice';
         $webservice->is_module = 1;
         $webservice->module_name = 'ciklik';
-        $webservice->save();
 
-        if ($webservice) {
-            Configuration::updateValue(Ciklik::CONFIG_WEBSERVICE_ID, $webservice->id);
-
-            $permissions = [
-                'addresses' => ['GET' => 1, 'HEAD' => 1],
-                'carts' => ['GET' => 1, 'HEAD' => 1],
-                'countries' => ['GET' => 1, 'HEAD' => 1],
-                'customers' => ['GET' => 1, 'HEAD' => 1],
-                'order_carriers' => ['GET' => 1, 'HEAD' => 1],
-                'order_cart_rules' => ['GET' => 1, 'HEAD' => 1],
-                'order_details' => ['GET' => 1, 'HEAD' => 1],
-                'order_histories' => ['GET' => 1, 'HEAD' => 1],
-                'order_invoices' => ['GET' => 1, 'HEAD' => 1],
-                'order_payments' => ['GET' => 1, 'HEAD' => 1],
-                'order_slip' => ['GET' => 1, 'HEAD' => 1],
-                'orders' => ['GET' => 1, 'HEAD' => 1],
-                'product_option_values' => ['GET' => 1, 'HEAD' => 1],
-                'product_options' => ['GET' => 1, 'HEAD' => 1],
-                'products' => ['GET' => 1, 'HEAD' => 1],
-            ];
-
-            WebserviceKey::setPermissionForAccount($webservice->id, $permissions);
-
-            return true;
+        if (!$webservice->save()) {
+            return false;
         }
 
-        return false;
+        Configuration::updateValue(Ciklik::CONFIG_WEBSERVICE_ID, $webservice->id);
+
+        $permissions = [
+            'addresses' => ['GET' => 1, 'HEAD' => 1],
+            'carts' => ['GET' => 1, 'HEAD' => 1],
+            'countries' => ['GET' => 1, 'HEAD' => 1],
+            'customers' => ['GET' => 1, 'HEAD' => 1],
+            'order_carriers' => ['GET' => 1, 'HEAD' => 1],
+            'order_cart_rules' => ['GET' => 1, 'HEAD' => 1],
+            'order_details' => ['GET' => 1, 'HEAD' => 1],
+            'order_histories' => ['GET' => 1, 'HEAD' => 1],
+            'order_invoices' => ['GET' => 1, 'HEAD' => 1],
+            'order_payments' => ['GET' => 1, 'HEAD' => 1],
+            'order_slip' => ['GET' => 1, 'HEAD' => 1],
+            'orders' => ['GET' => 1, 'HEAD' => 1],
+            'product_option_values' => ['GET' => 1, 'HEAD' => 1],
+            'product_options' => ['GET' => 1, 'HEAD' => 1],
+            'products' => ['GET' => 1, 'HEAD' => 1],
+        ];
+
+        WebserviceKey::setPermissionForAccount($webservice->id, $permissions);
+
+        return true;
     }
 
     /**

@@ -36,7 +36,7 @@ class CiklikCombination
         $query->select('pa.id_product_attribute, pa.id_product, pa.reference, pa.price, pac.id_attribute');
         $query->from('product_attribute', 'pa');
         $query->leftJoin('product_attribute_combination', 'pac', 'pac.id_product_attribute = pa.id_product_attribute');
-        $query->where('pa.id_product = "' . $id_product . '"');
+        $query->where('pa.id_product = ' . (int) $id_product);
         $query->where('pac.id_attribute IN (SELECT id_attribute FROM `' . _DB_PREFIX_ . 'attribute` WHERE id_attribute_group = ' . (int) Configuration::get(Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID) . ')');
 
         return Db::getInstance()->executeS($query);
@@ -395,7 +395,7 @@ class CiklikCombination
         // Joint avec la table des attributs pour accéder au groupe d'attributs
         $query->leftJoin('attribute', 'a', 'a.`id_attribute` = pac.`id_attribute`');
         // Filtre sur l'ID de la combinaison
-        $query->where('pac.`id_product_attribute` = "' . $id_product_attribute . '"');
+        $query->where('pac.`id_product_attribute` = ' . (int) $id_product_attribute);
         // Vérifie que l'attribut appartient au groupe des fréquences
         $query->where('a.`id_attribute_group` = "' . (int) Configuration::get(Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID) . '"');
 

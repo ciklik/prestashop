@@ -35,7 +35,7 @@ class CiklikAttribute
 
         Db::getInstance()->execute('
             INSERT INTO `' . _DB_PREFIX_ . 'attribute_lang` (`id_attribute`, `id_lang`, `name`)
-            VALUES (' . $id_attribute . ', ' . (int) Configuration::get('PS_LANG_DEFAULT') . ', \'' . $name . '\')
+            VALUES (' . $id_attribute . ', ' . (int) Configuration::get('PS_LANG_DEFAULT') . ', \'' . pSQL($name) . '\')
         ');
 
         Db::getInstance()->execute('

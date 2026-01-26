@@ -192,7 +192,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
                 $query = new DbQuery();
                 $query->select('`id_product`');
                 $query->from('product_attribute');
-                $query->where('`id_product_attribute` = "' . (int) $id_variant . '"');
+                $query->where('`id_product_attribute` = ' . (int) $id_variant);
                 $id_product = Db::getInstance()->getValue($query);
             }
             // Format: id_product:id_product_attribute:quantity ou id_product:id_product_attribute_hash:quantity

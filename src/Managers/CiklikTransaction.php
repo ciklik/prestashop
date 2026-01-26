@@ -32,6 +32,6 @@ class CiklikTransaction
 
     public static function update(string $ciklik_transaction_id, float $amount): void
     {
-        Db::getInstance()->update('order_payment', ['amount' => $amount], '`transaction_id` = \'' . $ciklik_transaction_id . '\'');
+        Db::getInstance()->update('order_payment', ['amount' => $amount], '`transaction_id` = \'' . pSQL($ciklik_transaction_id) . '\'');
     }
 }
