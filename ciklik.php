@@ -269,6 +269,12 @@ class Ciklik extends PaymentModule
             return;
         }
 
+        // Ne rien faire si la requête ne contient pas les données Ciklik
+        // (mise à jour via module externe, API, connecteur Sage, etc.)
+        if (!isset($_POST['ciklik_subscription_enabled']) && !isset($_GET['ciklik_subscription_enabled'])) {
+            return;
+        }
+
         $enabled = (bool)Tools::getValue('ciklik_subscription_enabled');
 
         if ($enabled) {
