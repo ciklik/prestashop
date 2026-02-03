@@ -23,6 +23,7 @@
                 <p>{l s='Vous pouvez recevoir plus tôt votre prochaine commande en avançant la date de renouvellement de votre abonnement ou la reporter plus tard si besoin.' mod='ciklik'}</p>
                 <p>{l s='La date de prochain paiement sélectionnée sera la nouvelle date anniversaire pour votre abonnement.' mod='ciklik'}</p>
                 <form id="newDateForm-{$subscription->uuid}" action="{$subcription_base_link}/{$subscription->uuid}/newdate" method="POST">
+                    <input type="hidden" name="token" value="{$token}">
                     <label for="next_billing">{l s='Nouvelle date :' mod='ciklik'}</label>
                     <input type="date" name="next_billing" id="next_billing" min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>"
                            max="<?php echo date('Y-m-d', strtotime('+6 months')); ?>" required>

@@ -23,6 +23,7 @@
                 <p>{l s='Vous pouvez sélectionner une nouvelle fréquence qui s\'appliquera pour tous les produits de votre abonnement si celle-ci est disponible.' mod='ciklik'}</p>
                 <p>{l s='La date de votre prochaine commande ne sera pas modifiée, le changement de fréquence s\'appliquera à compter de la commande suivante.' mod='ciklik'}</p>
                 <form id="newIntervalForm-{$subscription->uuid}" action="{$subcription_base_link}/{$subscription->uuid}/contents" method="POST">
+                <input type="hidden" name="token" value="{$token}">
                 <label for="interval">{l s='Choisir' mod='ciklik'}</label>
                 {if $use_frequency_mode === '1'}
                     <select name="product_combination" id="product_combination" required>

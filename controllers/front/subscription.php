@@ -5,6 +5,8 @@
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
 
+use PrestaShop\Module\Ciklik\Api\Subscription;
+use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
@@ -16,10 +18,41 @@ if (!defined('_PS_VERSION_')) {
 class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 {
     /**
+     * Authentification requise pour accéder aux actions sur les abonnements
+     *
+     * @var bool
+     */
+    public $auth = true;
+
+    /**
+     * Page de redirection si non authentifié
+     *
+     * @var string
+     */
+    public $authRedirection = 'my-account';
+
+    /**
      * {@inheritdoc}
      */
     public function postProcess()
     {
+        // Vérification CSRF pour les requêtes POST
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$this->isTokenValid()) {
+            $this->errors[] = $this->module->l('Invalid security token. Please try again.');
+            $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
+            return;
+        }
+
+        // Vérification de la propriété de l'abonnement
+        $uuid = Tools::getValue('uuid');
+        if ($uuid && !$this->validateSubscriptionOwnership($uuid)) {
+            $this->errors[] = $this->module->l('You do not have permission to access this subscription.');
+            $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
+            return;
+        }
+
         switch (Tools::getValue('action')) {
             case 'stop':
                 $this->stop();
@@ -272,5 +305,34 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
     {
         $this->ajaxRender($value, $controller, $method);
         exit;
+    }
+
+    /**
+     * Vérifie que l'abonnement appartient bien au client connecté
+     *
+     * @param string $uuid UUID de l'abonnement
+     *
+     * @return bool
+     */
+    private function validateSubscriptionOwnership($uuid)
+    {
+        if (!$this->context->customer || !$this->context->customer->id) {
+            return false;
+        }
+
+        try {
+            $subscriptionApi = new Subscription($this->context->link);
+            $response = $subscriptionApi->getOne($uuid);
+
+            if (!isset($response['body']) || !isset($response['body']['external_fingerprint'])) {
+                return false;
+            }
+
+            $fingerprint = CartFingerprintData::extractDatas($response['body']['external_fingerprint']);
+
+            return (int) $fingerprint->id_customer === (int) $this->context->customer->id;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }

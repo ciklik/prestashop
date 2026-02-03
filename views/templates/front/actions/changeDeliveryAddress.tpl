@@ -26,7 +26,7 @@
             </p>
 
             <form id="changeAddressForm-{$subscription->uuid}" action="{$subcription_base_link}/{$subscription->uuid}/updateaddress" method="POST">
-
+                <input type="hidden" name="token" value="{$token}">
                 <label for="changeAddressForm">{l s='Adresse :' mod='ciklik'}</label>
                 <select name="changeAddressForm" id="changeAddressForm">
                     {foreach from=$addresses item=$address}

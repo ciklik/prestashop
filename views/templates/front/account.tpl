@@ -121,9 +121,15 @@
                                 )
                             ->isPast()}
                                     {if $subscription->active}
-                                        <a href="{$subcription_base_link}/{$subscription->uuid}/stop">{l s='Arrêter' mod='ciklik'}</a>
+                                        <form action="{$subcription_base_link}/{$subscription->uuid}/stop" method="POST" style="display:inline;">
+                                            <input type="hidden" name="token" value="{$token}">
+                                            <button type="submit" class="btn btn-link" style="padding:0;">{l s='Arrêter' mod='ciklik'}</button>
+                                        </form>
                                     {else}
-                                        <a href="{$subcription_base_link}/{$subscription->uuid}/resume">{l s='Reprendre' mod='ciklik'}</a>
+                                        <form action="{$subcription_base_link}/{$subscription->uuid}/resume" method="POST" style="display:inline;">
+                                            <input type="hidden" name="token" value="{$token}">
+                                            <button type="submit" class="btn btn-link" style="padding:0;">{l s='Reprendre' mod='ciklik'}</button>
+                                        </form>
                                     {/if}
                                 {else}
                                 <small>
@@ -137,9 +143,15 @@
                                 {/if}
                         {else}
                             {if $subscription->active}
-                                <a href="{$subcription_base_link}/{$subscription->uuid}/stop">{l s='Arrêter' mod='ciklik'}</a>
+                                <form action="{$subcription_base_link}/{$subscription->uuid}/stop" method="POST" style="display:inline;">
+                                    <input type="hidden" name="token" value="{$token}">
+                                    <button type="submit" class="btn btn-link" style="padding:0;">{l s='Arrêter' mod='ciklik'}</button>
+                                </form>
                             {else}
-                                <a href="{$subcription_base_link}/{$subscription->uuid}/resume">{l s='Reprendre' mod='ciklik'}</a>
+                                <form action="{$subcription_base_link}/{$subscription->uuid}/resume" method="POST" style="display:inline;">
+                                    <input type="hidden" name="token" value="{$token}">
+                                    <button type="submit" class="btn btn-link" style="padding:0;">{l s='Reprendre' mod='ciklik'}</button>
+                                </form>
                             {/if}
                         {/if}
                     </td>

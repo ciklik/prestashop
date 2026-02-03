@@ -49,6 +49,7 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
             'addresses' => $this->context->customer->getAddresses($this->context->language->id),
             'enable_change_interval' => Configuration::get(Ciklik::CONFIG_ENABLE_CHANGE_INTERVAL),
             'use_frequency_mode' => Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE),
+            'token' => Tools::getToken(false),
         ]);
 
         $this->setTemplate('module:ciklik/views/templates/front/account.tpl');
