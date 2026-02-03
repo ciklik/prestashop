@@ -567,7 +567,8 @@ class AdminConfigureCiklikController extends ModuleAdminController
 
                 $this->confirmations[] = $this->trans('Connection successful', [], 'Modules.Ciklik.Admin');
             } catch (Exception $e) {
-                $this->errors[] = $this->trans('Connection failed', [$e->getMessage()], 'Modules.Ciklik.Admin');
+                // Échappement XSS du message d'exception (source externe potentiellement non fiable)
+                $this->errors[] = $this->trans('Connection failed', [], 'Modules.Ciklik.Admin') . ' ' . Tools::htmlentitiesUTF8($e->getMessage());
             }
         }
     }
