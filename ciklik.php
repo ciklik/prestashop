@@ -23,6 +23,7 @@ use PrestaShop\Module\Ciklik\Managers\CiklikSpecificPrice;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscribable;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 use PrestaShop\Module\Ciklik\Api\Subscription;
+use PrestaShop\Module\Ciklik\Helpers\PriceHelper;
 use PrestaShop\Module\Ciklik\Helpers\SubscriptionHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
@@ -35,7 +36,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.12.1';
+    const VERSION = '1.13.0';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -73,13 +74,13 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.12.1';
+        $this->version = '1.13.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
         $this->ps_versions_compliancy = [
             'min' => '1.7.7',
-            'max' => '8.99.99',
+            'max' => '9.0.2',
         ];
         $this->controllers = [
             'account',
@@ -271,7 +272,7 @@ class Ciklik extends PaymentModule
 
         // Ne rien faire si la requête ne contient pas les données Ciklik
         // (mise à jour via module externe, API, connecteur Sage, etc.)
-        if (!isset($_POST['ciklik_subscription_enabled']) && !isset($_GET['ciklik_subscription_enabled'])) {
+        if (!Tools::getIsset('ciklik_subscription_enabled')) {
             return;
         }
 
@@ -682,11 +683,11 @@ class Ciklik extends PaymentModule
         // et si l'utilisateur est connecté (pas un employé)
         if ((bool) Configuration::get(self::CONFIG_ENABLE_UPSELL)
             && $this->context->controller instanceof ProductController // On ignore si nous sommes sur une page de catégorie
-            && $this->context->customer !== null 
+            && $this->context->customer !== null
             && $this->context->customer->isLogged()
-            //on vérifie que le produit est le même que celui qui est affiché,
+            // On vérifie que le produit est le même que celui qui est affiché,
             // pour éviter les requêtes sur les produits de la même catégorie
-            && $this->context->controller->getProduct()->id == $params['product']['id_product']) {
+            && $this->isCurrentProduct($params['product'])) {
             // Récupère les informations du client Ciklik à partir de l'ID client PrestaShop
             $ciklik_customer = CiklikCustomer::getByIdCustomer((int) $this->context->customer->id);
             $subscriptions = [];
@@ -727,18 +728,44 @@ class Ciklik extends PaymentModule
             return '';
         }
 
+        // Prix du produit
+        $productPrice = isset($params['product']['price']) ? (float) $params['product']['price'] : 0;
+
         // Préparer les variables pour le template
         $templateVars = [
             'product' => $params['product'],
             'has_upsell' => $hasUpsell,
             'has_subscription_mode' => $hasSubscriptionMode,
             'ciklik_subscription_enabled' => false,
-            'ciklik_frequencies' => []
+            'ciklik_frequencies' => [],
+            'ciklik_product_price_formatted' => PriceHelper::formatPrice($productPrice),
         ];
 
         // Si le mode fréquence est activé, récupérer les données d'abonnement
         if ($hasSubscriptionMode) {
             $frequencies = CiklikFrequency::getFrequenciesForProduct($idProduct);
+
+            // Pré-formater les prix pour chaque fréquence (compatibilité PS9)
+            foreach ($frequencies as &$frequency) {
+                $discountPercent = (float) ($frequency['discount_percent'] ?? 0);
+                $discountPrice = (float) ($frequency['discount_price'] ?? 0);
+
+                // Calculer le prix avec réduction
+                if ($discountPercent > 0) {
+                    $discountedPrice = $productPrice * (1 - ($discountPercent / 100));
+                } elseif ($discountPrice > 0) {
+                    $discountedPrice = max(0, $productPrice - $discountPrice);
+                } else {
+                    $discountedPrice = $productPrice;
+                }
+
+                // Ajouter les prix formatés
+                $frequency['formatted_discount_price'] = PriceHelper::formatPrice($discountPrice);
+                $frequency['formatted_discounted_price'] = PriceHelper::formatPrice($discountedPrice);
+                $frequency['formatted_original_price'] = PriceHelper::formatPrice($productPrice);
+            }
+            unset($frequency);
+
             $templateVars['ciklik_subscription_enabled'] = SubscriptionHelper::isSubscriptionEnabled($idProduct);
             $templateVars['ciklik_frequencies'] = $frequencies;
         }
@@ -876,6 +903,54 @@ class Ciklik extends PaymentModule
         }
 
         return false;
+    }
+
+    /**
+     * Vérifie si le produit dans les paramètres est le produit actuellement affiché
+     * Compatible PS 1.7, 8 et 9 (structure de $product différente selon les versions)
+     *
+     * @param array|object $product Données du produit depuis les paramètres du hook
+     *
+     * @return bool
+     */
+    private function isCurrentProduct($product)
+    {
+        // Récupère l'ID du produit principal depuis le controller
+        if (!$this->context->controller instanceof ProductController) {
+            return false;
+        }
+
+        $controllerProduct = $this->context->controller->getProduct();
+        if (!$controllerProduct || !$controllerProduct->id) {
+            return false;
+        }
+
+        $currentProductId = (int) $controllerProduct->id;
+
+        // Essaie de récupérer l'ID produit depuis les params selon différentes structures
+        // PS 1.7/8 : $product['id_product']
+        // PS 9 : peut être $product['id'] ou autre
+        $paramProductId = null;
+
+        if (is_array($product)) {
+            if (isset($product['id_product'])) {
+                $paramProductId = (int) $product['id_product'];
+            } elseif (isset($product['id'])) {
+                $paramProductId = (int) $product['id'];
+            }
+        } elseif (is_object($product)) {
+            if (isset($product->id_product)) {
+                $paramProductId = (int) $product->id_product;
+            } elseif (isset($product->id)) {
+                $paramProductId = (int) $product->id;
+            }
+        }
+
+        if (null === $paramProductId) {
+            return false;
+        }
+
+        return $currentProductId === $paramProductId;
     }
 
     /**

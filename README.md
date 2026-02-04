@@ -1,73 +1,46 @@
-# Module de gestion d'abonnements Ciklik pour Prestashop
+# Module de gestion d'abonnements Ciklik pour PrestaShop
 
-### Tips
+Module de paiement permettant la gestion des abonnements et paiements récurrents via la plateforme [Ciklik](https://ciklik.co).
 
-* Pour cacher les autres méthodes de paiement, quand il y a un abonnement dans le panier ,
-ouvrir le fichier `themes/{theme}/templates/checkout/_partials/steps/payment.tpl` et ajouter le code suivant au-dessus de :
-`{foreach from=$module_options item="option"}`
+## Compatibilité
 
-```
-    {assign var="ciklikOption" value=null}
-    {foreach from=$payment_options item="module_options"}
-        {if isset($module_options[0]) && $module_options[0].module_name == 'ciklik'}
-            {assign var="ciklikOption" value=$module_options}
-            {break}
-        {/if}
-    {/foreach}
+| Composant | Versions supportées |
+|-----------|---------------------|
+| PrestaShop | 1.7.7 - 9.x |
+| PHP | 7.2, 7.3, 7.4, 8.0, 8.1, 8.2, 8.3, 8.4 |
 
-    {if $ciklikOption !== null}
-        {assign var="payment_options" value=[$ciklikOption]}
+## Installation
+
+1. Télécharger le zip correspondant à votre version PHP depuis les [GitHub Releases](https://github.com/ciklik/prestashop/releases)
+2. Dans le back-office PrestaShop, aller dans **Modules > Gestionnaire de modules**
+3. Cliquer sur **Installer un module** et sélectionner le fichier zip
+4. Configurer le module avec votre token API Ciklik
+
+## Personnalisation
+
+### Masquer les autres moyens de paiement pour les abonnements
+
+Pour n'afficher que le paiement Ciklik quand le panier contient un abonnement, ouvrir le fichier `themes/{theme}/templates/checkout/_partials/steps/payment.tpl` et ajouter le code suivant au-dessus de `{foreach from=$module_options item="option"}` :
+
+```smarty
+{assign var="ciklikOption" value=null}
+{foreach from=$payment_options item="module_options"}
+    {if isset($module_options[0]) && $module_options[0].module_name == 'ciklik'}
+        {assign var="ciklikOption" value=$module_options}
+        {break}
     {/if}
+{/foreach}
+
+{if $ciklikOption !== null}
+    {assign var="payment_options" value=[$ciklikOption]}
+{/if}
 ```
 
-## Upgrade 1.2.0
-
-- Variables configuration :
-
-**CONFIG_ENABLE_ENGAGEMENT** Activer l'engagement sur tous les abonnements
-**CONFIG_ENGAGEMENT_INTERVAL** Engagement en mois/jour/semaine (month/day/week)
-**CONFIG_ENGAGEMENT_INTERVAL_COUNT** Combien d'*CONFIG_ENGAGEMENT_INTERVAL*
-**CONFIG_ALLOW_CHANGE_NEXT_BILLING** Autoriser le changement de date du prochain paiement depuis l'espace mon compte
-
-## Upgrade 1.1.0
-
-- Variables configuration :
-
-**CIKLIK_ONEOFF_ATTRIBUTE_ID** id de l'attribut "Achat en une fois"
-
-**CIKLIK_SUBSCRIPTION_ATTRIBUTE_ID** id de l'attribut "Achat par abonnement"
-
-**CIKLIK_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID** id de l'attribut de fréquence sélectionné lorsqu'on active l'achat par abonnement sur une page produit en front
-
-- Hooks :
-
-**actionGetProductPropertiesBefore**
-
-Permet d'ajouter des variables Ciklik aux propriétés d'un produit qui seront traitées dans ProductController.
-
-Ces variables sont placées dans le tableau product (circulant au travers des hooks via $params), sous la clé ciklik :
-
-```php
-$params['product']['ciklik'] = [
-    'enabled' => true|false, // le module Ciklik est actif (false si un code VPC est actif)
-    'selected' => true|false, // l'achat par abonnement a été sélectionné pour le produit affiché
-    'id_product' => $params['product']['id_product'],
-    'current_id_product_attribute' => int, // id de la combinaison sélectionnée
-    'subscription_price' => int, // prix de la combinaison sélectionnée
-    'reference_id_product_attribute' => int, // id de la combinaison sélectionnée en version "achat en une fois"
-    'subscription_reference_price' => float, // prix de la combinaison sélectionnée en version "achat en une fois"
-    'format_id_attribute' => int, // id de l'attribut de format du produit (ex unité, lot de 2,3,4...)
-    'frequency_id_attribute' => int // id de l'attribut de fréquence d'abonnement sélectionné
-];
-```
-
-IMPORTANT : le module Ciklik doit être en 1ère position d'exécution dans le hook actionGetProductPropertiesBefore
-
-## Personnalisation de la page produit
+### Personnalisation de la page produit
 
 Pour gérer et personnaliser l'affichage des options d'abonnement sur la page d'un produit, il est nécessaire de surcharger le fichier ProductController.php.
 
-Créer le fichier /override/controllers/front/ProductController.php avec le contenu suivant :
+Créer le fichier `/override/controllers/front/ProductController.php` avec le contenu suivant :
 
 ```php
 class ProductController extends ProductControllerCore
@@ -92,12 +65,38 @@ class ProductController extends ProductControllerCore
 }
 ```
 
-Les variables créées précédemment via le hook **actionGetProductPropertiesBefore** sont ensuite accessibles dans le fichier **{nom_du_thème}/templates/catalog/_partials/product-variants.tpl** dans l'object **ciklik**.
+Les variables créées via le hook `actionGetProductPropertiesBefore` sont ensuite accessibles dans le fichier `{theme}/templates/catalog/_partials/product-variants.tpl` dans l'objet `ciklik` :
 
-### Optionnel : Affichage des options d'abonnement par activation d'une case à cocher
+```php
+$ciklik = [
+    'enabled' => true|false,           // le module Ciklik est actif
+    'selected' => true|false,          // l'achat par abonnement a été sélectionné
+    'id_product' => int,
+    'current_id_product_attribute' => int,
+    'subscription_price' => float,
+    'reference_id_product_attribute' => int,
+    'subscription_reference_price' => float,
+    'format_id_attribute' => int,
+    'frequency_id_attribute' => int
+];
+```
 
-* Dans l'admin du module, activer l'option "Déléguer l'affichage des options"
-* Dans le fichier de thème **{nom_du_thème}/templates/catalog/_partials/product-variants.tpl**, ajouter le bouton radio dont le nom doit obligatoirement être **ciklik** :
+**Important** : Le module Ciklik doit être en 1ère position d'exécution dans le hook `actionGetProductPropertiesBefore`.
+
+### Affichage des options par case à cocher (optionnel)
+
+1. Dans l'admin du module, activer l'option **Déléguer l'affichage des options**
+2. Dans le fichier de thème `{theme}/templates/catalog/_partials/product-variants.tpl`, ajouter :
+
 ```html
 <input type="checkbox" name="ciklik" value="1" {if $ciklik.selected} checked="checked"{/if}>
 ```
+
+## Support
+
+- Guide de mise à jour : voir [UPGRADE.md](UPGRADE.md)
+- Support : support@ciklik.co
+
+## Licence
+
+Academic Free License (AFL 3.0)

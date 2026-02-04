@@ -16,3 +16,6 @@ sftp-config.json
 zip.sh
 /ignore/
 .osgrep
+.claude/
+.mcp.json
+CLAUDE.md

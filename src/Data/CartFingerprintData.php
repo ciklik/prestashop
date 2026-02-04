@@ -124,17 +124,38 @@ class CartFingerprintData
         );
     }
 
+    /**
+     * Extrait les données du fingerprint sérialisé
+     * Utilise allowed_classes => false pour empêcher l'instanciation d'objets (sécurité)
+     *
+     * @param string $fingerprint Données sérialisées
+     * @return CartFingerprintData
+     * @throws \InvalidArgumentException Si le fingerprint est invalide
+     */
     public static function extractDatas(string $fingerprint): CartFingerprintData
     {
-        $data = Tools::unSerialize($fingerprint);
+        // Désérialisation sécurisée : interdire l'instanciation d'objets
+        $data = \Tools::unSerialize($fingerprint);
+
+        if (!is_array($data)) {
+            throw new \InvalidArgumentException('Invalid fingerprint format');
+        }
+
+        // Validation des clés requises
+        $requiredKeys = ['id_customer', 'id_address_delivery', 'id_address_invoice', 'id_lang', 'id_currency', 'id_carrier_reference'];
+        foreach ($requiredKeys as $key) {
+            if (!isset($data[$key])) {
+                throw new \InvalidArgumentException('Missing required key in fingerprint: ' . $key);
+            }
+        }
 
         return new self(
-            $data['id_customer'],
-            $data['id_address_delivery'],
-            $data['id_address_invoice'],
-            $data['id_lang'],
-            $data['id_currency'],
-            $data['id_carrier_reference'],
+            (int) $data['id_customer'],
+            (int) $data['id_address_delivery'],
+            (int) $data['id_address_invoice'],
+            (int) $data['id_lang'],
+            (int) $data['id_currency'],
+            (int) $data['id_carrier_reference'],
             isset($data['upsells']) ? $data['upsells'] : [],
             isset($data['frequency_id']) ? $data['frequency_id'] : null,
             isset($data['customizations']) ? $data['customizations'] : []

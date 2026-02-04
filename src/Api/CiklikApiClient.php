@@ -15,6 +15,7 @@ use GuzzleHttp\Psr7\Response;
 use Link;
 use Module;
 use PrestaShop\Module\Ciklik\Environment\CiklikEnv;
+use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -22,11 +23,6 @@ if (!defined('_PS_VERSION_')) {
 
 class CiklikApiClient
 {
-    /**
-     * UUID v4 regex pattern
-     */
-    protected const UUID_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i';
-
     /**
      * Guzzle Client
      *
@@ -292,7 +288,7 @@ class CiklikApiClient
      */
     protected function isValidUuid(string $uuid): bool
     {
-        return (bool) preg_match(self::UUID_PATTERN, $uuid);
+        return UuidHelper::isValid($uuid);
     }
 
     /**

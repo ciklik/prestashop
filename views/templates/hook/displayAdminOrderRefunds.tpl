@@ -25,6 +25,7 @@
       {if $refund.available}
         <form id="ciklik-refund" method="POST" action="{$actionUrl|escape:'htmlall':'UTF-8'}" class="defaultForm form-horizontal form-ciklik disabled">
           <input type="hidden" name="orderId" required value="{$order.id|escape:'htmlall':'UTF-8'}"/>
+          <input type="hidden" name="ajax_token" value="{$ajaxToken|escape:'htmlall':'UTF-8'}"/>
           <div class="form-group row">
             <label class='control-label text-right col-lg-4'>
               <span class="text-danger">*</span> {l s='Refund type' mod='ciklik'}
@@ -104,6 +105,7 @@
             orderId: $form.find('[name=orderId]').val(),
             refundType: $form.find('[name=refundType]:checked').val(),
             amount: $form.find('[name=amount]').val(),
+            ajax_token: $form.find('[name=ajax_token]').val()
           }
         })
                 .done(function (data) {

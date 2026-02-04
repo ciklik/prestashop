@@ -21,15 +21,38 @@ if (!defined('_PS_VERSION_')) {
 class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
 {
     /**
+     * Méthode de traduction pour compatibilité PS9
+     * En PS9, ModuleAdminController n'a plus la méthode l() directement
+     *
+     * @param string $string Chaîne à traduire
+     * @param string|null $class Nom de la classe (non utilisé, pour compatibilité)
+     * @param bool $addslashes Ajouter des slashes
+     * @param bool $htmlentities Encoder les entités HTML
+     * @return string
+     */
+    protected function l($string, $class = null, $addslashes = false, $htmlentities = true)
+    {
+        // Protection si le contexte n'est pas encore prêt lors de l'initialisation
+        try {
+            if (!$this->module) {
+                return $string;
+            }
+            return $this->module->l($string, 'AdminCiklikSubscriptionsOrdersController', $addslashes, $htmlentities);
+        } catch (\Exception $e) {
+            return $string;
+        }
+    }
+
+    /**
      * Onglet actuel affiché ('subscriptions' ou 'orders')
-     * 
+     *
      * @var string
      */
     protected $currentTab = 'subscriptions';
-    
+
     /**
      * Instance du module Ciklik
-     * 
+     *
      * @var Module
      */
     public $module;
@@ -44,18 +67,28 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
 
         parent::__construct();
 
-        // Définir le titre de la page après le constructeur parent (le traducteur est initialisé)
+        // Déterminer l'onglet actuel depuis la requête
+        $this->currentTab = Tools::getValue('tab', 'subscriptions');
+        if (!in_array($this->currentTab, ['subscriptions', 'orders'])) {
+            $this->currentTab = 'subscriptions';
+        }
+    }
+
+    /**
+     * Initialisation du controller
+     * Les traductions sont définies ici car le contexte langue
+     * est correctement initialisé après parent::init()
+     */
+    public function init()
+    {
+        parent::init();
+
+        // Définir le titre de la page après init() (le contexte langue est initialisé)
         $this->page_header_toolbar_title = $this->l('Abonnements et Commandes');
 
         // Vérifier si le token API est configuré
         if (!Configuration::get(Ciklik::CONFIG_API_TOKEN)) {
             $this->warnings[] = $this->l('Le token API Ciklik n\'est pas configuré. Veuillez le configurer dans les paramètres du module.');
-        }
-
-        // Déterminer l'onglet actuel depuis la requête
-        $this->currentTab = Tools::getValue('tab', 'subscriptions');
-        if (!in_array($this->currentTab, ['subscriptions', 'orders'])) {
-            $this->currentTab = 'subscriptions';
         }
     }
 
@@ -149,7 +182,8 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                 $errors[] = $this->l('Format de réponse API inattendu lors de la récupération des abonnements.');
             }
         } catch (\Exception $e) {
-            $errors[] = $this->l('Erreur API: ') . $e->getMessage();
+            // Échappement XSS du message d'exception (source externe potentiellement non fiable)
+            $errors[] = $this->l('Erreur API: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
 
         $this->context->smarty->assign([
@@ -212,7 +246,8 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                     $this->formatApiErrors($response);
             }
         } catch (\Exception $e) {
-            $errors[] = $this->l('Erreur API: ') . $e->getMessage();
+            // Échappement XSS du message d'exception (source externe potentiellement non fiable)
+            $errors[] = $this->l('Erreur API: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
 
         // Construire les liens vers les commandes PrestaShop et récupérer les informations clients

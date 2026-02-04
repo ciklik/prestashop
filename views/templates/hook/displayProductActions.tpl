@@ -11,10 +11,10 @@
   {if $has_upsell}
     <div class="upsell-container" id="upsell-container-{$product->id_product}" style="margin-bottom: 0.5rem;display:inline-flex;padding-left: 0.5rem; margin-left: 0.5rem;">
       <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#upsellModal{$product->id_product}">
-        {l s='Ajouter à l\'abonnement' mod='ciklik'}
+        {l s='Add to subscription' mod='ciklik'}
       </button>
     </div>
-    
+
     {include file="module:ciklik/views/templates/front/actions/chooseUpsellSubscription.tpl" product=$product}
   {/if}
 

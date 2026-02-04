@@ -44,12 +44,19 @@ class DisplayRefundsHookController
             return null;
         }
 
+        if ($transactionData === null) {
+            return null;
+        }
+
         $maxRefundAmount = $transactionData->amount - $transactionData->amount_refunded;
         $currency = new Currency($order->id_currency);
         $orderData = [
             'id' => $order->id,
             'currencySymbol' => $currency->sign,
         ];
+
+        // Token CSRF pour sécuriser les appels AJAX de remboursement
+        $ajaxToken = sha1(_COOKIE_KEY_ . 'ciklik_refund');
 
         $this->context->smarty->assign([
             'moduleName' => $this->module->name,
@@ -67,6 +74,7 @@ class DisplayRefundsHookController
                 ),
             ],
             'actionUrl' => $this->context->link->getModuleLink('ciklik', 'refund'),
+            'ajaxToken' => $ajaxToken,
         ]);
 
         return $this->context->smarty->fetch('module:ciklik/views/templates/hook/displayAdminOrderRefunds.tpl');

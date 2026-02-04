@@ -36,7 +36,7 @@ class CiklikGatewayModuleFrontController extends ModuleFrontController
                 (new SubscriptionGateway($this->module))->handle();
                 break;
             default:
-                (new Response())->setBody(['error' => "{$request} method doesn't exist"])->sendMethodNotAllowed();
+                (new Response())->setBody(['error' => 'Unknown gateway request'])->sendMethodNotAllowed();
                 break;
         }
     }

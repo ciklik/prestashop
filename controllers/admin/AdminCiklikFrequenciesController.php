@@ -17,6 +17,30 @@ if (!defined('_PS_VERSION_')) {
 class AdminCiklikFrequenciesController extends ModuleAdminController
 {
     /**
+     * Méthode de traduction pour compatibilité PS9
+     * En PS9, ModuleAdminController n'a plus la méthode l() directement
+     *
+     * @param string $string Chaîne à traduire
+     * @param string|null $class Nom de la classe (non utilisé, pour compatibilité)
+     * @param bool $addslashes Ajouter des slashes
+     * @param bool $htmlentities Encoder les entités HTML
+     * @return string
+     */
+    protected function l($string, $class = null, $addslashes = false, $htmlentities = true)
+    {
+        // Utiliser try-catch pour gérer les cas où le contexte n'est pas prêt
+        // (lors de l'initialisation précoce du contrôleur avant que la langue soit chargée)
+        try {
+            if (!$this->module) {
+                return $string;
+            }
+            return $this->module->l($string, 'AdminCiklikFrequenciesController', $addslashes, $htmlentities);
+        } catch (\Exception $e) {
+            return $string;
+        }
+    }
+
+    /**
      * Constructeur du contrôleur
      */
     public function __construct()
@@ -31,14 +55,44 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
         $this->bulk_actions = [];
 
         parent::__construct();
+    }
+
+    /**
+     * Initialise le contrôleur
+     * Les champs de formulaire sont définis ici car le contexte langue
+     * est correctement initialisé après parent::init()
+     */
+    public function init()
+    {
+        parent::init();
 
         $this->page_header_toolbar_title = $this->l('Gestion des Fréquences');
+
+        // Ajouter le bouton "Ajouter" ici (après parent::init()) car le contexte est prêt
+        if ($this->display !== 'add' && $this->display !== 'edit') {
+            $this->page_header_toolbar_btn['new'] = [
+                'href' => self::$currentIndex . '&add' . $this->table . '&token=' . $this->token,
+                'desc' => $this->l('Ajouter une fréquence'),
+                'icon' => 'process-icon-new',
+            ];
+        }
 
         // Vérifier si le mode fréquence est activé
         if (!Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminConfigureCiklik'));
         }
 
+        // Définir le mode d'affichage (PrestaShop ne le fait pas automatiquement car className est vide)
+        if (Tools::getValue('add') !== false) {
+            $this->display = 'add';
+        } elseif (Tools::getValue('update' . $this->table) !== false || Tools::getValue('updateciklik_frequency') !== false) {
+            $this->display = 'edit';
+        }
+
+        // Nettoyer les paramètres de filtre de l'URL pour éviter leur affichage dans le breadcrumb
+        $this->cleanFilterParams();
+
+        // Définition des colonnes de la liste
         $this->fields_list = [
             'id_frequency' => [
                 'title' => $this->l('ID'),
@@ -93,6 +147,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
             ],
         ];
 
+        // Définition des champs du formulaire
         $this->fields_form = [
             'legend' => [
                 'title' => $this->l('Fréquence'),
@@ -150,43 +205,13 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
     }
 
     /**
-     * Initialise le contrôleur
-     */
-    public function init()
-    {
-        parent::init();
-
-        // Vérifier si le mode fréquence est activé
-        if (!Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminConfigureCiklik'));
-        }
-
-        // Définir le mode d'affichage (PrestaShop ne le fait pas automatiquement car className est vide)
-        if (Tools::getValue('add') !== false) {
-            $this->display = 'add';
-        } elseif (Tools::getValue('update' . $this->table) !== false || Tools::getValue('updateciklik_frequency') !== false) {
-            $this->display = 'edit';
-        }
-
-        // Nettoyer les paramètres de filtre de l'URL pour éviter leur affichage dans le breadcrumb
-        $this->cleanFilterParams();
-    }
-
-    /**
-     * Initialise la toolbar avec le bouton d'ajout
+     * Initialise la toolbar
+     * Note: Le bouton "Ajouter" est défini dans init() car initPageHeaderToolbar()
+     * est appelé avant que le contexte de langue soit complètement initialisé
      */
     public function initPageHeaderToolbar()
     {
         parent::initPageHeaderToolbar();
-
-        // Ajouter le bouton "Ajouter" manuellement car className est vide
-        if ($this->display !== 'add' && $this->display !== 'edit') {
-            $this->page_header_toolbar_btn['new'] = [
-                'href' => self::$currentIndex . '&add' . $this->table . '&token=' . $this->token,
-                'desc' => $this->l('Ajouter une fréquence'),
-                'icon' => 'process-icon-new',
-            ];
-        }
     }
 
     /**
@@ -222,7 +247,8 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
                 $this->errors[] = $this->l('Erreur lors de la création de la fréquence.');
             }
         } catch (\Exception $e) {
-            $this->errors[] = $this->l('Erreur: ') . $e->getMessage();
+            // Échappement XSS du message d'exception (source externe potentiellement non fiable)
+            $this->errors[] = $this->l('Erreur: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
 
         return false;
@@ -257,7 +283,8 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
                 $this->errors[] = $this->l('Erreur lors de la modification de la fréquence.');
             }
         } catch (\Exception $e) {
-            $this->errors[] = $this->l('Erreur: ') . $e->getMessage();
+            // Échappement XSS du message d'exception (source externe potentiellement non fiable)
+            $this->errors[] = $this->l('Erreur: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
 
         return false;
@@ -480,7 +507,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
 
         $hasFilterParams = false;
         foreach ($filterKeys as $key) {
-            if (isset($_GET[$key]) && Tools::getValue($key) !== false && Tools::getValue($key) !== '') {
+            if (Tools::getIsset($key) && Tools::getValue($key) !== false && Tools::getValue($key) !== '') {
                 $hasFilterParams = true;
                 break;
             }

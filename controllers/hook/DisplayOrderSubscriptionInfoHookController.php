@@ -5,12 +5,8 @@
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
 
-use Context;
-use Order;
 use PrestaShop\Module\Ciklik\Data\CartSubscriptionData;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
-use Product;
-use Validate;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -83,9 +79,15 @@ class DisplayOrderSubscriptionInfoHookController
             }
         }
 
+        // Ne rien afficher si ce n'est pas une commande Ciklik
+        if ($orderData === null) {
+            return '';
+        }
+
         $this->context->smarty->assign([
             'subscription_items' => $subscriptionInfos,
             'moduleLogoSrc' => $this->module->getPathUri() . 'logo.png',
+            'moduleDisplayName' => $this->module->displayName,
             'subscription' => $subscription,
             'ciklik_order_url' => 'https://app.ciklik.co/app/resources/checkout-orders/' . $orderData->ciklik_order_id
         ]);

@@ -153,4 +153,58 @@ class CiklikEnv
     {
         $this->ciklikApiUrl = $url;
     }
+
+    /**
+     * Récupère la liste des origines CORS autorisées à partir des URLs API configurées
+     *
+     * Extrait l'origine (scheme + host) des URLs CIKLIK_API_URL_LIVE et CIKLIK_API_URL_SANDBOX
+     *
+     * @return array Liste des origines autorisées (ex: ['https://api.ciklik.co'])
+     */
+    public static function getAllowedOrigins(): array
+    {
+        $origins = [];
+
+        // Extraire l'origine de l'URL LIVE
+        if (isset($_ENV['CIKLIK_API_URL_LIVE']) && !empty($_ENV['CIKLIK_API_URL_LIVE'])) {
+            $origin = self::extractOriginFromUrl($_ENV['CIKLIK_API_URL_LIVE']);
+            if ($origin !== null) {
+                $origins[] = $origin;
+            }
+        }
+
+        // Extraire l'origine de l'URL SANDBOX
+        if (isset($_ENV['CIKLIK_API_URL_SANDBOX']) && !empty($_ENV['CIKLIK_API_URL_SANDBOX'])) {
+            $origin = self::extractOriginFromUrl($_ENV['CIKLIK_API_URL_SANDBOX']);
+            if ($origin !== null && !in_array($origin, $origins, true)) {
+                $origins[] = $origin;
+            }
+        }
+
+        return $origins;
+    }
+
+    /**
+     * Extrait l'origine (scheme + host + port) d'une URL
+     *
+     * @param string $url L'URL complète
+     * @return string|null L'origine ou null si l'URL est invalide
+     */
+    private static function extractOriginFromUrl(string $url): ?string
+    {
+        $parsed = parse_url($url);
+
+        if (!isset($parsed['scheme']) || !isset($parsed['host'])) {
+            return null;
+        }
+
+        $origin = $parsed['scheme'] . '://' . $parsed['host'];
+
+        // Ajouter le port si présent et non standard
+        if (isset($parsed['port'])) {
+            $origin .= ':' . $parsed['port'];
+        }
+
+        return $origin;
+    }
 }

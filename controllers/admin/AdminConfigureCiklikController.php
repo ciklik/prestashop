@@ -9,9 +9,6 @@ use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Data\ShopData;
 use PrestaShop\Module\Ciklik\Install\Installer;
-use Tab;
-use Tools;
-
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -23,6 +20,29 @@ class AdminConfigureCiklikController extends ModuleAdminController
 
     protected $moduleContainer;
 
+    /**
+     * Méthode de traduction pour compatibilité PS9
+     * En PS9, ModuleAdminController n'a plus la méthode l() directement
+     *
+     * @param string $string Chaîne à traduire
+     * @param string|null $class Nom de la classe (non utilisé, pour compatibilité)
+     * @param bool $addslashes Ajouter des slashes
+     * @param bool $htmlentities Encoder les entités HTML
+     * @return string
+     */
+    protected function l($string, $class = null, $addslashes = false, $htmlentities = true)
+    {
+        // Protection si le contexte n'est pas encore prêt lors de l'initialisation
+        try {
+            if (!$this->module) {
+                return $string;
+            }
+            return $this->module->l($string, 'AdminConfigureCiklikController', $addslashes, $htmlentities);
+        } catch (\Exception $e) {
+            return $string;
+        }
+    }
+
     public function __construct()
     {
         $this->bootstrap = true;
@@ -31,6 +51,16 @@ class AdminConfigureCiklikController extends ModuleAdminController
         $this->page_header_toolbar_title = 'Ciklik';
 
         parent::__construct();
+    }
+
+    /**
+     * Initialisation du controller
+     * Les champs de formulaire sont définis ici car le contexte langue
+     * est correctement initialisé après parent::init()
+     */
+    public function init()
+    {
+        parent::init();
 
         if (empty(Currency::checkPaymentCurrencies($this->module->id))) {
             $this->warnings[] = $this->l('No currency has been set for this module.');
@@ -41,7 +71,14 @@ class AdminConfigureCiklikController extends ModuleAdminController
         $product_suffixes_choices = [];
         $product_suffixes_values = [];
 
-        Account::injectAccount($this, $this->context);
+        // PS Accounts n'est pas encore compatible PS9 - on désactive temporairement
+        if (version_compare(_PS_VERSION_, '9.0.0', '<')) {
+            try {
+                Account::injectAccount($this, $this->context);
+            } catch (\Exception $e) {
+                // Silently fail si PS Accounts n'est pas disponible
+            }
+        }
 
         foreach ($attributes_groups as $group) {
             $product_suffixes_choices[$group['id_attribute_group']] = $group['name'];

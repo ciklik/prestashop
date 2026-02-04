@@ -5,12 +5,12 @@
 *}
 
 {if $ciklik_subscription_enabled}
-  <div class="ciklik-subscription-options" 
+  <div class="ciklik-subscription-options"
        data-currency-code="{if isset($currency.iso_code)}{$currency.iso_code}{else}EUR{/if}"
        data-locale="{if isset($language.iso_code)}{$language.iso_code}{else}fr{/if}"
        data-base-price="{if isset($product.price) && $product.price}{$product.price}{else}0{/if}">
     <h3 class="subscription-title">{l s='Type d\'achat' mod='ciklik'}</h3>
-    
+
     <div class="subscription-frequencies">
       {* Option achat unique *}
       <div class="frequency-option">
@@ -21,7 +21,7 @@
           </div>
           <div class="frequency-price">
             <span class="current-price" data-base-price="0">
-              {Tools::displayPrice($product.price)}
+              {$ciklik_product_price_formatted}
             </span>
           </div>
         </label>
@@ -39,41 +39,19 @@
                   {if $frequency.discount_percent > 0}
                     -{$frequency.discount_percent|floatval}%
                   {else}
-                    -{Tools::displayPrice($frequency.discount_price)}
+                    -{$frequency.formatted_discount_price}
                   {/if}
                 </span>
               </div>
               <div class="frequency-price">
                 <span class="original-price" data-base-price="0">
-                  {if isset($product.price)}{Tools::displayPrice($product.price)}{else}{Tools::displayPrice(0)}{/if}
+                  {$frequency.formatted_original_price}
                 </span>
-                <span class="discounted-price" 
+                <span class="discounted-price"
                       data-discount-percent="{$frequency.discount_percent|floatval}"
                       data-discount-price="{$frequency.discount_price|floatval}"
                       data-base-price="0">
-                  {if $frequency.discount_percent > 0}
-                    {assign var=base_price value=($product.price|floatval)}
-                    {assign var=discount_percent value=($frequency.discount_percent|floatval)}
-                    {if $base_price > 0 && $discount_percent > 0}
-                      {assign var=discounted_price value=$base_price * (1 - ($discount_percent / 100))}
-                      {Tools::displayPrice($discounted_price)}
-                    {else}
-                      {if isset($product.price)}{Tools::displayPrice($product.price)}{else}{Tools::displayPrice(0)}{/if}
-                    {/if}
-                  {else}
-                    {assign var=base_price value=($product.price|floatval)}
-                    {assign var=discount_price value=($frequency.discount_price|floatval)}
-                    {if $base_price > 0 && $discount_price > 0}
-                      {assign var=discounted_price value=$base_price - $discount_price}
-                      {if $discounted_price > 0}
-                        {Tools::displayPrice($discounted_price)}
-                      {else}
-                        {Tools::displayPrice(0)}
-                      {/if}
-                    {else}
-                      {if isset($product.price)}{Tools::displayPrice($product.price)}{else}{Tools::displayPrice(0)}{/if}
-                    {/if}
-                  {/if}
+                  {$frequency.formatted_discounted_price}
                 </span>
               </div>
             </label>
@@ -88,7 +66,7 @@
               </div>
               <div class="frequency-price">
                 <span class="current-price" data-base-price="0">
-                  {if isset($product.price)}{Tools::displayPrice($product.price)}{else}{Tools::displayPrice(0)}{/if}
+                  {$ciklik_product_price_formatted}
                 </span>
               </div>
             </label>
@@ -97,4 +75,4 @@
       {/foreach}
     </div>
   </div>
-{/if} 
+{/if}

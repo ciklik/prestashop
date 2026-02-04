@@ -6,7 +6,7 @@
 
 <div class="card">
     <h3 class="card-header">
-        <img src="{$moduleLogoSrc}" alt="{$moduleDisplayName}" width="20" height="20"> {l s='Informations d\'abonnement' mod='ciklik'}
+        <img src="{$moduleLogoSrc}" alt="{$moduleDisplayName}" width="20" height="20"> {l s='Subscription information' mod='ciklik'}
     </h3>
     <div class="card-body">
         {if $subscription_items}
@@ -14,48 +14,48 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>{l s='Produit' mod='ciklik'}</th>
-                            <th>{l s='Fréquence' mod='ciklik'}</th>
-                            <th>{l s='Quantité' mod='ciklik'}</th>
+                            <th>{l s='Product' mod='ciklik'}</th>
+                            <th>{l s='Frequency' mod='ciklik'}</th>
+                            <th>{l s='Quantity' mod='ciklik'}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {foreach from=$subscription_items item=item}
                             <tr>
-                                <td>{$item.name}</td>
+                                <td>{$item.name|escape:'html':'UTF-8'}</td>
                                 <td>
                                     {if $item.frequency}
-                                        {$item.frequency}
+                                        {$item.frequency|escape:'html':'UTF-8'}
                                         {if $item.discount_percent > 0}
-                                            <span class="badge badge-success">-{$item.discount_percent}%</span>
+                                            <span class="badge badge-success">-{$item.discount_percent|escape:'html':'UTF-8'}%</span>
                                         {/if}
-                                        {if $item.discount_price} <span class="fw-bold"> -{$item.discount_price} €</span>{/if}
+                                        {if $item.discount_price} <span class="fw-bold"> -{$item.discount_price|escape:'html':'UTF-8'} €</span>{/if}
                                     {else}
-                                        {l s='Achat unique' mod='ciklik'}
+                                        {l s='One-time purchase' mod='ciklik'}
                                     {/if}
                                 </td>
-                                <td>{$item.quantity}</td>
+                                <td>{$item.quantity|intval}</td>
                             </tr>
                         {/foreach}
                     </tbody>
                 </table>
             </div>
         {else}
-            <p class="text-muted">{l s='Aucun produit en abonnement dans cette commande.' mod='ciklik'}</p>
+            <p class="text-muted">{l s='No subscription products in this order.' mod='ciklik'}</p>
         {/if}
 
         {if $subscription}
-         
-            
+
+
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <strong>{l s='Statut' mod='ciklik'}:</strong>
+                    <strong>{l s='Status' mod='ciklik'}:</strong>
                     <span class="badge {if $subscription->active}badge-success{else}badge-danger{/if}">
-                        {if $subscription->active}{l s='Actif' mod='ciklik'}{else}{l s='Inactif' mod='ciklik'}{/if}
+                        {if $subscription->active}{l s='Active' mod='ciklik'}{else}{l s='Inactive' mod='ciklik'}{/if}
                     </span>
                 </div>
                 <div class="col-md-6">
-                    <strong>{l s='Prochain paiement' mod='ciklik'}:</strong>
+                    <strong>{l s='Next payment' mod='ciklik'}:</strong>
                     {$subscription->next_billing->format('d/m/Y')}
                 </div>
             </div>
@@ -63,24 +63,24 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <strong>{l s='UUID' mod='ciklik'}:</strong>
-                    <code>{$subscription->uuid}</code>
+                    <code>{$subscription->uuid|escape:'html':'UTF-8'}</code>
                 </div>
                 <div class="col-md-6">
-                    <strong>{l s='Date de fin' mod='ciklik'}:</strong>
+                    <strong>{l s='End date' mod='ciklik'}:</strong>
                     {if $subscription->end_date}
                         {$subscription->end_date->format('d/m/Y')}
                     {else}
-                        {l s='Non définie' mod='ciklik'}
+                        {l s='Not defined' mod='ciklik'}
                     {/if}
                 </div>
             </div>
 
             <div class="row mb-3">
                 <div class="col-md-12">
-                    <strong>{l s='Lien Ciklik' mod='ciklik'}:</strong>
+                    <strong>{l s='Ciklik link' mod='ciklik'}:</strong>
                     <div class="mt-2">
-                        <a href="{$ciklik_order_url}" target="_blank" class="btn btn-link">
-                            <i class="material-icons">open_in_new</i> {l s='Voir la commande sur Ciklik' mod='ciklik'}
+                        <a href="{$ciklik_order_url|escape:'html':'UTF-8'}" target="_blank" class="btn btn-link">
+                            <i class="material-icons">open_in_new</i> {l s='View order on Ciklik' mod='ciklik'}
                         </a>
                     </div>
                 </div>
@@ -88,51 +88,51 @@
 
             <div class="row mb-3">
                 <div class="col-md-12">
-                    <strong>{l s='Adresse de livraison' mod='ciklik'}:</strong>
+                    <strong>{l s='Delivery address' mod='ciklik'}:</strong>
                     <address class="mt-2">
-                        {$subscription->address->first_name} {$subscription->address->last_name}<br>
-                        {$subscription->address->address}<br>
-                        {if $subscription->address->address1}{$subscription->address->address1}<br>{/if}
-                        {$subscription->address->postcode} {$subscription->address->city}<br>
-                        {$subscription->address->country}
+                        {$subscription->address->first_name|escape:'html':'UTF-8'} {$subscription->address->last_name|escape:'html':'UTF-8'}<br>
+                        {$subscription->address->address|escape:'html':'UTF-8'}<br>
+                        {if $subscription->address->address1}{$subscription->address->address1|escape:'html':'UTF-8'}<br>{/if}
+                        {$subscription->address->postcode|escape:'html':'UTF-8'} {$subscription->address->city|escape:'html':'UTF-8'}<br>
+                        {$subscription->address->country|escape:'html':'UTF-8'}
                     </address>
                 </div>
             </div>
 
             <div class="row mb-3">
                 <div class="col-md-12">
-                    <strong>{l s='Empreinte' mod='ciklik'}:</strong>
+                    <strong>{l s='Fingerprint' mod='ciklik'}:</strong>
                     <div class="table-responsive mt-2">
                         <table class="table table-sm">
                             <tbody>
                                 <tr>
-                                    <th>{l s='Identifiant client' mod='ciklik'}</th>
-                                    <td>{$subscription->external_fingerprint->id_customer}</td>
+                                    <th>{l s='Customer ID' mod='ciklik'}</th>
+                                    <td>{$subscription->external_fingerprint->id_customer|intval}</td>
                                 </tr>
                                 <tr>
-                                    <th>{l s='Adresse de livraison' mod='ciklik'}</th>
-                                    <td>{$subscription->external_fingerprint->id_address_delivery}</td>
+                                    <th>{l s='Delivery address' mod='ciklik'}</th>
+                                    <td>{$subscription->external_fingerprint->id_address_delivery|intval}</td>
                                 </tr>
                                 <tr>
-                                    <th>{l s='Adresse de facturation' mod='ciklik'}</th>
-                                    <td>{$subscription->external_fingerprint->id_address_invoice}</td>
+                                    <th>{l s='Billing address' mod='ciklik'}</th>
+                                    <td>{$subscription->external_fingerprint->id_address_invoice|intval}</td>
                                 </tr>
                                 <tr>
-                                    <th>{l s='Langue' mod='ciklik'}</th>
-                                    <td>{$subscription->external_fingerprint->id_lang}</td>
+                                    <th>{l s='Language' mod='ciklik'}</th>
+                                    <td>{$subscription->external_fingerprint->id_lang|intval}</td>
                                 </tr>
                                 <tr>
-                                    <th>{l s='Devise' mod='ciklik'}</th>
-                                    <td>{$subscription->external_fingerprint->id_currency}</td>
+                                    <th>{l s='Currency' mod='ciklik'}</th>
+                                    <td>{$subscription->external_fingerprint->id_currency|intval}</td>
                                 </tr>
                                 <tr>
-                                    <th>{l s='Transporteur' mod='ciklik'}</th>
-                                    <td>{$subscription->external_fingerprint->id_carrier_reference}</td>
+                                    <th>{l s='Carrier' mod='ciklik'}</th>
+                                    <td>{$subscription->external_fingerprint->id_carrier_reference|intval}</td>
                                 </tr>
                                 {if $subscription->external_fingerprint->frequency_id}
                                 <tr>
-                                    <th>{l s='Fréquence' mod='ciklik'}</th>
-                                    <td>{$subscription->external_fingerprint->frequency_id}</td>
+                                    <th>{l s='Frequency' mod='ciklik'}</th>
+                                    <td>{$subscription->external_fingerprint->frequency_id|intval}</td>
                                 </tr>
                                 {/if}
                             </tbody>
@@ -142,20 +142,20 @@
             </div>
 
             {if $subscription->upsells}
-                <h4 class="mt-4">{l s='Produits additionnels' mod='ciklik'}</h4>
+                <h4 class="mt-4">{l s='Additional products' mod='ciklik'}</h4>
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>{l s='Produit' mod='ciklik'}</th>
-                                <th>{l s='Quantité' mod='ciklik'}</th>
+                                <th>{l s='Product' mod='ciklik'}</th>
+                                <th>{l s='Quantity' mod='ciklik'}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {foreach from=$subscription->upsells item=upsell}
                                 <tr>
-                                    <td>{$upsell->name}</td>
-                                    <td>{$upsell->quantity}</td>
+                                    <td>{$upsell->name|escape:'html':'UTF-8'}</td>
+                                    <td>{$upsell->quantity|intval}</td>
                                 </tr>
                             {/foreach}
                         </tbody>
@@ -164,4 +164,4 @@
             {/if}
         {/if}
     </div>
-</div> 
+</div>

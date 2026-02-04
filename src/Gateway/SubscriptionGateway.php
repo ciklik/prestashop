@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace PrestaShop\Module\Ciklik\Gateway;
 
 use PrestaShop\Module\Ciklik\Helpers\CustomerHelper;
+use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 use Tools;
 use Configuration;
@@ -25,10 +26,21 @@ class SubscriptionGateway extends AbstractGateway implements EntityGateway
     {
         // Vérifie si la requête est de type mise à jour du statut d'abonnement
         if (Tools::getValue('request_type') === 'subscription_status_update') {
-            
+
+            // Validation du format UUID
+            $customerUuid = UuidHelper::getFromRequest('customer_uuid');
+            if (null === $customerUuid) {
+                return (new Response())->setBody(['error' => 'Invalid customer UUID format'])->sendBadRequest();
+            }
+
             // Récupère le client Ciklik à partir de l'UUID fourni
-            $ciklik_customer = CiklikCustomer::getByCiklikUuid((string) Tools::getValue('customer_uuid'));
-         
+            $ciklik_customer = CiklikCustomer::getByCiklikUuid($customerUuid);
+
+            // Vérifie que le client existe
+            if (!$ciklik_customer || !isset($ciklik_customer['id_customer'])) {
+                return (new Response())->setBody(['error' => 'Customer not found'])->sendNotFound();
+            }
+
             // Si l'abonnement est activé et que l'assignation de groupe est activée dans la configuration
             if (Tools::getValue('active') === '1' && Configuration::get(\Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT)) {
                 // Assigne le groupe spécifique au client

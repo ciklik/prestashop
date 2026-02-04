@@ -49,7 +49,7 @@ abstract class AbstractGateway implements EntityGateway
                 $this->post();
                 break;
             default:
-                (new Response())->setBody(['error' => "{$_SERVER['REQUEST_METHOD']} method is not allowed"])->sendMethodNotAllowed();
+                (new Response())->setBody(['error' => 'Method not allowed'])->sendMethodNotAllowed();
                 break;
         }
     }
