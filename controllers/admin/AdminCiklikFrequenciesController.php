@@ -132,7 +132,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
             'discount_percent' => [
                 'title' => $this->l('Remise (%)'),
                 'width' => 100,
-                'type' => 'price',
+                'type' => 'percent',
                 'align' => 'right',
                 'search' => false,
                 'filter_key' => 'discount_percent',
