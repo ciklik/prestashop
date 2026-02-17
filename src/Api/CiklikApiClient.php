@@ -163,6 +163,31 @@ class CiklikApiClient
         );
     }
 
+    /**
+     * Wrapper of method delete from guzzle client
+     *
+     * @param array $options payload
+     *
+     * @return array return response or false if no response
+     */
+    protected function delete(array $options = []): array
+    {
+        try {
+            $response = $this->getClient()->delete($this->getRoute(), $options);
+        } catch (RequestException $e) {
+            $response = $e->getResponse();
+            // If no response (network error, timeout, etc.), create a mock response
+            if (null === $response) {
+                $response = new Response(500, [], json_encode(['errors' => ['message' => $e->getMessage()]]));
+            }
+        }
+
+        return $this->handleResponse(
+            $response,
+            $options
+        );
+    }
+
     private function handleResponse($response, array $options = []): array
     {
         $responseHandler = new CiklikApiResponseHandler();
