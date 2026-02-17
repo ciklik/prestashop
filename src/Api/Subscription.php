@@ -83,4 +83,16 @@ class Subscription extends CiklikApiClient
             'json' => $data,
         ]);
     }
+
+    public function remove(string $ciklik_subscription_uuid)
+    {
+        $error = $this->setRouteWithValidation(
+            'subscriptions/%s',
+            $ciklik_subscription_uuid,
+            'uuid',
+            'Invalid subscription UUID format'
+        );
+
+        return $error ?? $this->delete();
+    }
 }
