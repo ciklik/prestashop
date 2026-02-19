@@ -147,6 +147,9 @@ $_MODULE['<{ciklik}prestashop>order_subscription_info_386c339d37e737a436499d423a
 $_MODULE['<{ciklik}prestashop>order_subscription_info_914419aa32f04011357d3b604a86d7eb'] = 'Corriere';
 $_MODULE['<{ciklik}prestashop>order_subscription_info_2b5932460c4f1e726c2fe5eb4c84cf64'] = 'Prodotti aggiuntivi';
 
+// Admin Frequencies Controller
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_dff63518371f8f4598bc3ef3efb0b1e6'] = 'Aggiungi una frequenza';
+
 // Refund Controller
 $_MODULE['<{ciklik}prestashop>refund_e06d1ba70f1331e9f9a113cc2f887d3f'] = 'Accesso negato';
 $_MODULE['<{ciklik}prestashop>refund_9bbf53faf470010110269d041cab1e9f'] = 'Rimborso completato';

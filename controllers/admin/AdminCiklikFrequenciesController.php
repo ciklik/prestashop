@@ -68,15 +68,6 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
 
         $this->page_header_toolbar_title = $this->l('Gestion des Fréquences');
 
-        // Ajouter le bouton "Ajouter" ici (après parent::init()) car le contexte est prêt
-        if ($this->display !== 'add' && $this->display !== 'edit') {
-            $this->page_header_toolbar_btn['new'] = [
-                'href' => self::$currentIndex . '&add' . $this->table . '&token=' . $this->token,
-                'desc' => $this->l('Ajouter une fréquence'),
-                'icon' => 'process-icon-new',
-            ];
-        }
-
         // Vérifier si le mode fréquence est activé
         if (!Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminConfigureCiklik'));
@@ -205,13 +196,20 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
     }
 
     /**
-     * Initialise la toolbar
-     * Note: Le bouton "Ajouter" est défini dans init() car initPageHeaderToolbar()
-     * est appelé avant que le contexte de langue soit complètement initialisé
+     * Initialise la toolbar de la page
+     * Le bouton "Ajouter" est défini ici (après parent) pour ne pas être écrasé
+     * par le parent::initPageHeaderToolbar() qui peut réinitialiser les boutons
      */
     public function initPageHeaderToolbar()
     {
         parent::initPageHeaderToolbar();
+
+        if ($this->display !== 'add' && $this->display !== 'edit') {
+            $this->page_header_toolbar_btn['new'] = [
+                'href' => self::$currentIndex . '&add' . $this->table . '&token=' . $this->token,
+                'desc' => $this->l('Add a frequency'),
+            ];
+        }
     }
 
     /**
@@ -309,7 +307,6 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
     public function renderList()
     {
         $this->addRowAction('edit');
-        $this->list_simple_header = true;
 
         $this->_select = '*';
         $this->_where = '1';
