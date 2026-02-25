@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -41,14 +42,14 @@ class DisplayOrderSubscriptionInfoHookController
             return '';
         }
 
-        $orderData = (new \PrestaShop\Module\Ciklik\Api\Order($this->context->link))->getOneByPsOrderId((int) $params['id_order']);
+        $orderData = (new PrestaShop\Module\Ciklik\Api\Order($this->context->link))->getOneByPsOrderId((int) $params['id_order']);
 
         $subscription = null;
-        
+
         if (
-            $orderData !== null &&
-            ($ciklikSubscriptionData = (new \PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne($orderData->subscription_uuid)) &&
-            isset($ciklikSubscriptionData['body']['external_fingerprint'])
+            $orderData !== null
+            && ($ciklikSubscriptionData = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne($orderData->subscription_uuid))
+            && isset($ciklikSubscriptionData['body']['external_fingerprint'])
         ) {
             $subscription = SubscriptionData::create($ciklikSubscriptionData['body']);
         }
@@ -89,9 +90,9 @@ class DisplayOrderSubscriptionInfoHookController
             'moduleLogoSrc' => $this->module->getPathUri() . 'logo.png',
             'moduleDisplayName' => $this->module->displayName,
             'subscription' => $subscription,
-            'ciklik_order_url' => 'https://app.ciklik.co/app/resources/checkout-orders/' . $orderData->ciklik_order_id
+            'ciklik_order_url' => 'https://app.ciklik.co/app/resources/checkout-orders/' . $orderData->ciklik_order_id,
         ]);
 
         return $this->context->smarty->fetch('module:ciklik/views/templates/admin/order_subscription_info.tpl');
     }
-} 
+}

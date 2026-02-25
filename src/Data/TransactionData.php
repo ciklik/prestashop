@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -6,8 +7,6 @@
  */
 
 namespace PrestaShop\Module\Ciklik\Data;
-
-use DateTimeImmutable;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -48,7 +47,7 @@ class TransactionData
      */
     public $failure_code;
     /**
-     * @var DateTimeImmutable
+     * @var \DateTimeImmutable
      */
     public $created_at;
 
@@ -60,7 +59,7 @@ class TransactionData
         float $amount_refunded,
         ?string $failure_message,
         ?string $failure_code,
-        DateTimeImmutable $created_at)
+        \DateTimeImmutable $created_at)
     {
         $this->transaction_id = $transaction_id;
         $this->gateway = $gateway;
@@ -84,7 +83,7 @@ class TransactionData
             $data['amount_refunded'],
             $data['failure_message'],
             $data['failure_code'],
-            new DateTimeImmutable($data['created_at'])
+            new \DateTimeImmutable($data['created_at']),
         );
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -8,7 +9,6 @@
 namespace PrestaShop\Module\Ciklik\Environment;
 
 use Ciklik;
-use Configuration;
 use Dotenv\Dotenv;
 
 if (!defined('_PS_VERSION_')) {
@@ -25,7 +25,7 @@ class CiklikEnv
      *
      * @var array
      */
-    const FILE_ENV_LIST = [
+    public const FILE_ENV_LIST = [
         'test' => '.env.test',
         'prod' => '.env',
     ];
@@ -106,7 +106,7 @@ class CiklikEnv
      */
     private function isLive()
     {
-        $mode = Configuration::get(Ciklik::CONFIG_MODE);
+        $mode = \Configuration::get(\Ciklik::CONFIG_MODE);
 
         if ('LIVE' === $mode) {
             return true;
@@ -188,6 +188,7 @@ class CiklikEnv
      * Extrait l'origine (scheme + host + port) d'une URL
      *
      * @param string $url L'URL complète
+     *
      * @return string|null L'origine ou null si l'URL est invalide
      */
     private static function extractOriginFromUrl(string $url): ?string

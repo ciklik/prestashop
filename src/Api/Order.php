@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -17,8 +18,9 @@ class Order extends CiklikApiClient
 {
     /**
      * Récupère toutes les commandes avec options de filtrage
-     * 
+     *
      * @param array $options Options API (filtres, pagination, etc.)
+     *
      * @return array Structure de réponse complète de l'API
      */
     public function getAll(array $options = [])
@@ -34,6 +36,7 @@ class Order extends CiklikApiClient
      * tout en transformant les données du body en objets OrderData
      *
      * @param array $options Options API (filtres, pagination, etc.)
+     *
      * @return array Structure de réponse complète avec données transformées
      */
     public function index(array $options = [])
@@ -41,20 +44,21 @@ class Order extends CiklikApiClient
         $this->setRoute('orders');
 
         $response = $this->get($options);
-        
+
         // Si la réponse est réussie et contient des données, les transformer
         if (isset($response['status']) && $response['status'] && isset($response['body'])) {
             $response['body'] = OrderData::collection($response['body']);
         }
-        
+
         return $response;
     }
 
     /**
      * Récupère une commande par son ID Ciklik
-     * 
+     *
      * @param int $ciklik_order_id ID de la commande Ciklik
      * @param array $options Options API supplémentaires
+     *
      * @return OrderData|null Instance OrderData ou null si non trouvée
      */
     public function getOne(int $ciklik_order_id, array $options = [])
@@ -75,6 +79,7 @@ class Order extends CiklikApiClient
      *
      * @param int $ps_order_id ID de la commande PrestaShop
      * @param array $options Options API supplémentaires
+     *
      * @return OrderData|null Instance OrderData ou null si non trouvée
      */
     public function getOneByPsOrderId(int $ps_order_id, array $options = [])

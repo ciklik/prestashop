@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -7,20 +8,16 @@
 
 namespace PrestaShop\Module\Ciklik\Managers;
 
-use Db;
-use Order;
-use OrderPayment;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 class CiklikTransaction
 {
-    public static function getIdByOrder(Order $order)
+    public static function getIdByOrder(\Order $order)
     {
         if ('ciklik' === $order->module && $order->valid) {
-            $orderPayments = OrderPayment::getByOrderReference($order->reference);
+            $orderPayments = \OrderPayment::getByOrderReference($order->reference);
 
             if ($orderPayments && isset($orderPayments[0])) {
                 return $orderPayments[0]->transaction_id;
@@ -32,6 +29,6 @@ class CiklikTransaction
 
     public static function update(string $ciklik_transaction_id, float $amount): void
     {
-        Db::getInstance()->update('order_payment', ['amount' => $amount], '`transaction_id` = \'' . pSQL($ciklik_transaction_id) . '\'');
+        \Db::getInstance()->update('order_payment', ['amount' => $amount], '`transaction_id` = \'' . pSQL($ciklik_transaction_id) . '\'');
     }
 }

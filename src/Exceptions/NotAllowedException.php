@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -7,12 +8,10 @@
 
 namespace PrestaShop\Module\Ciklik\Exceptions;
 
-use Exception;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class NotAllowedException extends Exception
+class NotAllowedException extends \Exception
 {
 }

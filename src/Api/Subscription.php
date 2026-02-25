@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -34,6 +35,7 @@ class Subscription extends CiklikApiClient
      * tout en transformant les données du body en objets OrderData
      *
      * @param array $options Options API (filtres, pagination, etc.)
+     *
      * @return array Structure de réponse complète avec données transformées
      */
     public function index(array $options = [])
@@ -41,12 +43,12 @@ class Subscription extends CiklikApiClient
         $this->setRoute('subscriptions');
 
         $response = $this->get($options);
-        
+
         // Si la réponse est réussie et contient des données, les transformer
         if (isset($response['status']) && $response['status'] && isset($response['body'])) {
             $response['body'] = SubscriptionData::collection($response['body']);
         }
-        
+
         return $response;
     }
 
@@ -56,7 +58,7 @@ class Subscription extends CiklikApiClient
             'subscriptions/%s',
             $ciklik_subscription_uuid,
             'uuid',
-            'Invalid subscription UUID format'
+            'Invalid subscription UUID format',
         );
 
         if (null !== $error) {
@@ -72,7 +74,7 @@ class Subscription extends CiklikApiClient
             'subscriptions/%s',
             $ciklik_subscription_uuid,
             'uuid',
-            'Invalid subscription UUID format'
+            'Invalid subscription UUID format',
         );
 
         if (null !== $error) {
@@ -90,7 +92,7 @@ class Subscription extends CiklikApiClient
             'subscriptions/%s',
             $ciklik_subscription_uuid,
             'uuid',
-            'Invalid subscription UUID format'
+            'Invalid subscription UUID format',
         );
 
         return $error ?? $this->delete();

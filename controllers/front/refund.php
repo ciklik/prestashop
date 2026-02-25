@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -20,7 +21,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
     {
         if (!CiklikRefund::canRun()) {
             $this->ajaxFailAndDie(
-                $this->module->l('Access denied', 'refund')
+                $this->module->l('Access denied', 'refund'),
             );
         }
 
@@ -30,14 +31,14 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
         if (!$token || !hash_equals($expectedToken, $token)) {
             $this->ajaxFailAndDie(
                 $this->module->l('Invalid security token', 'refund'),
-                403
+                403,
             );
         }
 
         $orderId = (int) Tools::getValue('orderId');
         if ($orderId <= 0) {
             $this->ajaxFailAndDie(
-                $this->module->l('Invalid order ID', 'refund')
+                $this->module->l('Invalid order ID', 'refund'),
             );
         }
 
@@ -45,7 +46,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
 
         if (!Validate::isLoadedObject($order)) {
             $this->ajaxFailAndDie(
-                $this->module->l('Order not found', 'refund')
+                $this->module->l('Order not found', 'refund'),
             );
         }
 
@@ -73,7 +74,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
                 'available' => $newMaxRefundAmount > 0,
                 'max' => sprintf(
                     $this->module->l('Amount (max. %s)', 'refund'),
-                    $this->context->currentLocale->formatPrice($newMaxRefundAmount, $currency->iso_code)
+                    $this->context->currentLocale->formatPrice($newMaxRefundAmount, $currency->iso_code),
                 ),
             ],
         ]));
@@ -85,7 +86,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
 
         if (!$transaction_id) {
             $this->ajaxFailAndDie(
-                $this->module->l('Error: unable to find Ciklik transaction', 'refund')
+                $this->module->l('Error: unable to find Ciklik transaction', 'refund'),
             );
         }
 
@@ -100,7 +101,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
             $transactionData = (new Transaction($this->context->link))->getOne($transaction_id);
         } catch (Exception $e) {
             $this->ajaxFailAndDie(
-                $this->module->l('An error occurred during the refund', 'refund')
+                $this->module->l('An error occurred during the refund', 'refund'),
             );
         }
 
@@ -116,12 +117,12 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
                 $amount = (float) str_replace(',', '.', Tools::getValue('amount'));
                 if ($amount <= 0) {
                     $this->ajaxFailAndDie(
-                        $this->module->l('Error: amount must be positive', 'refund')
+                        $this->module->l('Error: amount must be positive', 'refund'),
                     );
                 }
                 if ($amount > $maxAmount) {
                     $this->ajaxFailAndDie(
-                        $this->module->l('Error: amount exceeds maximum refundable', 'refund')
+                        $this->module->l('Error: amount exceeds maximum refundable', 'refund'),
                     );
                 }
 
@@ -130,7 +131,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
                 return $maxAmount;
             default:
                 $this->ajaxFailAndDie(
-                    $this->module->l('Error: invalid refund type', 'refund')
+                    $this->module->l('Error: invalid refund type', 'refund'),
                 );
         }
     }
@@ -141,7 +142,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
             $refundResult = (new Transaction($this->context->link))->refund($transactionData->transaction_id, $amount);
         } catch (Exception $e) {
             $this->ajaxFailAndDie(
-                $this->module->l('An error occurred during the refund', 'refund')
+                $this->module->l('An error occurred during the refund', 'refund'),
             );
         }
 

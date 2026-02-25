@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Manager pour gérer les actions spécifiques des modules de livraison lors de l'ajout au panier (rebill).
  * Compatible PrestaShop 1.7.7 à 8.2
@@ -6,8 +7,6 @@
 
 namespace PrestaShop\Module\Ciklik\Managers;
 
-use Db;
-use DbQuery;
 use Configuration;
 
 if (!defined('_PS_VERSION_')) {
@@ -39,19 +38,19 @@ class DeliveryModuleManager
             }
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
-                'DeliveryModuleManager::handleDeliveryModule - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int)$cart->id,
+                'DeliveryModuleManager::handleDeliveryModule - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int) $cart->id,
                 3,
                 null,
                 'DeliveryModuleManager',
                 null,
-                true
+                true,
             );
         }
     }
 
     /**
      * Met à jour l'order_id pour le module de livraison détecté automatiquement
-     * 
+     *
      * @param int $cartId ID du panier
      * @param int $orderId ID de la commande
      */
@@ -77,12 +76,12 @@ class DeliveryModuleManager
             }
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
-                'DeliveryModuleManager::updateOrderId - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int)$cartId . ' - Order ID: ' . (int)$orderId,
+                'DeliveryModuleManager::updateOrderId - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int) $cartId . ' - Order ID: ' . (int) $orderId,
                 3,
                 null,
                 'DeliveryModuleManager',
                 null,
-                true
+                true,
             );
         }
     }
@@ -101,30 +100,30 @@ class DeliveryModuleManager
 
             // Récupérer la ligne la plus récente avec le même id_address_delivery et id_customer
             $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'mondialrelay_selected_relay 
-                    WHERE id_address_delivery = ' . (int)$cart->id_address_delivery . '
-                      AND id_customer = ' . (int)$cart->id_customer . '
+                    WHERE id_address_delivery = ' . (int) $cart->id_address_delivery . '
+                      AND id_customer = ' . (int) $cart->id_customer . '
                       AND id_order IS NOT NULL
                     ORDER BY date_add DESC';
 
-            $existingRelay = Db::getInstance()->getRow($sql);
+            $existingRelay = \Db::getInstance()->getRow($sql);
 
             if (!$existingRelay) {
-                 // Récupérer la ligne la plus récente avec le même id_address_delivery et id_customer
+                // Récupérer la ligne la plus récente avec le même id_address_delivery et id_customer
                 $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'mondialrelay_selected_relay 
-                WHERE id_customer = ' . (int)$cart->id_customer . '
+                WHERE id_customer = ' . (int) $cart->id_customer . '
                 AND id_order IS NOT NULL
                 ORDER BY date_add DESC';
 
-                $existingRelay = Db::getInstance()->getRow($sql);
+                $existingRelay = \Db::getInstance()->getRow($sql);
             }
 
             if ($existingRelay) {
                 // Cloner la ligne en excluant les champs liés à l'expédition
                 $newRelay = [
-                    'id_address_delivery' => (int)$existingRelay['id_address_delivery'],
-                    'id_customer' => (int)$existingRelay['id_customer'],
-                    'id_mondialrelay_carrier_method' => (int)$existingRelay['id_mondialrelay_carrier_method'],
-                    'id_cart' => (int)$cart->id,
+                    'id_address_delivery' => (int) $existingRelay['id_address_delivery'],
+                    'id_customer' => (int) $existingRelay['id_customer'],
+                    'id_mondialrelay_carrier_method' => (int) $existingRelay['id_mondialrelay_carrier_method'],
+                    'id_cart' => (int) $cart->id,
                     'id_order' => null, // Sera mis à jour lors de la validation de la commande
                     'package_weight' => pSQL($existingRelay['package_weight']),
                     'insurance_level' => pSQL($existingRelay['insurance_level']),
@@ -140,33 +139,33 @@ class DeliveryModuleManager
                     'label_url' => null, // Pas encore d'étiquette
                     'expedition_num' => null, // Pas encore d'expédition
                     'date_label_generation' => null, // Pas encore généré
-                    'hide_history' => (int)$existingRelay['hide_history'],
+                    'hide_history' => (int) $existingRelay['hide_history'],
                     'date_add' => pSQL(date('Y-m-d H:i:s')),
-                    'date_upd' => pSQL(date('Y-m-d H:i:s'))
+                    'date_upd' => pSQL(date('Y-m-d H:i:s')),
                 ];
 
                 // Insérer la nouvelle ligne
-                $result = Db::getInstance()->insert('mondialrelay_selected_relay', $newRelay);
-                
+                $result = \Db::getInstance()->insert('mondialrelay_selected_relay', $newRelay);
+
                 if ($result) {
                     \PrestaShopLogger::addLog(
-                        'DeliveryModuleManager::handleMondialrelay - Ligne clonée avec succès - Cart ID: ' . (int)$cart->id,
+                        'DeliveryModuleManager::handleMondialrelay - Ligne clonée avec succès - Cart ID: ' . (int) $cart->id,
                         1,
                         null,
                         'DeliveryModuleManager',
                         null,
-                        true
+                        true,
                     );
                 }
             }
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
-                'DeliveryModuleManager::handleMondialrelay - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int)$cart->id,
+                'DeliveryModuleManager::handleMondialrelay - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int) $cart->id,
                 3,
                 null,
                 'DeliveryModuleManager',
                 null,
-                true
+                true,
             );
         }
     }
@@ -182,12 +181,12 @@ class DeliveryModuleManager
             }
 
             // Vérifier si l'order_id n'est pas déjà attribué pour éviter de modifier une ligne déjà terminée
-            $query = new DbQuery();
+            $query = new \DbQuery();
             $query->select('id_order')
                 ->from('mondialrelay_selected_relay')
-                ->where('id_cart = ' . (int)$cartId);
+                ->where('id_cart = ' . (int) $cartId);
 
-            $existingOrderId = Db::getInstance()->getValue($query);
+            $existingOrderId = \Db::getInstance()->getValue($query);
 
             // Si l'order_id est déjà défini, ne pas faire la mise à jour
             if ($existingOrderId && $existingOrderId > 0) {
@@ -195,34 +194,34 @@ class DeliveryModuleManager
             }
 
             $data = [
-                'id_order' => (int)$orderId,
-                'date_upd' => pSQL(date('Y-m-d H:i:s'))
+                'id_order' => (int) $orderId,
+                'date_upd' => pSQL(date('Y-m-d H:i:s')),
             ];
 
-            $result = Db::getInstance()->update(
+            $result = \Db::getInstance()->update(
                 'mondialrelay_selected_relay',
                 $data,
-                'id_cart = ' . (int)$cartId
+                'id_cart = ' . (int) $cartId,
             );
 
             if ($result) {
                 \PrestaShopLogger::addLog(
-                    'DeliveryModuleManager::updateOrderIdMondialrelay - Order ID mis à jour avec succès - Cart ID: ' . (int)$cartId . ' - Order ID: ' . (int)$orderId,
+                    'DeliveryModuleManager::updateOrderIdMondialrelay - Order ID mis à jour avec succès - Cart ID: ' . (int) $cartId . ' - Order ID: ' . (int) $orderId,
                     1,
                     null,
                     'DeliveryModuleManager',
                     null,
-                    true
+                    true,
                 );
             }
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
-                'DeliveryModuleManager::updateOrderIdMondialrelay - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int)$cartId . ' - Order ID: ' . (int)$orderId,
+                'DeliveryModuleManager::updateOrderIdMondialrelay - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int) $cartId . ' - Order ID: ' . (int) $orderId,
                 3,
                 null,
                 'DeliveryModuleManager',
                 null,
-                true
+                true,
             );
         }
     }
@@ -240,35 +239,35 @@ class DeliveryModuleManager
             }
 
             // 1. Vérifier que l'id_cart n'a pas déjà une ligne
-            $query = new DbQuery();
+            $query = new \DbQuery();
             $query->select('COUNT(*)')
                 ->from('dpdfrance_shipping')
-                ->where('id_cart = ' . (int)$cart->id);
+                ->where('id_cart = ' . (int) $cart->id);
 
-            if (Db::getInstance()->getValue($query) > 0) {
+            if (\Db::getInstance()->getValue($query) > 0) {
                 return; // Une ligne existe déjà pour ce panier
             }
 
             // 2. Trouver la dernière commande payée par le customer_id, dont la colonne module vaut 'ciklik'
             $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
-                    WHERE o.id_customer = ' . (int)$cart->id_customer . '
+                    WHERE o.id_customer = ' . (int) $cart->id_customer . '
                       AND o.module = \'ciklik\'
                       AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
                     ORDER BY o.date_add DESC';
 
-            $lastPaidCartId = Db::getInstance()->getValue($sql);
+            $lastPaidCartId = \Db::getInstance()->getValue($sql);
 
             if (!$lastPaidCartId) {
                 return; // Aucune commande payée trouvée
             }
 
             // 3. Trouver dans la table dpdfrance_shipping la ligne avec le cart_id du résultat au point 2
-            $query = new DbQuery();
+            $query = new \DbQuery();
             $query->select('*')
                 ->from('dpdfrance_shipping')
-                ->where('id_cart = ' . (int)$lastPaidCartId);
+                ->where('id_cart = ' . (int) $lastPaidCartId);
 
-            $existingShipping = Db::getInstance()->getRow($query);
+            $existingShipping = \Db::getInstance()->getRow($query);
 
             if (!$existingShipping) {
                 return; // Aucune ligne de shipping trouvée
@@ -276,9 +275,9 @@ class DeliveryModuleManager
 
             // 4. Dupliquer la ligne, en y remplaçant le cart_id du point 2, par le cart_id courant
             $newShipping = [
-                'id_customer' => (int)$existingShipping['id_customer'],
-                'id_cart' => (int)$cart->id,
-                'id_carrier' => (int)$existingShipping['id_carrier'],
+                'id_customer' => (int) $existingShipping['id_customer'],
+                'id_cart' => (int) $cart->id,
+                'id_carrier' => (int) $existingShipping['id_carrier'],
                 'service' => pSQL($existingShipping['service']),
                 'relay_id' => pSQL($existingShipping['relay_id']),
                 'company' => pSQL($existingShipping['company']),
@@ -286,31 +285,31 @@ class DeliveryModuleManager
                 'address2' => pSQL($existingShipping['address2']),
                 'postcode' => pSQL($existingShipping['postcode']),
                 'city' => pSQL($existingShipping['city']),
-                'id_country' => (int)$existingShipping['id_country'],
-                'gsm_dest' => pSQL($existingShipping['gsm_dest'])
+                'id_country' => (int) $existingShipping['id_country'],
+                'gsm_dest' => pSQL($existingShipping['gsm_dest']),
             ];
 
             // Insérer la nouvelle ligne
-            $result = Db::getInstance()->insert('dpdfrance_shipping', $newShipping);
+            $result = \Db::getInstance()->insert('dpdfrance_shipping', $newShipping);
 
             if ($result) {
                 \PrestaShopLogger::addLog(
-                    'DeliveryModuleManager::handleDpdfrance - Ligne clonée avec succès - Cart ID: ' . (int)$cart->id,
+                    'DeliveryModuleManager::handleDpdfrance - Ligne clonée avec succès - Cart ID: ' . (int) $cart->id,
                     1,
                     null,
                     'DeliveryModuleManager',
                     null,
-                    true
+                    true,
                 );
             }
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
-                'DeliveryModuleManager::handleDpdfrance - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int)$cart->id,
+                'DeliveryModuleManager::handleDpdfrance - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int) $cart->id,
                 3,
                 null,
                 'DeliveryModuleManager',
                 null,
-                true
+                true,
             );
         }
     }
@@ -328,35 +327,35 @@ class DeliveryModuleManager
             }
 
             // 1. Vérifier que l'id_cart n'a pas déjà une ligne
-            $query = new DbQuery();
+            $query = new \DbQuery();
             $query->select('COUNT(*)')
                 ->from('colissimo_cart_pickup_point')
-                ->where('id_cart = ' . (int)$cart->id);
+                ->where('id_cart = ' . (int) $cart->id);
 
-            if (Db::getInstance()->getValue($query) > 0) {
+            if (\Db::getInstance()->getValue($query) > 0) {
                 return; // Une ligne existe déjà pour ce panier
             }
 
             // 2. Trouver la dernière commande payée par le customer_id, dont la colonne module vaut 'ciklik'
             $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
-                    WHERE o.id_customer = ' . (int)$cart->id_customer . '
+                    WHERE o.id_customer = ' . (int) $cart->id_customer . '
                       AND o.module = \'ciklik\'
                       AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
                     ORDER BY o.date_add DESC';
 
-            $lastPaidCartId = Db::getInstance()->getValue($sql);
+            $lastPaidCartId = \Db::getInstance()->getValue($sql);
 
             if (!$lastPaidCartId) {
                 return; // Aucune commande payée trouvée
             }
 
             // 3. Trouver dans la table colissimo_cart_pickup_point la ligne avec le cart_id du résultat au point 2
-            $query = new DbQuery();
+            $query = new \DbQuery();
             $query->select('*')
                 ->from('colissimo_cart_pickup_point')
-                ->where('id_cart = ' . (int)$lastPaidCartId);
+                ->where('id_cart = ' . (int) $lastPaidCartId);
 
-            $existingPickupPoint = Db::getInstance()->getRow($query);
+            $existingPickupPoint = \Db::getInstance()->getRow($query);
 
             if (!$existingPickupPoint) {
                 return; // Aucune ligne de pickup point trouvée
@@ -364,32 +363,32 @@ class DeliveryModuleManager
 
             // 4. Dupliquer la ligne, en y remplaçant le cart_id du point 2, par le cart_id courant
             $newPickupPoint = [
-                'id_cart' => (int)$cart->id,
-                'id_colissimo_pickup_point' => (int)$existingPickupPoint['id_colissimo_pickup_point'],
-                'mobile_phone' => pSQL($existingPickupPoint['mobile_phone'])
+                'id_cart' => (int) $cart->id,
+                'id_colissimo_pickup_point' => (int) $existingPickupPoint['id_colissimo_pickup_point'],
+                'mobile_phone' => pSQL($existingPickupPoint['mobile_phone']),
             ];
 
             // Insérer la nouvelle ligne
-            $result = Db::getInstance()->insert('colissimo_cart_pickup_point', $newPickupPoint);
+            $result = \Db::getInstance()->insert('colissimo_cart_pickup_point', $newPickupPoint);
 
             if ($result) {
                 \PrestaShopLogger::addLog(
-                    'DeliveryModuleManager::handleColissimo - Ligne clonée avec succès - Cart ID: ' . (int)$cart->id,
+                    'DeliveryModuleManager::handleColissimo - Ligne clonée avec succès - Cart ID: ' . (int) $cart->id,
                     1,
                     null,
                     'DeliveryModuleManager',
                     null,
-                    true
+                    true,
                 );
             }
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
-                'DeliveryModuleManager::handleColissimo - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int)$cart->id,
+                'DeliveryModuleManager::handleColissimo - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int) $cart->id,
                 3,
                 null,
                 'DeliveryModuleManager',
                 null,
-                true
+                true,
             );
         }
     }
@@ -401,7 +400,6 @@ class DeliveryModuleManager
     protected static function handleNkmgls($cart)
     {
         try {
-            
             // Vérifier que la table existe
             if (!self::tableExists(_DB_PREFIX_ . 'gls_cart_carrier')) {
                 return;
@@ -412,12 +410,12 @@ class DeliveryModuleManager
             if (!$carrier->id) {
                 return; // Transporteur invalide
             }
-            
-            $glsRelaisId = (int)Configuration::get('GLS_GLSRELAIS_ID');
+
+            $glsRelaisId = (int) \Configuration::get('GLS_GLSRELAIS_ID');
             if (!$glsRelaisId) {
                 return; // Configuration GLS non trouvée
             }
-            
+
             // Vérifier que l'id_carrier correspond au transporteur GLS point relais
             // ou que l'id_reference correspond (au cas où il y aurait plusieurs instances du même transporteur)
             $glsRelaisCarrier = new \Carrier($glsRelaisId);
@@ -426,37 +424,37 @@ class DeliveryModuleManager
             }
 
             // 1. Vérifier que l'id_cart n'a pas déjà une ligne
-            $query = new DbQuery();
+            $query = new \DbQuery();
             $query->select('COUNT(*)')
                 ->from('gls_cart_carrier')
-                ->where('id_cart = ' . (int)$cart->id)
-                ->where('id_customer = ' . (int)$cart->id_customer);
+                ->where('id_cart = ' . (int) $cart->id)
+                ->where('id_customer = ' . (int) $cart->id_customer);
 
-            if (Db::getInstance()->getValue($query) > 0) {
+            if (\Db::getInstance()->getValue($query) > 0) {
                 return; // Une ligne existe déjà pour ce panier
             }
 
             // 2. Trouver la dernière commande payée par le customer_id, dont la colonne module vaut 'ciklik'
             $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
-                    WHERE o.id_customer = ' . (int)$cart->id_customer . '
+                    WHERE o.id_customer = ' . (int) $cart->id_customer . '
                       AND o.module = \'ciklik\'
                       AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
                     ORDER BY o.date_add DESC';
 
-            $lastPaidCartId = Db::getInstance()->getValue($sql);
+            $lastPaidCartId = \Db::getInstance()->getValue($sql);
 
             if (!$lastPaidCartId) {
                 return; // Aucune commande payée trouvée
             }
 
             // 3. Trouver dans la table gls_cart_carrier la ligne avec le cart_id du résultat au point 2
-            $query = new DbQuery();
+            $query = new \DbQuery();
             $query->select('*')
                 ->from('gls_cart_carrier')
-                ->where('id_cart = ' . (int)$lastPaidCartId)
-                ->where('id_customer = ' . (int)$cart->id_customer);
+                ->where('id_cart = ' . (int) $lastPaidCartId)
+                ->where('id_customer = ' . (int) $cart->id_customer);
 
-            $existingGlsCarrier = Db::getInstance()->getRow($query);
+            $existingGlsCarrier = \Db::getInstance()->getRow($query);
 
             if (!$existingGlsCarrier) {
                 return; // Aucune ligne de GLS trouvée
@@ -465,10 +463,10 @@ class DeliveryModuleManager
             // 4. Dupliquer la ligne, en y remplaçant le cart_id du point 2, par le cart_id courant
             // Utiliser l'id_carrier du panier actuel (qui est déjà validé comme GLS point relais)
             $newGlsCarrier = [
-                'id_cart' => (int)$cart->id,
-                'id_customer' => (int)$cart->id_customer,
-                'id_carrier' => (int)$cart->id_carrier,
-                'original_id_address_delivery' => (int)$cart->id_address_delivery,
+                'id_cart' => (int) $cart->id,
+                'id_customer' => (int) $cart->id_customer,
+                'id_carrier' => (int) $cart->id_carrier,
+                'original_id_address_delivery' => (int) $cart->id_address_delivery,
                 'gls_product' => pSQL($existingGlsCarrier['gls_product']),
                 'parcel_shop_id' => pSQL($existingGlsCarrier['parcel_shop_id']),
                 'name' => pSQL($existingGlsCarrier['name']),
@@ -479,45 +477,46 @@ class DeliveryModuleManager
                 'phone' => pSQL($existingGlsCarrier['phone']),
                 'phone_mobile' => pSQL($existingGlsCarrier['phone_mobile']),
                 'customer_phone_mobile' => pSQL($existingGlsCarrier['customer_phone_mobile']),
-                'id_country' => isset($existingGlsCarrier['id_country']) ? (int)$existingGlsCarrier['id_country'] : null,
-                'parcel_shop_working_day' => pSQL($existingGlsCarrier['parcel_shop_working_day'])
+                'id_country' => isset($existingGlsCarrier['id_country']) ? (int) $existingGlsCarrier['id_country'] : null,
+                'parcel_shop_working_day' => pSQL($existingGlsCarrier['parcel_shop_working_day']),
             ];
 
             // Insérer la nouvelle ligne
-            $result = Db::getInstance()->insert('gls_cart_carrier', $newGlsCarrier);
+            $result = \Db::getInstance()->insert('gls_cart_carrier', $newGlsCarrier);
 
             if ($result) {
                 \PrestaShopLogger::addLog(
-                    'DeliveryModuleManager::handleNkmgls - Ligne clonée avec succès - Cart ID: ' . (int)$cart->id . ' - Parcel Shop ID: ' . pSQL($existingGlsCarrier['parcel_shop_id']),
+                    'DeliveryModuleManager::handleNkmgls - Ligne clonée avec succès - Cart ID: ' . (int) $cart->id . ' - Parcel Shop ID: ' . pSQL($existingGlsCarrier['parcel_shop_id']),
                     1,
                     null,
                     'DeliveryModuleManager',
                     null,
-                    true
+                    true,
                 );
             }
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
-                'DeliveryModuleManager::handleNkmgls - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int)$cart->id,
+                'DeliveryModuleManager::handleNkmgls - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int) $cart->id,
                 3,
                 null,
                 'DeliveryModuleManager',
                 null,
-                true
+                true,
             );
         }
     }
 
     /**
      * Vérifie si une table existe dans la base de données
-     * 
+     *
      * @param string $tableName Nom de la table (avec préfixe)
+     *
      * @return bool
      */
     private static function tableExists($tableName)
     {
         try {
-            return (bool) Db::getInstance()->getValue("SELECT COUNT(*) FROM `information_schema`.`TABLES` WHERE `TABLE_SCHEMA` = '"._DB_NAME_."' AND `TABLE_NAME` = '".bqSQL($tableName)."'");
+            return (bool) \Db::getInstance()->getValue("SELECT COUNT(*) FROM `information_schema`.`TABLES` WHERE `TABLE_SCHEMA` = '" . _DB_NAME_ . "' AND `TABLE_NAME` = '" . bqSQL($tableName) . "'");
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
                 'DeliveryModuleManager::tableExists - Erreur: ' . $e->getMessage() . ' - Table: ' . pSQL($tableName),
@@ -525,46 +524,46 @@ class DeliveryModuleManager
                 null,
                 'DeliveryModuleManager',
                 null,
-                true
+                true,
             );
+
             return false;
         }
     }
 
-
-
-    public static function handleChronopost($cart) {
+    public static function handleChronopost($cart)
+    {
         try {
             $carrier = new \Carrier($cart->id_carrier);
-            
+
             // Vérifier que $carrier->id_reference est un des id dans getChronoRelaisIDs
             if (!in_array($carrier->id_reference, self::getChronoRelaisIDs())) {
                 return;
             }
-            
+
             // Vérifier que la table existe
             if (!self::tableExists(_DB_PREFIX_ . 'chrono_cart_relais')) {
                 return;
             }
 
             // 1. Vérifier que l'id_cart n'a pas déjà une ligne
-            $query = new DbQuery();
+            $query = new \DbQuery();
             $query->select('COUNT(*)')
                 ->from('chrono_cart_relais')
-                ->where('id_cart = ' . (int)$cart->id);
+                ->where('id_cart = ' . (int) $cart->id);
 
-            if (Db::getInstance()->getValue($query) > 0) {
+            if (\Db::getInstance()->getValue($query) > 0) {
                 return; // Une ligne existe déjà pour ce panier
             }
 
             // 2. Trouver les commandes payées du client avec le module 'ciklik'
             $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
-                    WHERE o.id_customer = ' . (int)$cart->id_customer . '
+                    WHERE o.id_customer = ' . (int) $cart->id_customer . '
                       AND o.module = \'ciklik\'
                       AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
                     ORDER BY o.date_add DESC';
 
-            $paidCartIds = Db::getInstance()->executeS($sql);
+            $paidCartIds = \Db::getInstance()->executeS($sql);
 
             if (!$paidCartIds || empty($paidCartIds)) {
                 return; // Aucune commande payée trouvée
@@ -574,14 +573,14 @@ class DeliveryModuleManager
             $cartIds = array_column($paidCartIds, 'id_cart');
 
             // 4. Trouver dans la table chrono_cart_relais les entrées avec ces cartes qui ont un id_pr
-            $query = new DbQuery();
+            $query = new \DbQuery();
             $query->select('*')
                 ->from('chrono_cart_relais')
                 ->where('id_cart IN (' . implode(',', array_map('intval', $cartIds)) . ')')
                 ->where('id_pr IS NOT NULL AND id_pr != \'\'')
                 ->orderBy('id_cart DESC');
 
-            $existingRelais = Db::getInstance()->getRow($query);
+            $existingRelais = \Db::getInstance()->getRow($query);
 
             if (!$existingRelais) {
                 return; // Aucune ligne de relais trouvée
@@ -589,53 +588,49 @@ class DeliveryModuleManager
 
             // 5. Cloner la ligne avec le nouveau id_cart
             $newRelais = [
-                'id_cart' => (int)$cart->id,
-                'id_pr' => pSQL($existingRelais['id_pr'])
+                'id_cart' => (int) $cart->id,
+                'id_pr' => pSQL($existingRelais['id_pr']),
             ];
 
             // Insérer la nouvelle ligne
-            $result = Db::getInstance()->insert('chrono_cart_relais', $newRelais);
+            $result = \Db::getInstance()->insert('chrono_cart_relais', $newRelais);
 
             if ($result) {
                 \PrestaShopLogger::addLog(
-                    'DeliveryModuleManager::handleChronopost - Ligne clonée avec succès - Cart ID: ' . (int)$cart->id . ' - PR ID: ' . (int)$existingRelais['id_pr'],
+                    'DeliveryModuleManager::handleChronopost - Ligne clonée avec succès - Cart ID: ' . (int) $cart->id . ' - PR ID: ' . (int) $existingRelais['id_pr'],
                     1,
                     null,
                     'DeliveryModuleManager',
                     null,
-                    true
+                    true,
                 );
             }
-            
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
-                'DeliveryModuleManager::handleChronopost - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int)$cart->id,
+                'DeliveryModuleManager::handleChronopost - Erreur: ' . $e->getMessage() . ' - Cart ID: ' . (int) $cart->id,
                 3,
                 null,
                 'DeliveryModuleManager',
                 null,
-                true
+                true,
             );
         }
     }
 
-
-
     public static function getChronoRelaisIDs()
     {
         return [
-            (int) Configuration::get('CHRONOPOST_CHRONORELAIS_AMBIENT_ID'),
-            (int) Configuration::get('CHRONOPOST_CHRONORELAIS_ID'),
-            (int) Configuration::get('CHRONOPOST_RELAISEUROPE_ID'),
-            (int) Configuration::get('CHRONOPOST_RELAISDOM_ID'),
+            (int) \Configuration::get('CHRONOPOST_CHRONORELAIS_AMBIENT_ID'),
+            (int) \Configuration::get('CHRONOPOST_CHRONORELAIS_ID'),
+            (int) \Configuration::get('CHRONOPOST_RELAISEUROPE_ID'),
+            (int) \Configuration::get('CHRONOPOST_RELAISDOM_ID'),
         ];
     }
 
     public static function isRelais($idCarrier)
     {
-
         $carrier = new Carrier($idCarrier);
 
         return in_array($carrier->id_reference, self::getChronoRelaisIDs());
     }
-} 
+}

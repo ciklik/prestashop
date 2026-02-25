@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -7,8 +8,6 @@
 
 namespace PrestaShop\Module\Ciklik\Helpers;
 
-use Context;
-use Currency;
 use Tools;
 
 if (!defined('_PS_VERSION_')) {
@@ -29,12 +28,13 @@ class PriceHelper
      * n'est pas disponible (peut arriver dans certains contextes comme les upgrades).
      *
      * @param float $price Le prix à formater
-     * @param Currency|null $currency La devise (utilise la devise courante si null)
+     * @param \Currency|null $currency La devise (utilise la devise courante si null)
+     *
      * @return string Le prix formaté
      */
     public static function formatPrice($price, $currency = null)
     {
-        $context = Context::getContext();
+        $context = \Context::getContext();
 
         if ($currency === null) {
             $currency = $context->currency;
@@ -52,7 +52,7 @@ class PriceHelper
         // Fallback : Tools::displayPrice() pour les cas où le locale n'est pas dispo
         // Note : Cette méthode n'existe plus en PS9
         if (method_exists('Tools', 'displayPrice')) {
-            return Tools::displayPrice($price, $currency);
+            return \Tools::displayPrice($price, $currency);
         }
 
         // Fallback ultime si rien n'est disponible

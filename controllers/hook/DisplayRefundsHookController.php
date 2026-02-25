@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -70,7 +71,7 @@ class DisplayRefundsHookController
                 'available' => $maxRefundAmount > 0,
                 'max' => sprintf(
                     $this->module->l('Amount (Max. %s)'),
-                    $this->context->currentLocale->formatPrice($maxRefundAmount, $currency->iso_code)
+                    $this->context->currentLocale->formatPrice($maxRefundAmount, $currency->iso_code),
                 ),
             ],
             'actionUrl' => $this->context->link->getModuleLink('ciklik', 'refund'),

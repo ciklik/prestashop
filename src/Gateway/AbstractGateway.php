@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -9,10 +10,6 @@ declare(strict_types=1);
 
 namespace PrestaShop\Module\Ciklik\Gateway;
 
-use Ciklik;
-use Configuration;
-use WebserviceKey;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -20,13 +17,13 @@ if (!defined('_PS_VERSION_')) {
 abstract class AbstractGateway implements EntityGateway
 {
     /**
-     * @var Ciklik
+     * @var \Ciklik
      */
     public $module;
 
-    public function __construct(Ciklik $module)
+    public function __construct(\Ciklik $module)
     {
-        $webservice = new WebserviceKey(Configuration::get(Ciklik::CONFIG_WEBSERVICE_ID));
+        $webservice = new \WebserviceKey(\Configuration::get(\Ciklik::CONFIG_WEBSERVICE_ID));
 
         $expectedAuth = 'Basic ' . base64_encode($webservice->key . ':');
         $providedAuth = array_key_exists('HTTP_AUTHORIZATION', $_SERVER) ? $_SERVER['HTTP_AUTHORIZATION'] : '';

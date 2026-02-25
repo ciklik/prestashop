@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -37,8 +38,8 @@ class Shop extends CiklikApiClient
                 $options,
                 [
                     'json' => ['metadata' => $metadata],
-                ]
-            )
+                ],
+            ),
         );
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -8,7 +9,6 @@
 namespace PrestaShop\Module\Ciklik\Api;
 
 use Ciklik;
-use Configuration;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
@@ -33,7 +33,7 @@ class CiklikApiClient
     /**
      * Class Link in order to generate module link
      *
-     * @var Link
+     * @var \Link
      */
     protected $link;
 
@@ -53,7 +53,7 @@ class CiklikApiClient
 
     protected $throwGuzzleExceptions = true;
 
-    public function __construct(Link $link, ?Client $client = null)
+    public function __construct(\Link $link, ?Client $client = null)
     {
         $this->setLink($link);
 
@@ -65,21 +65,21 @@ class CiklikApiClient
                 'headers' => [
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                    'Authorization' => 'Bearer ' . Configuration::get(Ciklik::CONFIG_API_TOKEN),
+                    'Authorization' => 'Bearer ' . \Configuration::get(\Ciklik::CONFIG_API_TOKEN),
                     // 'Hook-Url' => $this->link->getModuleLink('ciklik', 'DispatchWebHook', [], true),
-                    'Module-Version' => Ciklik::VERSION, // version of the module
+                    'Module-Version' => \Ciklik::VERSION, // version of the module
                     'Prestashop-Version' => _PS_VERSION_, // prestashop version
-                    'User-Agent' => 'Ciklik-Prestashop/' . Ciklik::VERSION,
+                    'User-Agent' => 'Ciklik-Prestashop/' . \Ciklik::VERSION,
                 ],
                 'defaults' => [
                     'headers' => [
                         'Content-Type' => 'application/json',
                         'Accept' => 'application/json',
-                        'Authorization' => 'Bearer ' . Configuration::get(Ciklik::CONFIG_API_TOKEN),
+                        'Authorization' => 'Bearer ' . \Configuration::get(\Ciklik::CONFIG_API_TOKEN),
                         // 'Hook-Url' => $this->link->getModuleLink('ciklik', 'DispatchWebHook', [], true),
-                        'Module-Version' => Ciklik::VERSION, // version of the module
+                        'Module-Version' => \Ciklik::VERSION, // version of the module
                         'Prestashop-Version' => _PS_VERSION_, // prestashop version
-                        'User-Agent' => 'Ciklik-Prestashop/' . Ciklik::VERSION,
+                        'User-Agent' => 'Ciklik-Prestashop/' . \Ciklik::VERSION,
                     ],
                 ],
                 'http_errors' => $this->throwGuzzleExceptions,
@@ -100,7 +100,6 @@ class CiklikApiClient
     {
         try {
             $response = $this->getClient()->get($this->getRoute(), $options);
-            
         } catch (RequestException $e) {
             $response = $e->getResponse();
             // If no response (network error, timeout, etc.), create a mock response
@@ -108,9 +107,10 @@ class CiklikApiClient
                 $response = new Response(500, [], json_encode(['errors' => ['message' => $e->getMessage()]]));
             }
         }
+
         return $this->handleResponse(
             $response,
-            $options
+            $options,
         );
     }
 
@@ -132,9 +132,10 @@ class CiklikApiClient
                 $response = new Response(500, [], json_encode(['errors' => ['message' => $e->getMessage()]]));
             }
         }
+
         return $this->handleResponse(
             $response,
-            $options
+            $options,
         );
     }
 
@@ -159,7 +160,7 @@ class CiklikApiClient
 
         return $this->handleResponse(
             $response,
-            $options
+            $options,
         );
     }
 
@@ -184,7 +185,7 @@ class CiklikApiClient
 
         return $this->handleResponse(
             $response,
-            $options
+            $options,
         );
     }
 
@@ -194,8 +195,8 @@ class CiklikApiClient
 
         $response = $responseHandler->handleResponse($response);
 
-        if (Configuration::get(Ciklik::CONFIG_DEBUG_LOGS_ENABLED)) {
-            $module = Module::getInstanceByName('ciklik');
+        if (\Configuration::get(\Ciklik::CONFIG_DEBUG_LOGS_ENABLED)) {
+            $module = \Module::getInstanceByName('ciklik');
             $logger = $module->getLogger();
             $logger->debug('route: ' . $this->getRoute());
             $logger->debug('options: ' . var_export($options, true));
@@ -228,9 +229,9 @@ class CiklikApiClient
     /**
      * Setter for link
      *
-     * @param Link $link
+     * @param \Link $link
      */
-    protected function setLink(Link $link)
+    protected function setLink(\Link $link)
     {
         $this->link = $link;
     }
@@ -278,7 +279,7 @@ class CiklikApiClient
     /**
      * Getter for Link
      *
-     * @return Link
+     * @return \Link
      */
     protected function getLink()
     {
@@ -309,6 +310,7 @@ class CiklikApiClient
      * Vérifie si une chaîne est un UUID v4 valide
      *
      * @param string $uuid La chaîne à valider
+     *
      * @return bool True si UUID valide, false sinon
      */
     protected function isValidUuid(string $uuid): bool
@@ -321,6 +323,7 @@ class CiklikApiClient
      *
      * @param string $segment Le segment à valider
      * @param string $type Type attendu : 'uuid', 'numeric', ou 'alphanumeric'
+     *
      * @return string|null Le segment nettoyé ou null si invalide
      */
     protected function validateRouteSegment(string $segment, string $type = 'uuid'): ?string
@@ -342,6 +345,7 @@ class CiklikApiClient
      *
      * @param string $message Message d'erreur
      * @param int $httpCode Code HTTP (défaut 400)
+     *
      * @return array Réponse d'erreur standardisée
      */
     protected function buildErrorResponse(string $message, int $httpCode = 400): array
@@ -364,6 +368,7 @@ class CiklikApiClient
      * @param string $segment Le segment à valider et insérer
      * @param string $type Type de validation : 'uuid', 'numeric', ou 'alphanumeric'
      * @param string $errorMessage Message d'erreur si la validation échoue
+     *
      * @return array|null Null si valide (route définie), tableau d'erreur sinon
      */
     protected function setRouteWithValidation(

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -6,11 +7,6 @@
  */
 
 namespace PrestaShop\Module\Ciklik\Data;
-
-use Carrier;
-use Cart;
-use Tools;
-use Product;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -98,15 +94,15 @@ class CartFingerprintData
             $data['id_carrier_reference'],
             isset($data['upsells']) ? $data['upsells'] : [],
             isset($data['frequency_id']) ? $data['frequency_id'] : null,
-            isset($data['customizations']) && $data['customizations'] !== false ? $data['customizations'] : []
+            isset($data['customizations']) && $data['customizations'] !== false ? $data['customizations'] : [],
         );
     }
 
-    public static function fromCart(Cart $cart, array $upsells = [], $frequency_id = null): CartFingerprintData
+    public static function fromCart(\Cart $cart, array $upsells = [], $frequency_id = null): CartFingerprintData
     {
-        $carrier = new Carrier($cart->id_carrier);
-        $customizations = Product::getAllCustomizedDatas($cart->id, null, true, $cart->id_shop);
-        
+        $carrier = new \Carrier($cart->id_carrier);
+        $customizations = \Product::getAllCustomizedDatas($cart->id, null, true, $cart->id_shop);
+
         if ($customizations === false) {
             $customizations = [];
         }
@@ -120,7 +116,7 @@ class CartFingerprintData
             $carrier->id_reference,
             $upsells,
             $frequency_id,
-            $customizations
+            $customizations,
         );
     }
 
@@ -129,7 +125,9 @@ class CartFingerprintData
      * Utilise allowed_classes => false pour empêcher l'instanciation d'objets (sécurité)
      *
      * @param string $fingerprint Données sérialisées
+     *
      * @return CartFingerprintData
+     *
      * @throws \InvalidArgumentException Si le fingerprint est invalide
      */
     public static function extractDatas(string $fingerprint): CartFingerprintData
@@ -158,13 +156,13 @@ class CartFingerprintData
             (int) $data['id_carrier_reference'],
             isset($data['upsells']) ? $data['upsells'] : [],
             isset($data['frequency_id']) ? $data['frequency_id'] : null,
-            isset($data['customizations']) ? $data['customizations'] : []
+            isset($data['customizations']) ? $data['customizations'] : [],
         );
     }
 
     public function encodeDatas(): string
     {
-        $method = 'seria' . 'lize';
+        $method = 'serialize';
 
         return $method(get_object_vars($this));
     }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -6,9 +7,6 @@
  */
 
 namespace PrestaShop\Module\Ciklik\Managers;
-
-use Ciklik;
-use Configuration;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -25,14 +23,14 @@ class RelatedEntitiesManager
             return false;
         }
 
-        Configuration::updateValue(
-            Ciklik::CONFIG_ONEOFF_ATTRIBUTE_ID,
-            CiklikAttribute::create('Achat en une fois', $purchaseTypeAttributeGroup->id)
+        \Configuration::updateValue(
+            \Ciklik::CONFIG_ONEOFF_ATTRIBUTE_ID,
+            CiklikAttribute::create('Achat en une fois', $purchaseTypeAttributeGroup->id),
         );
 
-        Configuration::updateValue(
-            Ciklik::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID,
-            CiklikAttribute::create('Abonnement', $purchaseTypeAttributeGroup->id)
+        \Configuration::updateValue(
+            \Ciklik::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID,
+            CiklikAttribute::create('Abonnement', $purchaseTypeAttributeGroup->id),
         );
 
         $frequencies = [
@@ -85,7 +83,7 @@ class RelatedEntitiesManager
             CiklikFrequency::save($id_attribute, $properties['interval'], $properties['interval_count']);
 
             if (!$key) {
-                Configuration::updateValue(Ciklik::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID, $id_attribute);
+                \Configuration::updateValue(\Ciklik::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID, $id_attribute);
             }
         }
 
@@ -93,18 +91,18 @@ class RelatedEntitiesManager
             CiklikFrequency::saveFrequency($frequency);
         }
 
-        return (bool) Configuration::updateValue(Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID, $purchaseTypeAttributeGroup->id)
-            && (bool) Configuration::updateValue(Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID, $frequenciesAttributeGroup->id);
+        return (bool) \Configuration::updateValue(\Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID, $purchaseTypeAttributeGroup->id)
+            && (bool) \Configuration::updateValue(\Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID, $frequenciesAttributeGroup->id);
     }
 
     public static function uninstall(): bool
     {
-        return CiklikAttributeGroup::delete((int) Configuration::get(Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID))
-            && CiklikAttributeGroup::delete((int) Configuration::get(Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID))
-            && (bool) Configuration::deleteByName(Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID)
-            && (bool) Configuration::deleteByName(Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID)
-            && (bool) Configuration::deleteByName(Ciklik::CONFIG_ONEOFF_ATTRIBUTE_ID)
-            && (bool) Configuration::deleteByName(Ciklik::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID)
-            && (bool) Configuration::deleteByName(Ciklik::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID);
+        return CiklikAttributeGroup::delete((int) \Configuration::get(\Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID))
+            && CiklikAttributeGroup::delete((int) \Configuration::get(\Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID))
+            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID)
+            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID)
+            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_ONEOFF_ATTRIBUTE_ID)
+            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID)
+            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID);
     }
 }

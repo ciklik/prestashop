@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -56,6 +57,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                     'success' => false,
                     'message' => $this->module->l('You do not have permission to access this subscription.', 'subscription'),
                 ]));
+
                 return;
             }
             $this->errors[] = $this->module->l('You do not have permission to access this subscription.', 'subscription');
@@ -91,12 +93,13 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         $uuid = UuidHelper::getFromRequest('uuid');
         if (null === $uuid) {
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
             return;
         }
 
-        (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
+        (new Subscription($this->context->link))->update(
             $uuid,
-            ['active' => false]
+            ['active' => false],
         );
 
         $this->success[] = $this->module->l('Your subscription has been paused.', 'subscription');
@@ -108,12 +111,13 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         $uuid = UuidHelper::getFromRequest('uuid');
         if (null === $uuid) {
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
             return;
         }
 
-        (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
+        (new Subscription($this->context->link))->update(
             $uuid,
-            ['active' => true]
+            ['active' => true],
         );
 
         $this->success[] = $this->module->l('Your subscription has been resumed.', 'subscription');
@@ -128,6 +132,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $nextBilling)) {
             $this->errors[] = $this->module->l('Invalid date format.', 'subscription');
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
             return;
         }
 
@@ -138,11 +143,13 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             if ($date->isPast()) {
                 $this->errors[] = $this->module->l('The date must be in the future.', 'subscription');
                 $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
                 return;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->errors[] = $this->module->l('Invalid date.', 'subscription');
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
             return;
         }
 
@@ -150,12 +157,13 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         if (null === $uuid) {
             $this->errors[] = $this->module->l('Invalid subscription identifier.', 'subscription');
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
             return;
         }
 
-        $result = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
+        $result = (new Subscription($this->context->link))->update(
             $uuid,
-            ['next_billing' => $date->toDateString()]
+            ['next_billing' => $date->toDateString()],
         );
 
         if (!empty($result['errors'])) {
@@ -176,6 +184,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         if (null === $uuid) {
             $this->errors[] = $this->module->l('Invalid subscription identifier.', 'subscription');
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
             return;
         }
 
@@ -185,14 +194,14 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             throw new PrestaShop\Module\Ciklik\Exceptions\NotAllowedException();
         }
 
-        $sub = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne($uuid);
+        $sub = (new Subscription($this->context->link))->getOne($uuid);
 
         $sub = SubscriptionData::create($sub['body']);
         $sub->external_fingerprint->id_address_delivery = (int) Tools::getValue('changeAddressForm');
 
-        $result = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->update(
+        $result = (new Subscription($this->context->link))->update(
             $uuid,
-            ['metadata' => ['prestashop_fingerprint' => $sub->external_fingerprint->encodeDatas()]]
+            ['metadata' => ['prestashop_fingerprint' => $sub->external_fingerprint->encodeDatas()]],
         );
 
         if (count($result['errors'])) {
@@ -208,18 +217,18 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
     /**
      * Met à jour le contenu d'un abonnement avec une nouvelle combinaison de produit
-     * 
+     *
      * Cette méthode permet de changer la fréquence d'un abonnement en mettant à jour
      * la combinaison de produit associée. Elle vérifie que la nouvelle combinaison est valide
      * et compatible avec l'abonnement existant avant d'effectuer la mise à jour via l'API.
-     * 
+     *
      * Le processus :
      * 1. Récupère l'UUID de l'abonnement et l'ID de la nouvelle combinaison depuis le formulaire
      * 2. Charge les données de l'abonnement actuel via l'API
      * 3. Vérifie que la nouvelle combinaison est valide
      * 4. Met à jour le contenu en conservant les quantités mais en changeant les fréquences
      * 5. Envoie la mise à jour à l'API
-     * 
+     *
      * @return void
      */
     private function updateContent()
@@ -229,13 +238,14 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         if (null === $subscriptionUuid) {
             $this->errors[] = $this->module->l('Invalid subscription identifier.', 'subscription');
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
             return;
         }
 
         $useFrequencyMode = Tools::getValue('use_frequency_mode');
 
         // Récupérer l'abonnement actuel
-        $subscriptionApi = new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link);
+        $subscriptionApi = new Subscription($this->context->link);
         $currentSubscription = $subscriptionApi->getOne($subscriptionUuid);
         $subscriptionData = SubscriptionData::create($currentSubscription['body']);
 
@@ -244,14 +254,14 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             $frequency = CiklikFrequency::getFrequencyById($frequencyId);
             $subscriptionData->external_fingerprint->frequency_id = $frequencyId;
 
-            $result = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))
+            $result = (new Subscription($this->context->link))
             ->update(
                 $subscriptionUuid,
                 [
                     'metadata' => ['prestashop_fingerprint' => $subscriptionData->external_fingerprint->encodeDatas()],
                     'interval' => $frequency['interval'],
-                    'interval_count' => (int) $frequency['interval_count']
-                ]
+                    'interval_count' => (int) $frequency['interval_count'],
+                ],
             );
 
             if (count($result['errors'])) {
@@ -263,14 +273,14 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             }
 
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
-
         } else {
-            $newCombinationId = (int)Tools::getValue('product_combination');
+            $newCombinationId = (int) Tools::getValue('product_combination');
             // Récupérer les informations de la nouvelle combinaison
             $newCombination = CiklikCombination::getCombinationDetails($newCombinationId);
             if (!$newCombination) {
                 $this->errors[] = $this->module->l('Invalid combination.', 'subscription');
                 $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
                 return;
             }
 
@@ -284,20 +294,20 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                         'external_id' => $matchingCombination['id_product_attribute'],
                         'quantity' => $content['quantity'],
                         'interval' => $matchingCombination['interval'],
-                        'interval_count' => $matchingCombination['interval_count']
+                        'interval_count' => $matchingCombination['interval_count'],
                     ];
                 }
             }
 
             // Préparer les données pour la mise à jour de l'API
             $updateData = [
-                'content' => $updatedContents
+                'content' => $updatedContents,
             ];
 
             // Envoyer la mise à jour à l'API
             $result = $subscriptionApi->update(
                 $subscriptionUuid,
-                $updateData
+                $updateData,
             );
 
             if (isset($result['errors']) && count($result['errors'])) {
@@ -310,15 +320,14 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
         }
-        
     }
 
     /**
      * Ajoute un produit à un abonnement existant
-     * 
+     *
      * Cette fonction permet d'ajouter un produit à un abonnement existant
      * en utilisant l'UUID de l'abonnement et les informations du produit.
-     * 
+     *
      * @return void
      */
     private function addUpsell()
@@ -329,6 +338,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                 'success' => false,
                 'message' => $this->module->l('Invalid subscription identifier.', 'subscription'),
             ]));
+
             return;
         }
 
@@ -341,6 +351,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                 'success' => false,
                 'message' => $this->module->l('Invalid product.', 'subscription'),
             ]));
+
             return;
         }
 
@@ -349,19 +360,19 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             $quantity = 1;
         }
 
-        $subscriptionApi = new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link);
+        $subscriptionApi = new Subscription($this->context->link);
 
         $upsell = [
             [
                 'product_id' => $productId,
                 'product_attribute_id' => $productAttributeId,
                 'quantity' => $quantity,
-            ]
+            ],
         ];
 
         $result = $subscriptionApi->update(
             $uuid,
-            ['upsells' => $upsell]
+            ['upsells' => $upsell],
         );
 
         // Vérifie si l'appel API a réussi
@@ -375,6 +386,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                 'success' => false,
                 'message' => $errorMessage,
             ]));
+
             return;
         }
 
@@ -383,7 +395,6 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             'message' => $this->module->l('The product has been successfully added to your subscription.', 'subscription'),
         ]));
     }
-
 
     protected function ajaxRenderAndExit($value = null, $responseCode = null, $controller = null, $method = null)
     {
@@ -428,7 +439,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             $fingerprint = CartFingerprintData::extractDatas($response['body']['external_fingerprint']);
 
             return (int) $fingerprint->id_customer === (int) $this->context->customer->id;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }

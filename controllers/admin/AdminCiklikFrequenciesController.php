@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -24,6 +25,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
      * @param string|null $class Nom de la classe (non utilisé, pour compatibilité)
      * @param bool $addslashes Ajouter des slashes
      * @param bool $htmlentities Encoder les entités HTML
+     *
      * @return string
      */
     protected function l($string, $class = null, $addslashes = false, $htmlentities = true)
@@ -34,8 +36,9 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
             if (!$this->module) {
                 return $string;
             }
+
             return $this->module->l($string, 'AdminCiklikFrequenciesController', $addslashes, $htmlentities);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $string;
         }
     }
@@ -220,6 +223,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
     public function renderForm()
     {
         $this->loadObject(true);
+
         return parent::renderForm();
     }
 
@@ -244,7 +248,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
             } else {
                 $this->errors[] = $this->l('Erreur lors de la création de la fréquence.');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Échappement XSS du message d'exception (source externe potentiellement non fiable)
             $this->errors[] = $this->l('Erreur: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
@@ -259,9 +263,10 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
      */
     public function processUpdate()
     {
-        $id_frequency = (int)Tools::getValue('id_frequency');
+        $id_frequency = (int) Tools::getValue('id_frequency');
         if (!$id_frequency) {
             $this->errors[] = $this->l('ID de fréquence invalide.');
+
             return false;
         }
 
@@ -280,7 +285,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
             } else {
                 $this->errors[] = $this->l('Erreur lors de la modification de la fréquence.');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Échappement XSS du message d'exception (source externe potentiellement non fiable)
             $this->errors[] = $this->l('Erreur: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
@@ -325,6 +330,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
      * @param int $start
      * @param int|null $limit
      * @param bool $id_lang_shop
+     *
      * @return array Liste des fréquences
      */
     public function getList($id_lang, $order_by = null, $order_way = null, $start = 0, $limit = null, $id_lang_shop = false)
@@ -332,10 +338,10 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
         $sql = 'SELECT * FROM `' . _DB_PREFIX_ . $this->table . '` ORDER BY `id_frequency` ASC';
 
         $countSql = 'SELECT COUNT(*) as total FROM `' . _DB_PREFIX_ . $this->table . '`';
-        $this->_listTotal = (int)Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($countSql);
+        $this->_listTotal = (int) Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($countSql);
 
         if ($limit) {
-            $sql .= ' LIMIT ' . (int)$start . ', ' . (int)$limit;
+            $sql .= ' LIMIT ' . (int) $start . ', ' . (int) $limit;
         }
 
         $this->_list = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
@@ -348,38 +354,41 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
      * Retourne toujours un objet (nouveau ou existant) pour que PrestaShop puisse afficher le formulaire
      *
      * @param bool $opt
+     *
      * @return object Objet chargé ou nouvel objet vide
      */
     protected function loadObject($opt = false)
     {
-        $id = (int)Tools::getValue('id_frequency');
+        $id = (int) Tools::getValue('id_frequency');
         if ($id && Validate::isUnsignedInt($id)) {
             $frequency = CiklikFrequencyManager::getFrequencyById($id);
             if ($frequency) {
-                $this->object = new \stdClass();
+                $this->object = new stdClass();
                 foreach ($frequency as $key => $value) {
                     $this->object->$key = $value;
                 }
                 if (isset($this->object->id_frequency)) {
                     $this->object->id = $this->object->id_frequency;
                 }
+
                 return $this->object;
             }
         }
 
         // En mode ajout, retourner un objet vide
         $this->object = $this->getEmptyObject();
+
         return $this->object;
     }
 
     /**
      * Retourne un objet vide pour le formulaire d'ajout
      *
-     * @return \stdClass Objet vide avec valeurs par défaut
+     * @return stdClass Objet vide avec valeurs par défaut
      */
     protected function getEmptyObject()
     {
-        $object = new \stdClass();
+        $object = new stdClass();
         $object->id = null;
         $object->id_frequency = null;
         $object->name = '';
@@ -399,9 +408,9 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
     protected function validateFormData()
     {
         // Récupérer et nettoyer les valeurs du formulaire
-        $name = trim((string)Tools::getValue('name', ''));
+        $name = trim((string) Tools::getValue('name', ''));
         $interval_count = Tools::getValue('interval_count');
-        $interval = trim((string)Tools::getValue('interval', ''));
+        $interval = trim((string) Tools::getValue('interval', ''));
         $discount_percent = Tools::getValue('discount_percent');
         $discount_price = Tools::getValue('discount_price');
 
@@ -411,7 +420,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
         }
 
         // Validation du nombre d'intervalles
-        if (!Validate::isUnsignedInt($interval_count) || (int)$interval_count <= 0) {
+        if (!Validate::isUnsignedInt($interval_count) || (int) $interval_count <= 0) {
             $this->errors[] = $this->l('Le nombre d\'intervalles doit être un entier positif.');
         }
 
@@ -439,7 +448,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
     {
         $discountValidation = $this->validateDiscountFields(
             Tools::getValue('discount_percent'),
-            Tools::getValue('discount_price')
+            Tools::getValue('discount_price'),
         );
 
         // Échapper et nettoyer les données avant sauvegarde
@@ -448,7 +457,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
 
         return [
             'name' => Validate::isString($name) ? trim($name) : '',
-            'interval_count' => (int)Tools::getValue('interval_count'),
+            'interval_count' => (int) Tools::getValue('interval_count'),
             'interval' => Validate::isString($interval) ? $interval : 'week',
             'discount_percent' => $discountValidation['discount_percent'],
             'discount_price' => $discountValidation['discount_price'],
@@ -461,6 +470,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
      *
      * @param string $discount_percent Valeur du pourcentage de remise
      * @param string $discount_price Valeur du montant de remise
+     *
      * @return array Tableau avec 'discount_percent', 'discount_price' (float|null) et 'errors' (array)
      */
     protected function validateDiscountFields($discount_percent, $discount_price)
@@ -470,18 +480,18 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
         $discount_price_value = null;
 
         // Validation du pourcentage de remise
-        $discount_percent_trimmed = trim((string)$discount_percent);
+        $discount_percent_trimmed = trim((string) $discount_percent);
         if ($discount_percent_trimmed !== '' && $discount_percent_trimmed !== '0' && $discount_percent_trimmed !== '0.00') {
-            $discount_percent_value = (float)$discount_percent;
+            $discount_percent_value = (float) $discount_percent;
             if (!Validate::isFloat($discount_percent) || $discount_percent_value < 0 || $discount_percent_value > 100) {
                 $errors[] = $this->l('Le pourcentage de remise doit être entre 0 et 100.');
             }
         }
 
         // Validation du montant de remise
-        $discount_price_trimmed = trim((string)$discount_price);
+        $discount_price_trimmed = trim((string) $discount_price);
         if ($discount_price_trimmed !== '' && $discount_price_trimmed !== '0' && $discount_price_trimmed !== '0.00') {
-            $discount_price_value = (float)$discount_price;
+            $discount_price_value = (float) $discount_price;
             if (!Validate::isFloat($discount_price) || $discount_price_value < 0) {
                 $errors[] = $this->l('Le montant de remise doit être un nombre positif.');
             }
@@ -500,7 +510,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
     protected function cleanFilterParams()
     {
         $filterKeys = ['filter_key', 'filter_id_frequency', 'filter_name', 'filter_interval_count',
-                       'filter_interval', 'filter_discount_percent', 'filter_discount_price'];
+            'filter_interval', 'filter_discount_percent', 'filter_discount_price'];
 
         $hasFilterParams = false;
         foreach ($filterKeys as $key) {

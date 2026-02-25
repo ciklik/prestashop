@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Ciklik SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -7,8 +8,6 @@
 
 namespace PrestaShop\Module\Ciklik\Data;
 
-use Cart;
-use Order;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 
@@ -41,10 +40,11 @@ class CartSubscriptionData
     /**
      * Crée une instance de CartSubscriptionData à partir d'un panier
      *
-     * @param Cart $cart
+     * @param \Cart $cart
+     *
      * @return CartSubscriptionData
      */
-    public static function fromCart(Cart $cart): CartSubscriptionData
+    public static function fromCart(\Cart $cart): CartSubscriptionData
     {
         $items = [];
         $hasSubscriptions = false;
@@ -58,25 +58,25 @@ class CartSubscriptionData
 
             if ($frequencyData) {
                 $hasSubscriptions = true;
-                
+
                 // Récupère les détails de la fréquence
                 $frequency = CiklikFrequency::getFrequencyById((int) $frequencyData['frequency_id']);
 
                 $items[] = [
-                    'id_product' => (int)$product['id_product'],
-                    'id_product_attribute' => (int)$product['id_product_attribute'],
-                    'quantity' => (int)$product['quantity'],
+                    'id_product' => (int) $product['id_product'],
+                    'id_product_attribute' => (int) $product['id_product_attribute'],
+                    'quantity' => (int) $product['quantity'],
                     'name' => $product['name'],
-                    'price' => (float)$product['price'],
-                    'total_price' => (float)$product['total'],
+                    'price' => (float) $product['price'],
+                    'total_price' => (float) $product['total'],
                     'frequency' => [
-                        'id' => (int)$frequencyData['frequency_id'],
+                        'id' => (int) $frequencyData['frequency_id'],
                         'name' => $frequency['name'],
                         'interval' => $frequency['interval'],
-                        'interval_count' => (int)$frequency['interval_count'],
-                        'discount_percent' => (float)$frequency['discount_percent'],
-                        'discount_price' => (float)$frequency['discount_price']
-                    ]
+                        'interval_count' => (int) $frequency['interval_count'],
+                        'discount_percent' => (float) $frequency['discount_percent'],
+                        'discount_price' => (float) $frequency['discount_price'],
+                    ],
                 ];
             }
         }
@@ -87,10 +87,11 @@ class CartSubscriptionData
     /**
      * Crée une instance de CartSubscriptionData à partir d'une commande
      *
-     * @param Order $order
+     * @param \Order $order
+     *
      * @return CartSubscriptionData
      */
-    public static function fromOrder(Order $order): CartSubscriptionData
+    public static function fromOrder(\Order $order): CartSubscriptionData
     {
         $items = [];
         $hasSubscriptions = false;
@@ -104,25 +105,25 @@ class CartSubscriptionData
 
             if ($frequencyData) {
                 $hasSubscriptions = true;
-                
+
                 // Récupère les détails de la fréquence
                 $frequency = CiklikFrequency::getFrequencyById((int) $frequencyData['frequency_id']);
 
                 $items[] = [
-                    'id_product' => (int)$product['product_id'],
-                    'id_product_attribute' => (int)$product['product_attribute_id'],
-                    'quantity' => (int)$product['product_quantity'],
+                    'id_product' => (int) $product['product_id'],
+                    'id_product_attribute' => (int) $product['product_attribute_id'],
+                    'quantity' => (int) $product['product_quantity'],
                     'name' => $product['product_name'],
-                    'price' => (float)$product['product_price'],
-                    'total_price' => (float)$product['total_price_tax_incl'],
+                    'price' => (float) $product['product_price'],
+                    'total_price' => (float) $product['total_price_tax_incl'],
                     'frequency' => [
-                        'id' => (int)$frequencyData['frequency_id'],
+                        'id' => (int) $frequencyData['frequency_id'],
                         'name' => $frequency['name'],
                         'interval' => $frequency['interval'],
-                        'interval_count' => (int)$frequency['interval_count'],
-                        'discount_percent' => (float)$frequency['discount_percent'],
-                        'discount_price' => (float)$frequency['discount_price']
-                    ]
+                        'interval_count' => (int) $frequency['interval_count'],
+                        'discount_percent' => (float) $frequency['discount_percent'],
+                        'discount_price' => (float) $frequency['discount_price'],
+                    ],
                 ];
             }
         }
@@ -153,7 +154,7 @@ class CartSubscriptionData
     {
         return [
             'items' => $this->items,
-            'has_subscriptions' => $this->hasSubscriptions
+            'has_subscriptions' => $this->hasSubscriptions,
         ];
     }
-} 
+}

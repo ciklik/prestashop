@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -6,8 +7,6 @@
  */
 
 namespace PrestaShop\Module\Ciklik\Addons;
-
-use ModuleAdminController;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -20,8 +19,7 @@ trait Account
         return false;
     }
 
-    public static function injectAccount(ModuleAdminController $controller, $context)
+    public static function injectAccount(\ModuleAdminController $controller, $context)
     {
-        return;
     }
 }

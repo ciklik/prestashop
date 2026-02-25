@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -16,13 +17,13 @@ if (!defined('_PS_VERSION_')) {
 
 class CiklikLogger
 {
-    const MAX_FILES = 15;
+    public const MAX_FILES = 15;
 
     public static function create()
     {
         $rotatingFileHandler = new RotatingFileHandler(
             _PS_ROOT_DIR_ . '/var/logs/ciklik',
-            static::MAX_FILES
+            static::MAX_FILES,
         );
         $logger = new Logger('ciklik');
         $logger->pushHandler($rotatingFileHandler);

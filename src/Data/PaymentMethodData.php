@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -47,7 +48,7 @@ class PaymentMethodData
             $data['id'],
             $data['name'],
             $data['class_key'],
-            $data['description']
+            $data['description'],
         );
     }
 

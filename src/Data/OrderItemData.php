@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -61,7 +62,7 @@ class OrderItemData
             $data['type'],
             $data['price'],
             $data['tax'],
-            $data['quantity']
+            $data['quantity'],
         );
     }
 

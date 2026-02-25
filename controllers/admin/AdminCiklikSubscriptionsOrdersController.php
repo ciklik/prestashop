@@ -1,18 +1,14 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
 
-
-
-
-
 use PrestaShop\Module\Ciklik\Api\Order as ApiOrder;
 use PrestaShop\Module\Ciklik\Api\Subscription as ApiSubscription;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
-
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -28,6 +24,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
      * @param string|null $class Nom de la classe (non utilisé, pour compatibilité)
      * @param bool $addslashes Ajouter des slashes
      * @param bool $htmlentities Encoder les entités HTML
+     *
      * @return string
      */
     protected function l($string, $class = null, $addslashes = false, $htmlentities = true)
@@ -37,8 +34,9 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             if (!$this->module) {
                 return $string;
             }
+
             return $this->module->l($string, 'AdminCiklikSubscriptionsOrdersController', $addslashes, $htmlentities);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $string;
         }
     }
@@ -94,7 +92,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
 
     /**
      * Initialise le contenu de la page
-     * 
+     *
      * @return void
      */
     public function initContent()
@@ -129,7 +127,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             $options = $this->buildApiOptions($filters, 'subscriptions');
             $options['query']['sort'] = '-created_at';
             $response = $apiClient->index($options);
-            
+
             // La réponse doit être au format standard : ['status' => true, 'body' => [...], 'meta' => [...]]
             if ($response && isset($response['status'])) {
                 if ($response['status']) {
@@ -147,15 +145,14 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                                 'created_at' => $subscription->created_at ? $subscription->created_at->format('Y-m-d H:i:s') : '',
                                 'end_date' => $subscription->end_date ? $subscription->end_date->format('Y-m-d') : '',
                             ];
-                            
+
                             // Extraire l'ID client depuis external_fingerprint
-                            if (isset($subscription->external_fingerprint) && 
-                                is_object($subscription->external_fingerprint) && 
-                                isset($subscription->external_fingerprint->id_customer) && 
-                                $subscription->external_fingerprint->id_customer > 0) {
-                                
-                                $customer = new \Customer((int)$subscription->external_fingerprint->id_customer);
-                                if (\Validate::isLoadedObject($customer)) {
+                            if (isset($subscription->external_fingerprint)
+                                && is_object($subscription->external_fingerprint)
+                                && isset($subscription->external_fingerprint->id_customer)
+                                && $subscription->external_fingerprint->id_customer > 0) {
+                                $customer = new Customer((int) $subscription->external_fingerprint->id_customer);
+                                if (Validate::isLoadedObject($customer)) {
                                     $subscriptionData['customer_email'] = $customer->email;
                                     $subscriptionData['customer_id'] = $customer->id;
                                     $subscriptionData['customer_link'] = $this->context->link->getAdminLink(
@@ -163,25 +160,25 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                                         true,
                                         [],
                                         [
-                                            'id_customer' => (int)$customer->id,
+                                            'id_customer' => (int) $customer->id,
                                             'viewcustomer' => 1,
-                                        ]
+                                        ],
                                     );
                                 }
                             }
-                            
+
                             $subscriptions[] = $subscriptionData;
                         }
                     }
                     $pagination = $this->extractPagination($response);
                 } else {
-                    $errors[] = $this->l('Erreur lors de la récupération des abonnements: ') . 
+                    $errors[] = $this->l('Erreur lors de la récupération des abonnements: ') .
                         $this->formatApiErrors($response);
                 }
             } else {
                 $errors[] = $this->l('Format de réponse API inattendu lors de la récupération des abonnements.');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Échappement XSS du message d'exception (source externe potentiellement non fiable)
             $errors[] = $this->l('Erreur API: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
@@ -197,13 +194,13 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
         ]);
 
         return $this->context->smarty->fetch(
-            _PS_MODULE_DIR_ . 'ciklik/views/templates/admin/subscriptions_orders/subscriptions.tpl'
+            _PS_MODULE_DIR_ . 'ciklik/views/templates/admin/subscriptions_orders/subscriptions.tpl',
         );
     }
 
     /**
      * Affiche la liste des commandes
-     * 
+     *
      * @return string HTML de la liste des commandes
      */
     protected function renderOrdersList()
@@ -217,10 +214,9 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             $apiClient = new ApiOrder($this->context->link);
             $options = $this->buildApiOptions($filters, 'orders');
             // Ajouter le tri par updated_at descendant pour toujours avoir les dernières mises à jour en haut
-           
+
             $options['query']['sort'] = '-updated_at';
 
-        
             $response = $apiClient->index($options);
 
             if ($response && isset($response['status']) && $response['status']) {
@@ -242,10 +238,10 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                 }
                 $pagination = $this->extractPagination($response);
             } else {
-                $errors[] = $this->l('Erreur lors de la récupération des commandes: ') . 
+                $errors[] = $this->l('Erreur lors de la récupération des commandes: ') .
                     $this->formatApiErrors($response);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Échappement XSS du message d'exception (source externe potentiellement non fiable)
             $errors[] = $this->l('Erreur API: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
@@ -254,7 +250,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
         $ordersWithLinks = [];
         foreach ($orders as $order) {
             $orderWithLink = $order;
-            
+
             // Lien vers la commande PrestaShop
             if (isset($order['prestashop_order_id']) && !empty($order['prestashop_order_id'])) {
                 $orderWithLink['prestashop_order_link'] = $this->context->link->getAdminLink(
@@ -263,16 +259,16 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                     [],
                     [
                         'vieworder' => 1,
-                        'id_order' => (int)$order['prestashop_order_id'],
-                    ]
+                        'id_order' => (int) $order['prestashop_order_id'],
+                    ],
                 );
             }
-            
+
             // Récupérer les informations du client PrestaShop à partir de l'UUID Ciklik
             if (isset($order['user_uuid']) && !empty($order['user_uuid'])) {
                 $ciklikCustomer = CiklikCustomer::getByCiklikUuid($order['user_uuid']);
                 if ($ciklikCustomer && isset($ciklikCustomer['id_customer']) && $ciklikCustomer['id_customer'] > 0) {
-                    $customer = new Customer((int)$ciklikCustomer['id_customer']);
+                    $customer = new Customer((int) $ciklikCustomer['id_customer']);
                     if (Validate::isLoadedObject($customer)) {
                         $orderWithLink['customer_email'] = $customer->email;
                         $orderWithLink['customer_id'] = $customer->id;
@@ -281,14 +277,14 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                             true,
                             [],
                             [
-                                'id_customer' => (int)$customer->id,
+                                'id_customer' => (int) $customer->id,
                                 'viewcustomer' => 1,
-                            ]
+                            ],
                         );
                     }
                 }
             }
-            
+
             $ordersWithLinks[] = $orderWithLink;
         }
 
@@ -303,13 +299,13 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
         ]);
 
         return $this->context->smarty->fetch(
-            _PS_MODULE_DIR_ . 'ciklik/views/templates/admin/subscriptions_orders/orders.tpl'
+            _PS_MODULE_DIR_ . 'ciklik/views/templates/admin/subscriptions_orders/orders.tpl',
         );
     }
 
     /**
      * Récupère les filtres pour les abonnements depuis la requête
-     * 
+     *
      * @return array Tableau des filtres
      */
     protected function getSubscriptionFilters()
@@ -319,47 +315,48 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             'filter_activated' => Tools::getValue('filter_activated', ''),
             'filter_canceled' => Tools::getValue('filter_canceled', ''),
             'filter_expired' => Tools::getValue('filter_expired', ''),
-            'filter_subscriptions_by_email' => Tools::substr(trim((string)Tools::getValue('filter_subscriptions_by_email', '')), 0, 255),
-            'filter_customer_id' => (int)Tools::getValue('filter_customer_id', 0),
-            'filter_created_at_before' => Tools::substr(trim((string)Tools::getValue('filter_created_at_before', '')), 0, 50),
-            'filter_created_at_after' => Tools::substr(trim((string)Tools::getValue('filter_created_at_after', '')), 0, 50),
-            'filter_canceled_at_before' => Tools::substr(trim((string)Tools::getValue('filter_canceled_at_before', '')), 0, 50),
-            'filter_canceled_at_after' => Tools::substr(trim((string)Tools::getValue('filter_canceled_at_after', '')), 0, 50),
-            'subscriptions_page' => max(1, (int)Tools::getValue('subscriptions_page', 1)),
-            'subscriptions_per_page' => max(1, min(100, (int)Tools::getValue('subscriptions_per_page', 20))),
+            'filter_subscriptions_by_email' => Tools::substr(trim((string) Tools::getValue('filter_subscriptions_by_email', '')), 0, 255),
+            'filter_customer_id' => (int) Tools::getValue('filter_customer_id', 0),
+            'filter_created_at_before' => Tools::substr(trim((string) Tools::getValue('filter_created_at_before', '')), 0, 50),
+            'filter_created_at_after' => Tools::substr(trim((string) Tools::getValue('filter_created_at_after', '')), 0, 50),
+            'filter_canceled_at_before' => Tools::substr(trim((string) Tools::getValue('filter_canceled_at_before', '')), 0, 50),
+            'filter_canceled_at_after' => Tools::substr(trim((string) Tools::getValue('filter_canceled_at_after', '')), 0, 50),
+            'subscriptions_page' => max(1, (int) Tools::getValue('subscriptions_page', 1)),
+            'subscriptions_per_page' => max(1, min(100, (int) Tools::getValue('subscriptions_per_page', 20))),
         ];
     }
 
     /**
      * Récupère les filtres pour les commandes depuis la requête
-     * 
+     *
      * @return array Tableau des filtres
      */
     protected function getOrderFilters()
     {
         // Récupérer et nettoyer les filtres pour éviter les injections
         return [
-            'filter_status' => Tools::substr(trim((string)Tools::getValue('filter_status', '')), 0, 50),
-            'filter_subscription_uuid' => Tools::substr(trim((string)Tools::getValue('filter_subscription_uuid', '')), 0, 255),
-            'filter_user_id' => Tools::substr(trim((string)Tools::getValue('filter_user_id', '')), 0, 255),
-            'filter_total_paid' => Tools::substr(trim((string)Tools::getValue('filter_total_paid', '')), 0, 50),
-            'filter_source' => Tools::substr(trim((string)Tools::getValue('filter_source', '')), 0, 50),
-            'filter_by_customer_uuid' => Tools::substr(trim((string)Tools::getValue('filter_by_customer_uuid', '')), 0, 255),
-            'filter_prestashop_order_id' => (int)Tools::getValue('filter_prestashop_order_id', 0),
-            'filter_created_at_before' => Tools::substr(trim((string)Tools::getValue('filter_created_at_before', '')), 0, 50),
-            'filter_created_at_after' => Tools::substr(trim((string)Tools::getValue('filter_created_at_after', '')), 0, 50),
-            'filter_updated_at_before' => Tools::substr(trim((string)Tools::getValue('filter_updated_at_before', '')), 0, 50),
-            'filter_updated_at_after' => Tools::substr(trim((string)Tools::getValue('filter_updated_at_after', '')), 0, 50),
-            'orders_page' => max(1, (int)Tools::getValue('orders_page', 1)),
-            'orders_per_page' => max(1, min(100, (int)Tools::getValue('orders_per_page', 20))),
+            'filter_status' => Tools::substr(trim((string) Tools::getValue('filter_status', '')), 0, 50),
+            'filter_subscription_uuid' => Tools::substr(trim((string) Tools::getValue('filter_subscription_uuid', '')), 0, 255),
+            'filter_user_id' => Tools::substr(trim((string) Tools::getValue('filter_user_id', '')), 0, 255),
+            'filter_total_paid' => Tools::substr(trim((string) Tools::getValue('filter_total_paid', '')), 0, 50),
+            'filter_source' => Tools::substr(trim((string) Tools::getValue('filter_source', '')), 0, 50),
+            'filter_by_customer_uuid' => Tools::substr(trim((string) Tools::getValue('filter_by_customer_uuid', '')), 0, 255),
+            'filter_prestashop_order_id' => (int) Tools::getValue('filter_prestashop_order_id', 0),
+            'filter_created_at_before' => Tools::substr(trim((string) Tools::getValue('filter_created_at_before', '')), 0, 50),
+            'filter_created_at_after' => Tools::substr(trim((string) Tools::getValue('filter_created_at_after', '')), 0, 50),
+            'filter_updated_at_before' => Tools::substr(trim((string) Tools::getValue('filter_updated_at_before', '')), 0, 50),
+            'filter_updated_at_after' => Tools::substr(trim((string) Tools::getValue('filter_updated_at_after', '')), 0, 50),
+            'orders_page' => max(1, (int) Tools::getValue('orders_page', 1)),
+            'orders_per_page' => max(1, min(100, (int) Tools::getValue('orders_per_page', 20))),
         ];
     }
 
     /**
      * Construit les options API à partir des filtres
-     * 
+     *
      * @param array $filters Tableau des filtres
      * @param string $type Type de données ('subscriptions' ou 'orders')
+     *
      * @return array Options formatées pour l'API
      */
     protected function buildApiOptions($filters, $type)
@@ -370,8 +367,8 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
         // Construire le tableau de filtres
         foreach ($filters as $key => $value) {
             // Gérer les clés de pagination
-            if ($key === 'subscriptions_page' || $key === 'subscriptions_per_page' || 
-                $key === 'orders_page' || $key === 'orders_per_page') {
+            if ($key === 'subscriptions_page' || $key === 'subscriptions_per_page'
+                || $key === 'orders_page' || $key === 'orders_per_page') {
                 if ($key === 'subscriptions_page' || $key === 'orders_page') {
                     $query['page'] = $value;
                 } elseif ($key === 'subscriptions_per_page' || $key === 'orders_per_page') {
@@ -383,10 +380,10 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             if (!empty($value)) {
                 // Supprimer le préfixe 'filter_' pour l'API
                 $apiKey = str_replace('filter_', '', $key);
-                
+
                 // Valider et échapper la valeur avant de l'envoyer à l'API
                 $sanitizedValue = is_string($value) ? Tools::substr(trim($value), 0, 255) : $value;
-                
+
                 // Gérer les filtres de date
                 if (strpos($apiKey, '_before') !== false || strpos($apiKey, '_after') !== false) {
                     $filterKey = str_replace(['_before', '_after'], '', $apiKey);
@@ -425,8 +422,9 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
 
     /**
      * Extrait les informations de pagination de la réponse API
-     * 
+     *
      * @param array $response Réponse de l'API
+     *
      * @return array Tableau avec les informations de pagination
      */
     protected function extractPagination($response)
@@ -443,22 +441,22 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
 
         if ($meta) {
             if (isset($meta['current_page'])) {
-                $pagination['current_page'] = (int)$meta['current_page'];
+                $pagination['current_page'] = (int) $meta['current_page'];
             }
             if (isset($meta['per_page'])) {
-                $pagination['per_page'] = (int)$meta['per_page'];
+                $pagination['per_page'] = (int) $meta['per_page'];
             }
             if (isset($meta['total'])) {
-                $pagination['total'] = (int)$meta['total'];
+                $pagination['total'] = (int) $meta['total'];
             }
             if (isset($meta['last_page'])) {
-                $pagination['last_page'] = (int)$meta['last_page'];
+                $pagination['last_page'] = (int) $meta['last_page'];
             }
             if (isset($meta['from'])) {
-                $pagination['from'] = (int)$meta['from'];
+                $pagination['from'] = (int) $meta['from'];
             }
             if (isset($meta['to'])) {
-                $pagination['to'] = (int)$meta['to'];
+                $pagination['to'] = (int) $meta['to'];
             }
             if (isset($meta['path'])) {
                 $pagination['path'] = $meta['path'];
@@ -472,7 +470,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
         if (isset($pagination['last_page']) && $pagination['last_page'] > 0) {
             $pagination['total_pages'] = $pagination['last_page'];
         } elseif ($pagination['per_page'] > 0 && $pagination['total'] > 0) {
-            $pagination['total_pages'] = (int)ceil($pagination['total'] / $pagination['per_page']);
+            $pagination['total_pages'] = (int) ceil($pagination['total'] / $pagination['per_page']);
             if (!isset($pagination['last_page']) || $pagination['last_page'] < 1) {
                 $pagination['last_page'] = $pagination['total_pages'];
             }
@@ -490,15 +488,16 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
     /**
      * Formate les erreurs de l'API en chaîne de caractères
      * Gère différents formats d'erreurs (tableau simple, tableau associatif, etc.)
-     * 
+     *
      * @param array $response Réponse de l'API
+     *
      * @return string Message d'erreur formaté
      */
     protected function formatApiErrors($response)
     {
         if (isset($response['errors']) && is_array($response['errors']) && !empty($response['errors'])) {
             $errorMessages = [];
-            
+
             foreach ($response['errors'] as $key => $error) {
                 if (is_array($error)) {
                     // Si c'est un tableau associatif (ex: {"sort": ["message1", "message2"]})
@@ -528,64 +527,65 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                     $errorMessages[] = $error;
                 }
             }
-            
+
             if (!empty($errorMessages)) {
                 return implode(', ', $errorMessages);
             }
         }
-        
+
         // Fallback sur le message si disponible
         if (isset($response['message']) && !empty($response['message'])) {
             return $response['message'];
         }
-        
+
         return $this->l('Erreur inconnue');
     }
 
     /**
      * Construit les liens de pagination en préservant les filtres actuels
-     * 
+     *
      * @param array $filters Filtres actuels
      * @param array $pagination Informations de pagination
      * @param string $tab Onglet actif ('subscriptions' ou 'orders')
+     *
      * @return array Tableau avec les liens de pagination (prev, next, pages)
      */
     protected function buildPaginationLinks($filters, $pagination, $tab)
     {
-        $currentPage = isset($pagination['current_page']) ? (int)$pagination['current_page'] : 1;
-        $totalPages = isset($pagination['total_pages']) ? (int)$pagination['total_pages'] : 1;
-        
+        $currentPage = isset($pagination['current_page']) ? (int) $pagination['current_page'] : 1;
+        $totalPages = isset($pagination['total_pages']) ? (int) $pagination['total_pages'] : 1;
+
         // Construire les paramètres de base pour les liens
         $baseParams = [
             'controller' => 'AdminCiklikSubscriptionsOrders',
             'token' => $this->token,
             'tab' => $tab,
         ];
-        
+
         // Ajouter tous les filtres non vides avec validation et échappement
         foreach ($filters as $key => $value) {
-            if (!empty($value) && $key !== 'subscriptions_page' && $key !== 'orders_page' && 
-                $key !== 'subscriptions_per_page' && $key !== 'orders_per_page') {
+            if (!empty($value) && $key !== 'subscriptions_page' && $key !== 'orders_page'
+                && $key !== 'subscriptions_per_page' && $key !== 'orders_per_page') {
                 // Valider et échapper les valeurs pour éviter les injections dans les URLs
                 if (is_string($value)) {
                     // Limiter la longueur et échapper les caractères spéciaux
                     $value = Tools::substr($value, 0, 255);
                     $baseParams[$key] = Tools::safeOutput($value);
                 } elseif (is_numeric($value)) {
-                    $baseParams[$key] = (int)$value;
+                    $baseParams[$key] = (int) $value;
                 } else {
-                    $baseParams[$key] = Tools::safeOutput((string)$value);
+                    $baseParams[$key] = Tools::safeOutput((string) $value);
                 }
             }
         }
-        
+
         // Ajouter le paramètre per_page si défini
         if ($tab === 'subscriptions' && isset($filters['subscriptions_per_page'])) {
             $baseParams['subscriptions_per_page'] = $filters['subscriptions_per_page'];
         } elseif ($tab === 'orders' && isset($filters['orders_per_page'])) {
             $baseParams['orders_per_page'] = $filters['orders_per_page'];
         }
-        
+
         $links = [
             'prev' => null,
             'next' => null,
@@ -593,7 +593,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             'last' => null,
             'pages' => [],
         ];
-        
+
         // Lien précédent
         if ($currentPage > 1) {
             $prevParams = $baseParams;
@@ -604,7 +604,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             }
             $links['prev'] = $this->context->link->getAdminLink('AdminCiklikSubscriptionsOrders', true, [], $prevParams);
         }
-        
+
         // Lien suivant
         if ($currentPage < $totalPages) {
             $nextParams = $baseParams;
@@ -615,7 +615,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             }
             $links['next'] = $this->context->link->getAdminLink('AdminCiklikSubscriptionsOrders', true, [], $nextParams);
         }
-        
+
         // Lien première page
         if ($currentPage > 1) {
             $firstParams = $baseParams;
@@ -626,7 +626,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             }
             $links['first'] = $this->context->link->getAdminLink('AdminCiklikSubscriptionsOrders', true, [], $firstParams);
         }
-        
+
         // Lien dernière page
         if ($currentPage < $totalPages) {
             $lastParams = $baseParams;
@@ -637,12 +637,12 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             }
             $links['last'] = $this->context->link->getAdminLink('AdminCiklikSubscriptionsOrders', true, [], $lastParams);
         }
-        
+
         // Générer les liens pour les pages (maximum 5 pages autour de la page actuelle)
         $startPage = max(1, $currentPage - 2);
         $endPage = min($totalPages, $currentPage + 2);
-        
-        for ($page = $startPage; $page <= $endPage; $page++) {
+
+        for ($page = $startPage; $page <= $endPage; ++$page) {
             $pageParams = $baseParams;
             if ($tab === 'subscriptions') {
                 $pageParams['subscriptions_page'] = $page;
@@ -655,8 +655,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                 'current' => ($page === $currentPage),
             ];
         }
-        
+
         return $links;
     }
 }
-

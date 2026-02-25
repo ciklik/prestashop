@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -6,8 +7,6 @@
  */
 
 namespace PrestaShop\Module\Ciklik\Data;
-
-use Cart;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -70,7 +69,7 @@ class OrderValidationData
         $this->secure_key = $secure_key;
     }
 
-    public static function create(Cart $cart, OrderData $orderData): OrderValidationData
+    public static function create(\Cart $cart, OrderData $orderData): OrderValidationData
     {
         return new self(
             $cart->id,
@@ -83,7 +82,7 @@ class OrderValidationData
             ],
             $cart->id_currency,
             false,
-            $cart->secure_key
+            $cart->secure_key,
         );
     }
 }

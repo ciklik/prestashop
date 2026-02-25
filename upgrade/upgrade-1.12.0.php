@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Ciklik SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS

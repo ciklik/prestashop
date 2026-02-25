@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -76,7 +77,7 @@ class SqlQueries
                 `discount_price` decimal(20,6),
                 PRIMARY KEY (`id_frequency`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;',
-            
+
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'ciklik_product_frequency` (
                 `id_product` int(10) unsigned NOT NULL,
                 `id_frequency` int(10) unsigned NOT NULL,
@@ -98,7 +99,7 @@ class SqlQueries
                 KEY `product_id` (`product_id`),
                 KEY `customer_id` (`customer_id`),
                 KEY `guest_id` (`guest_id`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;',
         ];
     }
 
@@ -110,5 +111,4 @@ class SqlQueries
             'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_items_frequency`',
         ];
     }
-    
 }

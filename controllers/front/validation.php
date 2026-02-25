@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -54,10 +55,10 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
             $orderValidationData->extra_vars,
             $orderValidationData->currency_special,
             $orderValidationData->dont_touch_amount,
-            $orderValidationData->secure_key
+            $orderValidationData->secure_key,
         );
 
-        if(Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)){ 
+        if (Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
             // Lier les fréquences du panier à la commande
             CiklikItemFrequency::updateOrderIdFromCart($this->context->cart->id, $this->module->currentOrder);
         }
@@ -79,7 +80,7 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
                 'id_module' => (int) $this->module->id,
                 'id_order' => (int) $this->module->currentOrder,
                 'key' => $customer->secure_key,
-            ]
+            ],
         ));
     }
 
@@ -91,7 +92,7 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
             (int) $this->context->language->id,
             [
                 'step' => 1,
-            ]
+            ],
         ));
     }
 

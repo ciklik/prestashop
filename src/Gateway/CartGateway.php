@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -9,21 +10,15 @@ declare(strict_types=1);
 
 namespace PrestaShop\Module\Ciklik\Gateway;
 
-use Carrier;
-use Cart;
 use Ciklik;
 use Configuration;
 use Context;
-use Customer;
-use Db;
-use DbQuery;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomization;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use PrestaShop\Module\Ciklik\Managers\DeliveryModuleManager;
 use Product;
-use Tools;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -33,7 +28,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
 {
     public function get()
     {
-        $filters = Tools::getValue('filter');
+        $filters = \Tools::getValue('filter');
 
         if (!array_key_exists('id', $filters)) {
             (new Response())->setBody(['error' => 'Missing parameter : id'])->sendBadRequest();
@@ -45,7 +40,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
             (new Response())->setBody(['error' => 'Bad parameter : id'])->sendBadRequest();
         }
 
-        $cart = new Cart((int) $matches['id']);
+        $cart = new \Cart((int) $matches['id']);
 
         if (!$cart->id) {
             (new Response())->setBody(['error' => 'Cart not found'])->sendNotFound();
@@ -55,8 +50,8 @@ class CartGateway extends AbstractGateway implements EntityGateway
     }
 
     public function post()
-    {        
-        $cartFingerprint = Tools::getValue('fingerprint', null);
+    {
+        $cartFingerprint = \Tools::getValue('fingerprint', null);
 
         if (is_null($cartFingerprint)) {
             (new Response())->setBody(['error' => 'Missing parameter : fingerprint'])->sendBadRequest();
@@ -64,19 +59,19 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
         $cartFingerprintData = CartFingerprintData::extractDatas($cartFingerprint);
 
-        $customer = new Customer($cartFingerprintData->id_customer);
+        $customer = new \Customer($cartFingerprintData->id_customer);
 
         if (!$customer->id) {
             (new Response())->setBody(['error' => 'Customer not found'])->sendNotFound();
         }
 
-        $carrier = Carrier::getCarrierByReference($cartFingerprintData->id_carrier_reference);
+        $carrier = \Carrier::getCarrierByReference($cartFingerprintData->id_carrier_reference);
 
         if ($carrier === false) {
-            $carrier = new Carrier((int) Configuration::get('PS_CARRIER_DEFAULT'));
+            $carrier = new \Carrier((int) \Configuration::get('PS_CARRIER_DEFAULT'));
         }
 
-        $cart = new Cart();
+        $cart = new \Cart();
         $cart->id_customer = $cartFingerprintData->id_customer;
         $cart->id_address_delivery = $cartFingerprintData->id_address_delivery;
         $cart->id_address_invoice = $cartFingerprintData->id_address_invoice;
@@ -86,9 +81,9 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $cart->gift = 0;
         $cart->secure_key = $customer->secure_key;
         $cart->add();
-        
+
         // Ajout du panier au contexte
-        $context = Context::getContext();
+        $context = \Context::getContext();
         $context->customer = $customer;
         $context->cart = $cart;
 
@@ -105,8 +100,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $cart->id_carrier = $carrier->id;
         $cart->update();
 
-        $variants = Tools::getValue('products', null);
-
+        $variants = \Tools::getValue('products', null);
 
         if (is_null($variants)) {
             (new Response())->setBody(['error' => 'Missing parameter : products'])->sendBadRequest();
@@ -115,7 +109,6 @@ class CartGateway extends AbstractGateway implements EntityGateway
         if (!is_array($variants)) {
             (new Response())->setBody(['error' => 'Bad parameter : products'])->sendBadRequest();
         }
-        
 
         // Préparer les customizations avant d'ajouter les produits
         $customizationInstances = [];
@@ -124,7 +117,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
                 // Extraire id_product et id_product_attribute du productKey (format: "id_product:id_product_attribute_hash")
                 $productKeyParts = explode(':', $productKey);
                 $id_product = (int) $productKeyParts[0];
-                
+
                 // Extraire id_product_attribute avant le hash (underscore)
                 $id_product_attribute_part = $productKeyParts[1];
                 if (strpos($id_product_attribute_part, '_') !== false) {
@@ -133,29 +126,29 @@ class CartGateway extends AbstractGateway implements EntityGateway
                 } else {
                     $id_product_attribute = (int) $id_product_attribute_part;
                 }
-                
+
                 // Vérifier l'existence de l'id_product_attribute si différent de 0 et si la configuration est activée
-                if ($id_product_attribute != 0 && Configuration::get(Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE)) {
-                    $query = new DbQuery();
+                if ($id_product_attribute != 0 && \Configuration::get(\Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE)) {
+                    $query = new \DbQuery();
                     $query->select('COUNT(*)');
                     $query->from('product_attribute');
                     $query->where('`id_product` = ' . (int) $id_product);
                     $query->where('`id_product_attribute` = ' . (int) $id_product_attribute);
-                    
+
                     // Si la combinaison n'existe pas, utiliser l'attribut par défaut
-                    if (!Db::getInstance()->getValue($query)) {
+                    if (!\Db::getInstance()->getValue($query)) {
                         \PrestaShopLogger::addLog(
                             'Falling back to default attribute for product ' . $id_product . ' with variant ' . $id_product_attribute . ' in customizations',
                             3,
                             null,
                             'ciklik',
                             $cart->id,
-                            true
+                            true,
                         );
-                        $id_product_attribute = (int) Product::getDefaultAttribute((int) $id_product);
+                        $id_product_attribute = (int) \Product::getDefaultAttribute((int) $id_product);
                     }
                 }
-                
+
                 // Créer les customizations pour cette instance spécifique
                 $instanceCustomizations = [];
                 if (!empty($customizations)) {
@@ -167,38 +160,38 @@ class CartGateway extends AbstractGateway implements EntityGateway
                             break; // On prend la première quantité trouvée
                         }
                     }
-                    
+
                     $id_customization = $this->createCustomizationForProduct($cart, $id_product, $id_product_attribute, $customizations, $quantity);
                     if ($id_customization) {
                         $instanceCustomizations[] = $id_customization;
                     }
                 }
-                
+
                 // Stocker cette instance avec ses customizations
                 $customizationInstances[] = [
                     'id_product' => $id_product,
                     'id_product_attribute' => $id_product_attribute,
-                    'customizations' => $instanceCustomizations
+                    'customizations' => $instanceCustomizations,
                 ];
             }
         }
 
         foreach ($variants as $variant) {
             $parts = explode(':', $variant);
-            
+
             // Format: id_product_attribute:quantity
             if (count($parts) === 2) {
                 list($id_variant, $quantity) = $parts;
-                $query = new DbQuery();
+                $query = new \DbQuery();
                 $query->select('`id_product`');
                 $query->from('product_attribute');
                 $query->where('`id_product_attribute` = ' . (int) $id_variant);
-                $id_product = Db::getInstance()->getValue($query);
+                $id_product = \Db::getInstance()->getValue($query);
             }
             // Format: id_product:id_product_attribute:quantity ou id_product:id_product_attribute_hash:quantity
-            else if (count($parts) === 3) {
+            elseif (count($parts) === 3) {
                 list($id_product, $id_variant_part, $quantity) = $parts;
-                
+
                 // Vérifier si l'id_variant contient un hash (underscore)
                 if (strpos($id_variant_part, '_') !== false) {
                     // Extraire l'id_product_attribute avant l'underscore
@@ -209,26 +202,26 @@ class CartGateway extends AbstractGateway implements EntityGateway
                     $id_variant = (int) $id_variant_part;
                     $productKey = $id_product . '_' . $id_variant;
                 }
-                
+
                 // Vérifier l'existence de l'id_variant si différent de 0 et si la configuration est activée
-                if ($id_variant != 0 && Configuration::get(Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE)) {
-                    $query = new DbQuery();
+                if ($id_variant != 0 && \Configuration::get(\Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE)) {
+                    $query = new \DbQuery();
                     $query->select('COUNT(*)');
                     $query->from('product_attribute');
                     $query->where('`id_product` = ' . (int) $id_product);
                     $query->where('`id_product_attribute` = ' . (int) $id_variant);
-                    
+
                     // Si la combinaison n'existe pas, utiliser l'attribut par défaut
-                    if (!Db::getInstance()->getValue($query)) {
+                    if (!\Db::getInstance()->getValue($query)) {
                         \PrestaShopLogger::addLog(
                             'Falling back to default attribute for product ' . $id_product . ' with variant ' . $id_variant,
                             3,
                             null,
                             'ciklik',
                             $cart->id,
-                            true
+                            true,
                         );
-                        $id_variant = (int) Product::getDefaultAttribute((int) $id_product);
+                        $id_variant = (int) \Product::getDefaultAttribute((int) $id_product);
                         // Mettre à jour le productKey si nécessaire
                         if (strpos($id_variant_part, '_') !== false) {
                             $productKey = $id_product . '_' . $id_variant . '_' . $id_variant_parts[1];
@@ -237,7 +230,6 @@ class CartGateway extends AbstractGateway implements EntityGateway
                         }
                     }
                 }
-                
             }
 
             if (!$id_product && count($parts) === 2) {
@@ -246,12 +238,12 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
             // Ajouter le produit avec sa customization si elle existe
             $id_customization = null;
-            
+
             // Chercher une instance avec des customizations pour ce produit
             foreach ($customizationInstances as $index => $instance) {
-                if ($instance['id_product'] == $id_product && 
-                    $instance['id_product_attribute'] == $id_variant && 
-                    !empty($instance['customizations'])) {
+                if ($instance['id_product'] == $id_product
+                    && $instance['id_product_attribute'] == $id_variant
+                    && !empty($instance['customizations'])) {
                     // Prendre la première customization pour créer la ligne
                     $id_customization = array_shift($instance['customizations']);
                     // Retirer cette instance pour éviter de la réutiliser
@@ -259,62 +251,60 @@ class CartGateway extends AbstractGateway implements EntityGateway
                     break;
                 }
             }
-            
-            
+
             // Ajouter le produit avec sa customization
             $cart->updateQty($quantity, (int) $id_product, (int) $id_variant, $id_customization);
-          
-            //vérifier la quantité après updateQty
+
+            // vérifier la quantité après updateQty
             if ($id_customization) {
-                Db::getInstance()->getValue(
-                    'SELECT quantity FROM ' . _DB_PREFIX_ . 'customization WHERE id_customization = ' . (int) $id_customization
+                \Db::getInstance()->getValue(
+                    'SELECT quantity FROM ' . _DB_PREFIX_ . 'customization WHERE id_customization = ' . (int) $id_customization,
                 );
-                
+
                 // Forcer la quantité car PrestaShop l'a mise à jour avec la quantité du produit
-                Db::getInstance()->update(
+                \Db::getInstance()->update(
                     'customization',
                     ['quantity' => $quantity],
-                    'id_customization = ' . (int) $id_customization
+                    'id_customization = ' . (int) $id_customization,
                 );
                 // Forcer l'adresse de la custo, car Prestashop la supprime pendant la mise à jour du panier.
-                Db::getInstance()->update(
+                \Db::getInstance()->update(
                     'customization',
                     ['id_address_delivery' => (int) $cartFingerprintData->id_address_delivery],
-                    'id_customization = ' . (int) $id_customization
+                    'id_customization = ' . (int) $id_customization,
                 );
             }
-            
         }
 
         // Récupération des produits additionnels (upsells) depuis les paramètres de la requête
-        $upsells = Tools::getValue('upsells', null);
+        $upsells = \Tools::getValue('upsells', null);
 
         // Si des upsells sont présents dans la requête
-        if(!is_null($upsells) && !empty($upsells)) {
-            foreach($upsells as $product) {
+        if (!is_null($upsells) && !empty($upsells)) {
+            foreach ($upsells as $product) {
                 // Décomposition de la chaîne "id_product:id_product_attribute:quantity"
                 list($id_product, $id_product_attribute, $quantity) = explode(':', $product);
                 // Si pas d'attribut de produit, on met 0 par défaut
                 $id_product_attribute = empty($id_product_attribute) ? 0 : $id_product_attribute;
-                
+
                 // Vérification de l'existence du produit dans la base
-                $query = new DbQuery();
+                $query = new \DbQuery();
                 $query->select('COUNT(*)');
                 $query->from('product');
-                $query->where('`id_product` = ' . (int)$id_product);
-                
+                $query->where('`id_product` = ' . (int) $id_product);
+
                 // Si le produit existe
-                if (Db::getInstance()->getValue($query)) {
+                if (\Db::getInstance()->getValue($query)) {
                     // Si un attribut de produit est spécifié, on vérifie son existence
                     if ($id_product_attribute > 0) {
-                        $query = new DbQuery();
+                        $query = new \DbQuery();
                         $query->select('COUNT(*)');
                         $query->from('product_attribute');
-                        $query->where('`id_product` = ' . (int)$id_product);
-                        $query->where('`id_product_attribute` = ' . (int)$id_product_attribute);
-    
+                        $query->where('`id_product` = ' . (int) $id_product);
+                        $query->where('`id_product_attribute` = ' . (int) $id_product_attribute);
+
                         // Si la combinaison n'existe pas, on renvoie une erreur 404
-                        if (!Db::getInstance()->getValue($query)) {
+                        if (!\Db::getInstance()->getValue($query)) {
                             (new Response())->setBody(['error' => "Product combination {$id_product_attribute} not found"])->sendNotFound();
                         }
                     }
@@ -322,7 +312,6 @@ class CartGateway extends AbstractGateway implements EntityGateway
                     // Mise à jour de la quantité du produit dans le panier
                     $cart->updateQty($quantity, (int) $id_product, (int) $id_product_attribute);
                 }
-                            
             }
         }
 
@@ -332,7 +321,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $this->cartResponse($cart, false, $cartFingerprintData->upsells);
     }
 
-    private function cartResponse(Cart $cart, $withLinks = true, $upsells = [])
+    private function cartResponse(\Cart $cart, $withLinks = true, $upsells = [])
     {
         $items = [];
 
@@ -341,33 +330,31 @@ class CartGateway extends AbstractGateway implements EntityGateway
          * Pour gérer les cart_rules.
          * Sans Context, pas de discount
          */
-        $context = Context::getContext();
-        $customer = new Customer($cart->id_customer);
+        $context = \Context::getContext();
+        $customer = new \Customer($cart->id_customer);
         $context->customer = $customer;
         $context->cart = $cart;
 
-        $summary = $cart->getRawSummaryDetails((int) Configuration::get('PS_LANG_DEFAULT'));
+        $summary = $cart->getRawSummaryDetails((int) \Configuration::get('PS_LANG_DEFAULT'));
 
-        $ciklik_frequency = Tools::getValue('ciklik_frequency', null);
+        $ciklik_frequency = \Tools::getValue('ciklik_frequency', null);
 
         foreach ($summary['products'] as $product) {
             $customized_datas = \Product::getAllCustomizedDatas($cart->id, null, true, $cart->id_shop, (int) $product['id_customization']);
 
-            if (Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE) && $withLinks === true) {
+            if (\Configuration::get(\Ciklik::CONFIG_USE_FREQUENCY_MODE) && $withLinks === true) {
                 // Récupère la fréquence depuis la personnalisation
                 // si on est dans un contexte de panier utilisateur (en ligne)
                 $frequencyItem = CiklikItemFrequency::getByCartAndProduct((int) $cart->id, (int) $product['id_product']);
                 $frequency = CiklikFrequency::getFrequencyById((int) $frequencyItem['frequency_id']);
-                
             }
-            if (Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE) && $withLinks === false && $ciklik_frequency) {
+            if (\Configuration::get(\Ciklik::CONFIG_USE_FREQUENCY_MODE) && $withLinks === false && $ciklik_frequency) {
                 // Récupère la fréquence depuis la personnalisation
                 // si on est dans un contexte de panier rebill
                 $frequency = CiklikFrequency::getFrequencyById((int) $ciklik_frequency);
-                
             }
 
-            if (!Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
+            if (!\Configuration::get(\Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
                 $frequency = CiklikFrequency::getByIdProductAttribute((int) $product['id_product_attribute']);
             }
 
@@ -409,7 +396,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
             }
         }
 
-        $context = Context::getContext();
+        $context = \Context::getContext();
 
         $body = [
             'id' => $cart->id,
@@ -417,7 +404,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
             'items' => $items,
             'relay_options' => [],
             'fingerprint' => CartFingerprintData::fromCart($cart, $upsells, isset($frequency['id_frequency']) ? (int) $frequency['id_frequency'] : null)->encodeDatas(),
-            'use_frequency_mode' => (bool) Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)
+            'use_frequency_mode' => (bool) \Configuration::get(\Ciklik::CONFIG_USE_FREQUENCY_MODE),
         ];
 
         if ($withLinks) {
@@ -432,13 +419,14 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
     /**
      * Récupère l'ID externe au format approprié selon la configuration
-     * 
+     *
      * @param array $product Les données du produit
+     *
      * @return string L'ID externe formaté
      */
     private function getExternalId(array $product)
     {
-        if (!Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
+        if (!\Configuration::get(\Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
             return $product['id_product_attribute'] ?? $product['id_product'];
         }
 
@@ -447,20 +435,20 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
     /**
      * Crée une customization pour un produit avant son ajout au panier
-     * 
-     * @param Cart $cart
+     *
+     * @param \Cart $cart
      * @param int $id_product
      * @param int $id_product_attribute
      * @param array $customizations Tableau de customizations pour cette instance
      * @param int $quantity Quantité du produit
+     *
      * @return int|null L'id_customization créé ou null en cas d'erreur
      */
-    private function createCustomizationForProduct(Cart $cart, int $id_product, int $id_product_attribute, array $customizations, int $quantity = 1)
+    private function createCustomizationForProduct(\Cart $cart, int $id_product, int $id_product_attribute, array $customizations, int $quantity = 1)
     {
         try {
-            
             // Créer l'entrée customization (sans id_cart_product pour l'instant)
-            Db::getInstance()->insert('customization', [
+            \Db::getInstance()->insert('customization', [
                 'id_cart' => (int) $cart->id,
                 'id_product' => (int) $id_product,
                 'id_product_attribute' => (int) $id_product_attribute,
@@ -468,22 +456,22 @@ class CartGateway extends AbstractGateway implements EntityGateway
                 'quantity' => (int) $quantity,
                 'in_cart' => 1,
             ]);
-            $id_customization = Db::getInstance()->Insert_ID();
-            
+            $id_customization = \Db::getInstance()->Insert_ID();
+
             // Insérer toutes les données de customization pour cette instance
             foreach ($customizations as $customization) {
                 $type = (int) $customization['type'];
                 $index = (int) $customization['index'];
                 $value = pSQL($customization['value']);
-                
-                Db::getInstance()->insert('customized_data', [
+
+                \Db::getInstance()->insert('customized_data', [
                     'id_customization' => (int) $id_customization,
                     'type' => $type,
                     'index' => $index,
                     'value' => $value,
                 ]);
             }
-            
+
             return $id_customization;
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
@@ -492,12 +480,12 @@ class CartGateway extends AbstractGateway implements EntityGateway
                 null,
                 'CartGateway',
                 $cart->id,
-                true
+                true,
             );
+
             return null;
         }
     }
-
 
     protected function assignAttributesGroups($product_for_template = null)
     {
@@ -524,25 +512,25 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
         if ($groups) {
             foreach ($groups as $id_group => &$group) {
-                if ($id_group == (int) Configuration::get(Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID)) {
+                if ($id_group == (int) \Configuration::get(\Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID)) {
                     foreach ($group['attributes'] as $id_attribute => &$attribute) {
                         // composition d'un group avec les 2 attributes : type d'achat et fréquence
                         // de la forme group[id_attribute_group] = id attribute
                         $groupForSimu = [];
-                        $groupForSimu[(int) Configuration::get(Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID)] = (int) Configuration::get(Ciklik::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID);
+                        $groupForSimu[(int) \Configuration::get(\Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID)] = (int) \Configuration::get(\Ciklik::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID);
                         $groupForSimu[$id_group] = $id_attribute;
                         // recherche du product attribute
                         $id_product_attributeForSimu = null;
-                        $id_product_attributeForSimu = (int) Product::getIdProductAttributeByIdAttributes(
+                        $id_product_attributeForSimu = (int) \Product::getIdProductAttributeByIdAttributes(
                             $product_for_template['id_product'],
                             $groupForSimu,
-                            true
+                            true,
                         );
 
                         $attribute['id_product_attributeForSimu'] = $id_product_attributeForSimu;
                         $combinationForSimu = new Combination($id_product_attributeForSimu);
                         $attribute['minimal_quantity'] = $combinationForSimu->minimal_quantity;
-                        $subscription_price = Product::getPriceStatic(
+                        $subscription_price = \Product::getPriceStatic(
                             $product_for_template['id_product'],
                             true,
                             $id_product_attributeForSimu,
@@ -550,10 +538,10 @@ class CartGateway extends AbstractGateway implements EntityGateway
                             null,
                             false,
                             true,
-                            $combinationForSimu->minimal_quantity
+                            $combinationForSimu->minimal_quantity,
                         );
 
-                        if(isset($product_for_template['ciklik']['subscription_reference_price']) && $product_for_template['ciklik']['subscription_reference_price'] > 0){
+                        if (isset($product_for_template['ciklik']['subscription_reference_price']) && $product_for_template['ciklik']['subscription_reference_price'] > 0) {
                             $attribute['subscription_price'] = $subscription_price;
                             $attribute['discount_percentage'] = floor((($product_for_template['ciklik']['subscription_reference_price'] - $subscription_price) / $product_for_template['ciklik']['subscription_reference_price']) * 100);
                             $attribute['totalSubscription_price'] = $combinationForSimu->minimal_quantity * $subscription_price;

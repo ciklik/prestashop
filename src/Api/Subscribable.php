@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -53,6 +54,7 @@ class Subscribable extends CiklikApiClient
      * Nettoie le payload pour ne conserver que les clés autorisées
      *
      * @param array $data Données brutes à nettoyer
+     *
      * @return array Données nettoyées avec uniquement les clés autorisées
      */
     private function sanitizePayload(array $data): array
@@ -65,7 +67,7 @@ class Subscribable extends CiklikApiClient
         foreach ($data['products'] as $product) {
             $sanitizedProduct = array_intersect_key(
                 $product,
-                array_flip(self::ALLOWED_PRODUCT_KEYS)
+                array_flip(self::ALLOWED_PRODUCT_KEYS),
             );
 
             // Sanitize frequencies if present
@@ -74,7 +76,7 @@ class Subscribable extends CiklikApiClient
                 foreach ($sanitizedProduct['frequencies'] as $frequency) {
                     $sanitizedFrequencies[] = array_intersect_key(
                         $frequency,
-                        array_flip(self::ALLOWED_FREQUENCY_KEYS)
+                        array_flip(self::ALLOWED_FREQUENCY_KEYS),
                     );
                 }
                 $sanitizedProduct['frequencies'] = $sanitizedFrequencies;

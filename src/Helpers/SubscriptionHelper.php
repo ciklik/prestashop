@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Ciklik SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -8,9 +9,6 @@
 declare(strict_types=1);
 
 namespace PrestaShop\Module\Ciklik\Helpers;
-
-use Db;
-use DbQuery;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -23,11 +21,12 @@ class SubscriptionHelper
      */
     public static function isSubscriptionEnabled(int $idProduct): bool
     {
-        $query = new DbQuery();
+        $query = new \DbQuery();
         $query->select('COUNT(*)');
         $query->from('ciklik_product_frequency');
-        $query->where('id_product = ' . (int)$idProduct);
-        return (bool)Db::getInstance()->getValue($query);
+        $query->where('id_product = ' . (int) $idProduct);
+
+        return (bool) \Db::getInstance()->getValue($query);
     }
 
     /**
@@ -35,12 +34,12 @@ class SubscriptionHelper
      */
     public static function getProductFrequencies(int $idProduct): array
     {
-        $query = new DbQuery();
+        $query = new \DbQuery();
         $query->select('f.*');
         $query->from('ciklik_frequency', 'f');
         $query->innerJoin('ciklik_product_frequency', 'pf', 'pf.id_frequency = f.id_frequency');
-        $query->where('pf.id_product = ' . (int)$idProduct);
-        
-        return Db::getInstance()->executeS($query);
+        $query->where('pf.id_product = ' . (int) $idProduct);
+
+        return \Db::getInstance()->executeS($query);
     }
-} 
+}

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -28,7 +29,7 @@ class Transaction extends CiklikApiClient
             'transactions/%s',
             $ciklik_transaction_id,
             'alphanumeric',
-            'Invalid transaction ID format'
+            'Invalid transaction ID format',
         );
 
         if (null !== $error) {
@@ -50,7 +51,7 @@ class Transaction extends CiklikApiClient
             'transactions/%s',
             $ciklik_transaction_id,
             'alphanumeric',
-            'Invalid transaction ID format'
+            'Invalid transaction ID format',
         );
 
         if (null !== $error) {

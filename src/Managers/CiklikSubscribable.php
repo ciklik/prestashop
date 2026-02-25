@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -6,11 +7,6 @@
  */
 
 namespace PrestaShop\Module\Ciklik\Managers;
-
-use Cart;
-use Ciklik;
-use Db;
-use Configuration;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -35,41 +31,42 @@ class CiklikSubscribable
 
     public static function create(int $id_product): int
     {
-        Db::getInstance()->execute('
+        \Db::getInstance()->execute('
             INSERT INTO `' . _DB_PREFIX_ . 'ciklik_subscribables` (`id_product`) 
             VALUES (' . $id_product . ')
         ');
 
-        return (int) Db::getInstance()->Insert_ID();
+        return (int) \Db::getInstance()->Insert_ID();
     }
 
     public static function deleteByIdProduct(int $id_product): bool
     {
-        return Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'ciklik_subscribables` WHERE `id_product` = ' . $id_product);
+        return \Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'ciklik_subscribables` WHERE `id_product` = ' . $id_product);
     }
 
     public static function isSubscribable(int $id_product): bool
     {
-        return (int) Db::getInstance()->getValue('
+        return (int) \Db::getInstance()->getValue('
             SELECT `id_subscribable`
             FROM `' . _DB_PREFIX_ . 'ciklik_subscribables`
             WHERE `id_product` = ' . $id_product . '
         ') > 0;
     }
 
-    public static function cartHasSubscribable(Cart $cart): bool
+    public static function cartHasSubscribable(\Cart $cart): bool
     {
         $products = $cart->getProducts();
 
-        if(Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)){ 
-            foreach ($products as $product) { 
+        if (\Configuration::get(\Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
+            foreach ($products as $product) {
                 // Vérifie si le produit a des personnalisations pour l'abonnement
                 $frequencyData = CiklikItemFrequency::getByCartAndProduct($cart->id, $product['id_product']);
-        
-                if ($frequencyData && (int)$frequencyData['frequency_id'] > 0) {
+
+                if ($frequencyData && (int) $frequencyData['frequency_id'] > 0) {
                     return true;
                 }
             }
+
             return false;
         }
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -6,9 +7,6 @@
  */
 
 namespace PrestaShop\Module\Ciklik\Addons;
-
-use Media;
-use ModuleAdminController;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -21,7 +19,7 @@ trait Account
         return true;
     }
 
-    public static function injectAccount(ModuleAdminController $controller, $context)
+    public static function injectAccount(\ModuleAdminController $controller, $context)
     {
         /*********************
          * PrestaShop Account *
@@ -38,7 +36,7 @@ trait Account
             $accountsService = $accountsFacade->getPsAccountsService();
         }
 
-        Media::addJsDef([
+        \Media::addJsDef([
             'contextPsAccounts' => $accountsFacade->getPsAccountsPresenter()
                 ->present($controller->module->name),
         ]);

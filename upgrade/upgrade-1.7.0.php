@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Ciklik SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -24,7 +25,7 @@ function upgrade_module_1_7_0($module)
     //         `discount_price` decimal(20,6)",
     //         PRIMARY KEY (`id_frequency`)
     //     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;',
-        
+
     //     'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'ciklik_product_frequency` (
     //         `id_product` int(10) unsigned NOT NULL,
     //         `id_frequency` int(10) unsigned NOT NULL,
@@ -48,16 +49,16 @@ function upgrade_module_1_7_0($module)
     //         KEY `guest_id` (`guest_id`)
     //     ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
     // ];
-    
+
     // foreach ($sql as $query) {
     //     if (!Db::getInstance()->execute($query)) {
     //         return false;
     //     }
     // }
-    
+
     // Ajout des configuration
-    //\Configuration::updateValue(Ciklik::CONFIG_USE_FREQUENCY_MODE, '0');
-    
+    // \Configuration::updateValue(Ciklik::CONFIG_USE_FREQUENCY_MODE, '0');
+
     // Enregistrement des nouveaux hooks
     // $hooks = [
     //     'actionFrontControllerSetMedia',
@@ -67,7 +68,7 @@ function upgrade_module_1_7_0($module)
     //     'displayShoppingCart',
     //     'actionAuthentication'
     // ];
-    
+
     // foreach ($hooks as $hookName) {
     //     if (!$module->registerHook($hookName)) {
     //         // Log l'erreur mais ne fait pas échouer la mise à jour
@@ -81,22 +82,22 @@ function upgrade_module_1_7_0($module)
     //         );
     //     }
     // }
-    
+
     // Migration des fréquences existantes
     // $query = new DbQuery();
     // $query->select('a.id_attribute, a.id_attribute_group, al.name');
     // $query->from('attribute', 'a');
     // $query->leftJoin('attribute_lang', 'al', 'al.id_attribute = a.id_attribute');
     // $query->where('a.id_attribute_group = ' . (int)Configuration::get(Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID));
-    
+
     // $frequencies = Db::getInstance()->executeS($query);
-    
+
     // foreach ($frequencies as $frequency) {
     //     // Extraction de l'intervalle et du compte depuis le nom
     //     if (preg_match('/(\d+)\s+(\w+)/', $frequency['name'], $matches)) {
     //         $count = (int)$matches[1];
     //         $interval = strtolower($matches[2]);
-            
+
     //         // Conversion en format standard
     //         switch ($interval) {
     //             case 'semaine':
@@ -114,7 +115,7 @@ function upgrade_module_1_7_0($module)
     //             default:
     //                 continue 2;
     //         }
-            
+
     //         // Insertion dans la nouvelle table
     //         Db::getInstance()->insert('ciklik_frequency', [
     //             'name' => $frequency['name'],
@@ -123,6 +124,6 @@ function upgrade_module_1_7_0($module)
     //         ]);
     //     }
     // }
-    
+
     return true;
-} 
+}

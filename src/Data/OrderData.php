@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -7,17 +8,13 @@
 
 namespace PrestaShop\Module\Ciklik\Data;
 
-use Ciklik;
-use Configuration;
-use DateTimeImmutable;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 class OrderData
 {
-    const STATUS_COMPLETED = 'completed';
+    public const STATUS_COMPLETED = 'completed';
     /**
      * @var int
      */
@@ -39,7 +36,7 @@ class OrderData
      */
     public $paid_class_key;
     /**
-     * @var DateTimeImmutable
+     * @var \DateTimeImmutable
      */
     public $created_at;
     /**
@@ -61,7 +58,7 @@ class OrderData
         string $status,
         ?string $paid_transaction_id,
         ?string $paid_class_key,
-        DateTimeImmutable $created_at,
+        \DateTimeImmutable $created_at,
         $subscription_uuid,
         $total_paid,
         $prestashop_order_id = null)
@@ -85,20 +82,20 @@ class OrderData
             $data['status'],
             $data['paid_transaction_id'] ?? null,
             $data['paid_class_key'] ?? null,
-            new DateTimeImmutable($data['created_at']),
+            new \DateTimeImmutable($data['created_at']),
             $data['subscription_uuid'] ?? null,
             self::formatPrice($data['total_paid'] ?? '0'),
-            isset($data['prestashop_order_id']) ? (int)$data['prestashop_order_id'] : null
+            isset($data['prestashop_order_id']) ? (int) $data['prestashop_order_id'] : null,
         );
     }
 
     public function getOrderState()
     {
         if ($this->status === self::STATUS_COMPLETED) {
-            return (int) Configuration::get(Ciklik::CONFIG_ORDER_STATE);
+            return (int) \Configuration::get(\Ciklik::CONFIG_ORDER_STATE);
         }
 
-        return (int) Configuration::get('PS_OS_ERROR');
+        return (int) \Configuration::get('PS_OS_ERROR');
     }
 
     public function getPspName()
@@ -120,16 +117,19 @@ class OrderData
         return $name;
     }
 
-    public static function formatPrice($price) {
+    public static function formatPrice($price)
+    {
         $price = str_replace([' ', ','], ['', '.'], $price); // Nettoie espaces + virgule
-        return number_format((float)$price, 2, '.', '');
+
+        return number_format((float) $price, 2, '.', '');
     }
 
     /**
      * Crée une collection d'instances de OrderData à partir d'un tableau de données.
-     * 
+     *
      * @param array $data Le tableau de données à partir duquel les instances seront créées
-     * @return array Un tableau contenant les instances de OrderData 
+     *
+     * @return array Un tableau contenant les instances de OrderData
      */
     public static function collection(array $data): array
     {

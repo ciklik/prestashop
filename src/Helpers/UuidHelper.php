@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -27,6 +28,7 @@ class UuidHelper
      * Vérifie si une chaîne est un UUID v4 valide
      *
      * @param string $uuid La chaîne à valider
+     *
      * @return bool True si UUID v4 valide, false sinon
      */
     public static function isValid(string $uuid): bool
@@ -38,6 +40,7 @@ class UuidHelper
      * Valide un UUID et retourne une valeur nettoyée ou null si invalide
      *
      * @param mixed $uuid La valeur à valider
+     *
      * @return string|null L'UUID nettoyé ou null si invalide
      */
     public static function sanitize($uuid): ?string
@@ -56,6 +59,7 @@ class UuidHelper
      * Retourne l'UUID validé ou null si invalide/absent
      *
      * @param string $key La clé du paramètre à récupérer
+     *
      * @return string|null L'UUID validé ou null
      */
     public static function getFromRequest(string $key): ?string
