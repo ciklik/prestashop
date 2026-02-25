@@ -147,6 +147,49 @@ $_MODULE['<{ciklik}prestashop>order_subscription_info_386c339d37e737a436499d423a
 $_MODULE['<{ciklik}prestashop>order_subscription_info_914419aa32f04011357d3b604a86d7eb'] = 'Carrier';
 $_MODULE['<{ciklik}prestashop>order_subscription_info_2b5932460c4f1e726c2fe5eb4c84cf64'] = 'Additional products';
 
+// Admin Configure Controller
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c3bf447eabe632720a3aa1a7ce401274'] = 'Open';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_03f4a47830f97377a35321051685071e'] = 'Closed';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_7976c2cfc70704327a0e0d441a4c9978'] = 'Purchase type group';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_7881c6f4e40f06d523c6b9219f39670b'] = 'Attribute group containing purchase type options';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_bd416e8be05e6be75df0205d362320ee'] = 'Frequencies group';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c7e7e404306f660b3845df3aed6a9eaa'] = 'Attribute group containing subscription frequency options';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_0952f046a367ea61d53fa987809e2a4e'] = 'One-time purchase attribute';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_41e1967f49fbb0936e9660e77757eb0f'] = 'Subscription purchase attribute';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_f99155a67183adc658a59eb9f3c07681'] = 'Default subscription';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_23429abf2e53f20c48550866319601e0'] = 'Value selected when subscription purchase is activated';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_57297718fdb439175177cf6b196172d1'] = 'Order status';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ff9f3aa1cfa53dfcb72d2cf91c5ab2e1'] = 'Status for orders accepted through Ciklik';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_47cf6a93bcb7265e256072590bc468b5'] = 'Delegate options display';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_022bdd39bf561be0dc30ed1219df839c'] = 'Subscription options are displayed via a checkbox';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_cdb8080fd4d9a522f1bd058913033ca4'] = 'Enable commitment';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_80500cfe0ac86ee3e47684456f5b8b40'] = 'This option disables unsubscription during the commitment period';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_2f5d9ecee2686f0c3d3795bd4c297086'] = 'Commitment cycle';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_7469bbf7fa63f963410ea7455f06bd2a'] = 'Number of commitment cycles';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_2a1718cea279dc9f5241a1772d41fa78'] = 'Frequency modification';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_48170fabe816d0ca5c1aec5b8ee10564'] = 'This option disables subscription frequency modification, applied on the next payment date';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_6fedf23ef5cb115e8ae7a4f88716f108'] = 'Allow next payment date modification';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_16453976dbd1af0a816bc36cd4509692'] = 'Enable customer group assignment';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ccb847e3e03d611dfee811b0b9a58e5e'] = 'This option assigns a customer group based on certain conditions';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a32cbfb7346ffb2086e80266842dbbf2'] = 'Customer group to assign';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fcf52e666ca349888702b953dcbea480'] = 'Select the customer group to assign when conditions are met';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef888fa22d20e751849760694b91c441'] = 'Enable upsell';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_77491e837951edcb77b5f5ec34729619'] = 'Frequency discount calculation base';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_1db409ca9c1c4269e31cccbabbb6f94a'] = 'Gross: the discount applies on the gross catalog price. Net: the discount applies on the price after existing price rules (promotions, discounts).';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4334f9565ada6c201a118a511304a459'] = 'Gross catalog price (default behavior)';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_85e8f1c54d86f2a5974a07735e8e5b3b'] = 'Price after existing price rules';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_dbd315147b1b8f441be2a372e60ad7ac'] = 'Fall back to default combination if deleted';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fe09d5a86d2ac5d6f79f7697b2e5a45a'] = 'If a requested combination has been deleted, automatically use the product default combination';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3fac615347e3dc2795545814a0d8253f'] = 'Create customer message thread for orders';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_01f346afeeaa142299be762016b74efb'] = 'This option automatically creates a customer message thread with Ciklik information for each order';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_f95f7c91225a00ada1c6511694e0dd67'] = 'Customer message thread status';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef39a6612ef9f6df04ae7c3ef7de991e'] = 'Default status for customer message threads created for Ciklik orders';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4946d28ddbcea32b55b0b75182f0e055'] = 'Use frequency mode';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a88ed40ae0590ad78c3ac3c7587c9062'] = 'Offer subscriptions without using product combinations';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_b17e723da6db93b6384bef7851e79303'] = 'Use subscription customization';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9b91e16a322557991689aae4206a1669'] = 'Product name suffix';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c5cafc973a510a661a19cb6100458eb5'] = 'Combination values added to the name sent to Ciklik';
+
 // Admin Frequencies Controller
 $_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_dff63518371f8f4598bc3ef3efb0b1e6'] = 'Add a frequency';
 

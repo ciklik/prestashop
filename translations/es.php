@@ -147,6 +147,49 @@ $_MODULE['<{ciklik}prestashop>order_subscription_info_386c339d37e737a436499d423a
 $_MODULE['<{ciklik}prestashop>order_subscription_info_914419aa32f04011357d3b604a86d7eb'] = 'Transportista';
 $_MODULE['<{ciklik}prestashop>order_subscription_info_2b5932460c4f1e726c2fe5eb4c84cf64'] = 'Productos adicionales';
 
+// Admin Configure Controller
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c3bf447eabe632720a3aa1a7ce401274'] = 'Abierto';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_03f4a47830f97377a35321051685071e'] = 'Cerrado';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_7976c2cfc70704327a0e0d441a4c9978'] = 'Grupo de tipo de compra';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_7881c6f4e40f06d523c6b9219f39670b'] = 'Grupo de atributos que contiene las opciones de tipo de compra';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_bd416e8be05e6be75df0205d362320ee'] = 'Grupo de frecuencias';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c7e7e404306f660b3845df3aed6a9eaa'] = 'Grupo de atributos que contiene las opciones de frecuencia de suscripción';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_0952f046a367ea61d53fa987809e2a4e'] = 'Atributo "Compra única"';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_41e1967f49fbb0936e9660e77757eb0f'] = 'Atributo "Compra por suscripción"';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_f99155a67183adc658a59eb9f3c07681'] = 'Suscripción predeterminada';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_23429abf2e53f20c48550866319601e0'] = 'Valor seleccionado cuando se activa la compra por suscripción';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_57297718fdb439175177cf6b196172d1'] = 'Estado del pedido';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ff9f3aa1cfa53dfcb72d2cf91c5ab2e1'] = 'Estado de los pedidos aceptados a través de Ciklik';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_47cf6a93bcb7265e256072590bc468b5'] = 'Delegar la visualización de opciones';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_022bdd39bf561be0dc30ed1219df839c'] = 'Las opciones de suscripción se muestran mediante una casilla de verificación';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_cdb8080fd4d9a522f1bd058913033ca4'] = 'Activar compromiso';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_80500cfe0ac86ee3e47684456f5b8b40'] = 'Esta opción desactiva la cancelación de suscripción durante el período de compromiso';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_2f5d9ecee2686f0c3d3795bd4c297086'] = 'Ciclo de compromiso';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_7469bbf7fa63f963410ea7455f06bd2a'] = 'Número de ciclos de compromiso';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_2a1718cea279dc9f5241a1772d41fa78'] = 'Modificación de frecuencia';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_48170fabe816d0ca5c1aec5b8ee10564'] = 'Esta opción desactiva la modificación de la frecuencia de suscripción, aplicada en la próxima fecha de pago';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_6fedf23ef5cb115e8ae7a4f88716f108'] = 'Permitir la modificación de la fecha del próximo pago';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_16453976dbd1af0a816bc36cd4509692'] = 'Activar asignación de grupo de clientes';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ccb847e3e03d611dfee811b0b9a58e5e'] = 'Esta opción asigna un grupo de clientes según ciertas condiciones';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a32cbfb7346ffb2086e80266842dbbf2'] = 'Grupo de clientes a asignar';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fcf52e666ca349888702b953dcbea480'] = 'Seleccione el grupo de clientes a asignar cuando se cumplan las condiciones';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef888fa22d20e751849760694b91c441'] = 'Activar upsell';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_77491e837951edcb77b5f5ec34729619'] = 'Base de cálculo de descuentos por frecuencia';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_1db409ca9c1c4269e31cccbabbb6f94a'] = 'Bruto: el descuento se aplica sobre el precio bruto del catálogo. Neto: el descuento se aplica sobre el precio después de las reglas de precios existentes (promociones, descuentos).';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4334f9565ada6c201a118a511304a459'] = 'Precio bruto del catálogo (comportamiento predeterminado)';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_85e8f1c54d86f2a5974a07735e8e5b3b'] = 'Precio después de las reglas de precios existentes';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_dbd315147b1b8f441be2a372e60ad7ac'] = 'Volver a la combinación predeterminada si se elimina';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fe09d5a86d2ac5d6f79f7697b2e5a45a'] = 'Si una combinación solicitada ha sido eliminada, utilizar automáticamente la combinación predeterminada del producto';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3fac615347e3dc2795545814a0d8253f'] = 'Crear hilo de mensaje de cliente para pedidos';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_01f346afeeaa142299be762016b74efb'] = 'Esta opción crea automáticamente un hilo de mensaje de cliente con la información de Ciklik para cada pedido';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_f95f7c91225a00ada1c6511694e0dd67'] = 'Estado del hilo de mensaje de cliente';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef39a6612ef9f6df04ae7c3ef7de991e'] = 'Estado predeterminado de los hilos de mensaje de cliente creados para los pedidos de Ciklik';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4946d28ddbcea32b55b0b75182f0e055'] = 'Usar modo de frecuencias';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a88ed40ae0590ad78c3ac3c7587c9062'] = 'Ofrecer suscripciones sin utilizar combinaciones de productos';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_b17e723da6db93b6384bef7851e79303'] = 'Usar personalización de suscripciones';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9b91e16a322557991689aae4206a1669'] = 'Sufijo del nombre del producto';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c5cafc973a510a661a19cb6100458eb5'] = 'Valores de combinaciones añadidos al nombre enviado a Ciklik';
+
 // Admin Frequencies Controller
 $_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_dff63518371f8f4598bc3ef3efb0b1e6'] = 'Añadir una frecuencia';
 

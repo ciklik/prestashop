@@ -147,6 +147,49 @@ $_MODULE['<{ciklik}prestashop>order_subscription_info_386c339d37e737a436499d423a
 $_MODULE['<{ciklik}prestashop>order_subscription_info_914419aa32f04011357d3b604a86d7eb'] = 'Versandart';
 $_MODULE['<{ciklik}prestashop>order_subscription_info_2b5932460c4f1e726c2fe5eb4c84cf64'] = 'Zusätzliche Produkte';
 
+// Admin Configure Controller
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c3bf447eabe632720a3aa1a7ce401274'] = 'Offen';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_03f4a47830f97377a35321051685071e'] = 'Geschlossen';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_7976c2cfc70704327a0e0d441a4c9978'] = 'Kauftyp-Gruppe';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_7881c6f4e40f06d523c6b9219f39670b'] = 'Attributgruppe mit den Kauftyp-Optionen';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_bd416e8be05e6be75df0205d362320ee'] = 'Frequenzgruppe';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c7e7e404306f660b3845df3aed6a9eaa'] = 'Attributgruppe mit den Abo-Frequenz-Optionen';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_0952f046a367ea61d53fa987809e2a4e'] = 'Attribut "Einmalkauf"';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_41e1967f49fbb0936e9660e77757eb0f'] = 'Attribut "Abo-Kauf"';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_f99155a67183adc658a59eb9f3c07681'] = 'Standard-Abonnement';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_23429abf2e53f20c48550866319601e0'] = 'Ausgewählter Wert bei Aktivierung des Abo-Kaufs';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_57297718fdb439175177cf6b196172d1'] = 'Bestellstatus';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ff9f3aa1cfa53dfcb72d2cf91c5ab2e1'] = 'Status der über Ciklik akzeptierten Bestellungen';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_47cf6a93bcb7265e256072590bc468b5'] = 'Optionen-Anzeige delegieren';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_022bdd39bf561be0dc30ed1219df839c'] = 'Abo-Optionen werden über ein Kontrollkästchen angezeigt';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_cdb8080fd4d9a522f1bd058913033ca4'] = 'Bindung aktivieren';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_80500cfe0ac86ee3e47684456f5b8b40'] = 'Diese Option deaktiviert die Abmeldung während der Bindungsdauer';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_2f5d9ecee2686f0c3d3795bd4c297086'] = 'Bindungszyklus';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_7469bbf7fa63f963410ea7455f06bd2a'] = 'Anzahl der Bindungszyklen';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_2a1718cea279dc9f5241a1772d41fa78'] = 'Frequenzänderung';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_48170fabe816d0ca5c1aec5b8ee10564'] = 'Diese Option deaktiviert die Änderung der Abo-Frequenz, angewendet zum nächsten Zahlungsdatum';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_6fedf23ef5cb115e8ae7a4f88716f108'] = 'Änderung des nächsten Zahlungsdatums erlauben';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_16453976dbd1af0a816bc36cd4509692'] = 'Kundengruppen-Zuweisung aktivieren';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ccb847e3e03d611dfee811b0b9a58e5e'] = 'Diese Option weist eine Kundengruppe basierend auf bestimmten Bedingungen zu';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a32cbfb7346ffb2086e80266842dbbf2'] = 'Zuzuweisende Kundengruppe';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fcf52e666ca349888702b953dcbea480'] = 'Wählen Sie die Kundengruppe aus, die bei Erfüllung der Bedingungen zugewiesen wird';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef888fa22d20e751849760694b91c441'] = 'Upselling aktivieren';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_77491e837951edcb77b5f5ec34729619'] = 'Berechnungsgrundlage für Frequenzrabatte';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_1db409ca9c1c4269e31cccbabbb6f94a'] = 'Brutto: Der Rabatt wird auf den Brutto-Katalogpreis angewendet. Netto: Der Rabatt wird auf den Preis nach bestehenden Preisregeln (Aktionen, Rabatte) angewendet.';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4334f9565ada6c201a118a511304a459'] = 'Brutto-Katalogpreis (Standardverhalten)';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_85e8f1c54d86f2a5974a07735e8e5b3b'] = 'Preis nach bestehenden Preisregeln';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_dbd315147b1b8f441be2a372e60ad7ac'] = 'Auf Standardkombination zurückfallen wenn gelöscht';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fe09d5a86d2ac5d6f79f7697b2e5a45a'] = 'Wenn eine angeforderte Kombination gelöscht wurde, automatisch die Standardkombination des Produkts verwenden';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3fac615347e3dc2795545814a0d8253f'] = 'Kundennachrichten-Thread für Bestellungen erstellen';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_01f346afeeaa142299be762016b74efb'] = 'Diese Option erstellt automatisch einen Kundennachrichten-Thread mit Ciklik-Informationen für jede Bestellung';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_f95f7c91225a00ada1c6511694e0dd67'] = 'Status des Kundennachrichten-Threads';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef39a6612ef9f6df04ae7c3ef7de991e'] = 'Standardstatus für Kundennachrichten-Threads, die für Ciklik-Bestellungen erstellt werden';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4946d28ddbcea32b55b0b75182f0e055'] = 'Frequenzmodus verwenden';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a88ed40ae0590ad78c3ac3c7587c9062'] = 'Abonnements ohne Produktkombinationen anbieten';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_b17e723da6db93b6384bef7851e79303'] = 'Abo-Anpassung verwenden';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9b91e16a322557991689aae4206a1669'] = 'Produktnamen-Suffix';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c5cafc973a510a661a19cb6100458eb5'] = 'Kombinationswerte, die dem an Ciklik übermittelten Namen hinzugefügt werden';
+
 // Admin Frequencies Controller
 $_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_dff63518371f8f4598bc3ef3efb0b1e6'] = 'Frequenz hinzufügen';
 

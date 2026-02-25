@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Metrogeek SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -28,6 +29,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
      * @param string|null $class Nom de la classe (non utilisé, pour compatibilité)
      * @param bool $addslashes Ajouter des slashes
      * @param bool $htmlentities Encoder les entités HTML
+     *
      * @return string
      */
     protected function l($string, $class = null, $addslashes = false, $htmlentities = true)
@@ -37,8 +39,9 @@ class AdminConfigureCiklikController extends ModuleAdminController
             if (!$this->module) {
                 return $string;
             }
+
             return $this->module->l($string, 'AdminConfigureCiklikController', $addslashes, $htmlentities);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $string;
         }
     }
@@ -75,7 +78,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
         if (version_compare(_PS_VERSION_, '9.0.0', '<')) {
             try {
                 Account::injectAccount($this, $this->context);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Silently fail si PS Accounts n'est pas disponible
             }
         }
@@ -105,8 +108,8 @@ class AdminConfigureCiklikController extends ModuleAdminController
         ];
 
         $thread_statuses = [
-            ['thread_status' => 'open', 'name' => $this->l('Ouvert')],
-            ['thread_status' => 'closed', 'name' => $this->l('Fermé')],
+            ['thread_status' => 'open', 'name' => $this->l('Open')],
+            ['thread_status' => 'closed', 'name' => $this->l('Closed')],
         ];
 
         return [
@@ -130,76 +133,76 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     ],
                     Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID => [
                         'type' => 'select',
-                        'title' => $this->l('Groupe Achats'),
-                        'desc' => $this->l('Groupe d\'attributs contenant les options de type d\'achat'),
+                        'title' => $this->l('Purchase type group'),
+                        'desc' => $this->l('Attribute group containing purchase type options'),
                         'cast' => 'intval',
                         'identifier' => 'id_attribute_group',
                         'list' => $attributes_groups,
                     ],
                     Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID => [
                         'type' => 'select',
-                        'title' => $this->l('Groupe Fréquences'),
-                        'desc' => $this->l('Groupe d\'attributs contenant les options de fréquences d\'abonnement'),
+                        'title' => $this->l('Frequencies group'),
+                        'desc' => $this->l('Attribute group containing subscription frequency options'),
                         'cast' => 'intval',
                         'identifier' => 'id_attribute_group',
                         'list' => $attributes_groups,
                     ],
                     Ciklik::CONFIG_ONEOFF_ATTRIBUTE_ID => [
                         'type' => 'select',
-                        'title' => $this->l('Attribut "Achat en une fois"'),
+                        'title' => $this->l('One-time purchase attribute'),
                         'cast' => 'intval',
                         'identifier' => 'id_attribute',
                         'list' => $purchase_type_attributes,
                     ],
                     Ciklik::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID => [
                         'type' => 'select',
-                        'title' => $this->l('Attribut "Achat par abonnement"'),
+                        'title' => $this->l('Subscription purchase attribute'),
                         'cast' => 'intval',
                         'identifier' => 'id_attribute',
                         'list' => $purchase_type_attributes,
                     ],
                     Ciklik::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID => [
                         'type' => 'select',
-                        'title' => $this->l('Abonnement par défaut'),
-                        'desc' => $this->l('Valeur sélectionnée lorsque l\'on active l\'achat par abonnement'),
+                        'title' => $this->l('Default subscription'),
+                        'desc' => $this->l('Value selected when subscription purchase is activated'),
                         'cast' => 'intval',
                         'identifier' => 'id_attribute',
                         'list' => $frequencies_attributes,
                     ],
                     Ciklik::CONFIG_ORDER_STATE => [
                         'type' => 'select',
-                        'title' => $this->l('Statut des commandes'),
-                        'desc' => $this->l('Statut des commandes acceptées via Ciklik'),
+                        'title' => $this->l('Order status'),
+                        'desc' => $this->l('Status for orders accepted through Ciklik'),
                         'cast' => 'intval',
                         'identifier' => 'id_order_state',
                         'list' => $available_order_states,
                     ],
                     Ciklik::CONFIG_DELEGATE_OPTIONS_DISPLAY => [
                         'type' => 'bool',
-                        'title' => $this->l('Déléguer l\'affichage des options'),
-                        'desc' => $this->l('Les options d\'abonnement sont affichées via une case à cocher'),
+                        'title' => $this->l('Delegate options display'),
+                        'desc' => $this->l('Subscription options are displayed via a checkbox'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_ENABLE_ENGAGEMENT => [
                         'type' => 'bool',
-                        'title' => $this->l('Activer l\'engagement'),
-                        'desc' => $this->l('Cette option permet de désactiver le désabonnement pendant le cycle d\'engagement'),
+                        'title' => $this->l('Enable commitment'),
+                        'desc' => $this->l('This option disables unsubscription during the commitment period'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_ENGAGEMENT_INTERVAL => [
                         'type' => 'select',
-                        'title' => $this->l('Cycle d\'engagement'),
+                        'title' => $this->l('Commitment cycle'),
                         'identifier' => 'engagement_interval',
                         'cast' => 'strval',
                         'list' => $intervals,
                     ],
                     Ciklik::CONFIG_ENGAGEMENT_INTERVAL_COUNT => [
                         'type' => 'select',
-                        'title' => $this->l('Nombre de cycles d\'engagement'),
+                        'title' => $this->l('Number of commitment cycles'),
                         'identifier' => 'engagement_interval_count',
                         'cast' => 'intval',
                         'list' => array_map(function ($value) {
@@ -208,15 +211,15 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     ],
                     Ciklik::CONFIG_ENABLE_CHANGE_INTERVAL => [
                         'type' => 'bool',
-                        'title' => $this->l('Modification de la fréquence'),
+                        'title' => $this->l('Frequency modification'),
                         'validation' => 'isBool',
-                        'desc' => $this->l('Cette option permet de désactiver la modification de la fréquence de l\'abonnement, appliquée à la date du prochain paiement'),
+                        'desc' => $this->l('This option disables subscription frequency modification, applied on the next payment date'),
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_ALLOW_CHANGE_NEXT_BILLING => [
                         'type' => 'bool',
-                        'title' => $this->l('Autoriser la modification de la date du prochain paiement'),
+                        'title' => $this->l('Allow next payment date modification'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
@@ -230,58 +233,69 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     ],
                     Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT => [
                         'type' => 'bool',
-                        'title' => $this->l('Activer l\'attribution de groupe client'),
-                        'desc' => $this->l('Cette option permet d\'attribuer un groupe client en fonction de certaines conditions'),
+                        'title' => $this->l('Enable customer group assignment'),
+                        'desc' => $this->l('This option assigns a customer group based on certain conditions'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_CUSTOMER_GROUP_TO_ASSIGN => [
                         'type' => 'select',
-                        'title' => $this->l('Groupe client à attribuer'),
-                        'desc' => $this->l('Sélectionnez le groupe client à attribuer lorsque les conditions sont remplies'),
+                        'title' => $this->l('Customer group to assign'),
+                        'desc' => $this->l('Select the customer group to assign when conditions are met'),
                         'cast' => 'intval',
                         'identifier' => 'id_group',
                         'list' => Group::getGroups(Context::getContext()->language->id),
                     ],
                     Ciklik::CONFIG_ENABLE_UPSELL => [
                         'type' => 'bool',
-                        'title' => $this->l('Activer l\'upsell'),
+                        'title' => $this->l('Enable upsell'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                     ],
                     Ciklik::CONFIG_USE_FREQUENCY_MODE => [
                         'type' => 'bool',
-                        'title' => $this->l('Utiliser le mode fréquences'),
-                        'desc' => $this->l('Permet de proposer les abonnements sans utiliser les déclinaisons de produits'),
+                        'title' => $this->l('Use frequency mode'),
+                        'desc' => $this->l('Offer subscriptions without using product combinations'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
+                    Ciklik::CONFIG_FREQUENCY_PRICE_BASE => [
+                        'type' => 'radio',
+                        'title' => $this->l('Frequency discount calculation base'),
+                        'desc' => $this->l('Gross: the discount applies on the gross catalog price. Net: the discount applies on the price after existing price rules (promotions, discounts).'),
+                        'choices' => [
+                            'gross' => $this->l('Gross catalog price (default behavior)'),
+                            'net' => $this->l('Price after existing price rules'),
+                        ],
+                        'required' => false,
+                        'cast' => 'strval',
+                    ],
                     Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE => [
                         'type' => 'bool',
-                        'title' => $this->l('Passer sur la déclinaison par défaut si supprimée'),
-                        'desc' => $this->l('Si une déclinaison demandée a été supprimée, utiliser automatiquement la déclinaison par défaut du produit'),
+                        'title' => $this->l('Fall back to default combination if deleted'),
+                        'desc' => $this->l('If a requested combination has been deleted, automatically use the product default combination'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_ENABLE_ORDER_THREAD => [
                         'type' => 'bool',
-                        'title' => $this->l('Créer un thread de message client pour les commandes'),
-                        'desc' => $this->l('Cette option permet de créer automatiquement un thread de message client avec les informations Ciklik pour chaque commande'),
+                        'title' => $this->l('Create customer message thread for orders'),
+                        'desc' => $this->l('This option automatically creates a customer message thread with Ciklik information for each order'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_ORDER_THREAD_STATUS => [
                         'type' => 'select',
-                        'title' => $this->l('Statut du thread de message client'),
-                        'desc' => $this->l('Statut par défaut des threads de message client créés pour les commandes Ciklik'),
+                        'title' => $this->l('Customer message thread status'),
+                        'desc' => $this->l('Default status for customer message threads created for Ciklik orders'),
                         'identifier' => 'thread_status',
                         'cast' => 'strval',
                         'list' => $thread_statuses,
-                    ]
+                    ],
                 ],
                 'submit' => [
                     'title' => $this->l('Save'),
@@ -303,8 +317,8 @@ class AdminConfigureCiklikController extends ModuleAdminController
         ];
 
         $thread_statuses = [
-            ['thread_status' => 'open', 'name' => $this->l('Ouvert')],
-            ['thread_status' => 'closed', 'name' => $this->l('Fermé')],
+            ['thread_status' => 'open', 'name' => $this->l('Open')],
+            ['thread_status' => 'closed', 'name' => $this->l('Closed')],
         ];
 
         return [
@@ -328,46 +342,46 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     ],
                     Ciklik::CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID => [
                         'type' => 'select',
-                        'title' => $this->l('Groupe Achats'),
-                        'desc' => $this->l('Groupe d\'attributs contenant les options de type d\'achat'),
+                        'title' => $this->l('Purchase type group'),
+                        'desc' => $this->l('Attribute group containing purchase type options'),
                         'cast' => 'intval',
                         'identifier' => 'id_attribute_group',
                         'list' => $attributes_groups,
                     ],
                     Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID => [
                         'type' => 'select',
-                        'title' => $this->l('Groupe Fréquences'),
-                        'desc' => $this->l('Groupe d\'attributs contenant les options de fréquences d\'abonnement'),
+                        'title' => $this->l('Frequencies group'),
+                        'desc' => $this->l('Attribute group containing subscription frequency options'),
                         'cast' => 'intval',
                         'identifier' => 'id_attribute_group',
                         'list' => $attributes_groups,
                     ],
                     Ciklik::CONFIG_ONEOFF_ATTRIBUTE_ID => [
                         'type' => 'select',
-                        'title' => $this->l('Attribut "Achat en une fois"'),
+                        'title' => $this->l('One-time purchase attribute'),
                         'cast' => 'intval',
                         'identifier' => 'id_attribute',
                         'list' => $purchase_type_attributes,
                     ],
                     Ciklik::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID => [
                         'type' => 'select',
-                        'title' => $this->l('Attribut "Achat par abonnement"'),
+                        'title' => $this->l('Subscription purchase attribute'),
                         'cast' => 'intval',
                         'identifier' => 'id_attribute',
                         'list' => $purchase_type_attributes,
                     ],
                     Ciklik::CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID => [
                         'type' => 'select',
-                        'title' => $this->l('Abonnement par défaut'),
-                        'desc' => $this->l('Valeur sélectionnée lorsque l\'on active l\'achat par abonnement'),
+                        'title' => $this->l('Default subscription'),
+                        'desc' => $this->l('Value selected when subscription purchase is activated'),
                         'cast' => 'intval',
                         'identifier' => 'id_attribute',
                         'list' => $frequencies_attributes,
                     ],
                     Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES => [
                         'type' => 'checkbox',
-                        'title' => $this->l('Suffix de nom de produit'),
-                        'desc' => $this->l('Valeurs de déclinaisons ajoutées au nom transmis à Ciklik'),
+                        'title' => $this->l('Product name suffix'),
+                        'desc' => $this->l('Combination values added to the name sent to Ciklik'),
                         'show' => true,
                         'multiple' => true,
                         'skip_clean_html' => true,
@@ -376,38 +390,38 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     ],
                     Ciklik::CONFIG_ORDER_STATE => [
                         'type' => 'select',
-                        'title' => $this->l('Statut des commandes'),
-                        'desc' => $this->l('Statut des commandes acceptées via Ciklik'),
+                        'title' => $this->l('Order status'),
+                        'desc' => $this->l('Status for orders accepted through Ciklik'),
                         'cast' => 'intval',
                         'identifier' => 'id_order_state',
                         'list' => $available_order_states,
                     ],
                     Ciklik::CONFIG_DELEGATE_OPTIONS_DISPLAY => [
                         'type' => 'bool',
-                        'title' => $this->l('Déléguer l\'affichage des options'),
-                        'desc' => $this->l('Les options d\'abonnement sont affichées via une case à cocher'),
+                        'title' => $this->l('Delegate options display'),
+                        'desc' => $this->l('Subscription options are displayed via a checkbox'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_ENABLE_ENGAGEMENT => [
                         'type' => 'bool',
-                        'title' => $this->l('Activer l\'engagement'),
-                        'desc' => $this->l('Cette option permet de désactiver le désabonnement pendant le cycle d’engagement'),
+                        'title' => $this->l('Enable commitment'),
+                        'desc' => $this->l('This option disables unsubscription during the commitment period'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_ENGAGEMENT_INTERVAL => [
                         'type' => 'select',
-                        'title' => $this->l('Cycle d’engagement'),
+                        'title' => $this->l('Commitment cycle'),
                         'identifier' => 'engagement_interval',
                         'cast' => 'strval',
                         'list' => $intervals,
                     ],
                     Ciklik::CONFIG_ENGAGEMENT_INTERVAL_COUNT => [
                         'type' => 'select',
-                        'title' => $this->l('Nombre de cycles d’engagement'),
+                        'title' => $this->l('Number of commitment cycles'),
                         'identifier' => 'engagement_interval_count',
                         'cast' => 'intval',
                         'list' => array_map(function ($value) {
@@ -416,15 +430,15 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     ],
                     Ciklik::CONFIG_ENABLE_CHANGE_INTERVAL => [
                         'type' => 'bool',
-                        'title' => $this->l('Modification de la fréquence'),
+                        'title' => $this->l('Frequency modification'),
                         'validation' => 'isBool',
-                        'desc' => $this->l('Cette option permet de désactiver la modification de la fréquence de l\'abonnement, appliquée à la date du prochain paiement'),
+                        'desc' => $this->l('This option disables subscription frequency modification, applied on the next payment date'),
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_ALLOW_CHANGE_NEXT_BILLING => [
                         'type' => 'bool',
-                        'title' => $this->l('Autoriser la modification de la date du prochain paiement'),
+                        'title' => $this->l('Allow next payment date modification'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
@@ -438,54 +452,65 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     ],
                     Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT => [
                         'type' => 'bool',
-                        'title' => $this->l('Activer l\'attribution de groupe client'),
-                        'desc' => $this->l('Cette option permet d\'attribuer un groupe client en fonction de certaines conditions'),
+                        'title' => $this->l('Enable customer group assignment'),
+                        'desc' => $this->l('This option assigns a customer group based on certain conditions'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_CUSTOMER_GROUP_TO_ASSIGN => [
                         'type' => 'select',
-                        'title' => $this->l('Groupe client à attribuer'),
-                        'desc' => $this->l('Sélectionnez le groupe client à attribuer lorsque les conditions sont remplies'),
+                        'title' => $this->l('Customer group to assign'),
+                        'desc' => $this->l('Select the customer group to assign when conditions are met'),
                         'cast' => 'intval',
                         'identifier' => 'id_group',
                         'list' => Group::getGroups(Context::getContext()->language->id),
                     ],
                     Ciklik::CONFIG_ENABLE_UPSELL => [
                         'type' => 'bool',
-                        'title' => $this->l('Activer l\'upsell'),
+                        'title' => $this->l('Enable upsell'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                     ],
                     Ciklik::CONFIG_USE_FREQUENCY_MODE => [
                         'type' => 'bool',
-                        'title' => $this->l('Utiliser la personnalisation des abonnements'),
-                        'desc' => $this->l('Les options d\'abonnement sont affichées via une case à cocher'),
+                        'title' => $this->l('Use subscription customization'),
+                        'desc' => $this->l('Subscription options are displayed via a checkbox'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
+                    Ciklik::CONFIG_FREQUENCY_PRICE_BASE => [
+                        'type' => 'radio',
+                        'title' => $this->l('Frequency discount calculation base'),
+                        'desc' => $this->l('Gross: the discount applies on the gross catalog price. Net: the discount applies on the price after existing price rules (promotions, discounts).'),
+                        'choices' => [
+                            'gross' => $this->l('Gross catalog price (default behavior)'),
+                            'net' => $this->l('Price after existing price rules'),
+                        ],
+                        'required' => false,
+                        'cast' => 'strval',
+                    ],
                     Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE => [
                         'type' => 'bool',
-                        'title' => $this->l('Passer sur la déclinaison par défaut si supprimée'),
-                        'desc' => $this->l('Si une déclinaison demandée a été supprimée, utiliser automatiquement la déclinaison par défaut du produit'),
+                        'title' => $this->l('Fall back to default combination if deleted'),
+                        'desc' => $this->l('If a requested combination has been deleted, automatically use the product default combination'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_ENABLE_ORDER_THREAD => [
                         'type' => 'bool',
-                        'title' => $this->l('Créer un thread de message client pour les commandes'),
-                        'desc' => $this->l('Cette option permet de créer automatiquement un thread de message client avec les informations Ciklik pour chaque commande'),
+                        'title' => $this->l('Create customer message thread for orders'),
+                        'desc' => $this->l('This option automatically creates a customer message thread with Ciklik information for each order'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,
                     ],
                     Ciklik::CONFIG_ORDER_THREAD_STATUS => [
                         'type' => 'select',
-                        'title' => $this->l('Statut du thread de message client'),
-                        'desc' => $this->l('Statut par défaut des threads de message client créés pour les commandes Ciklik'),
+                        'title' => $this->l('Customer message thread status'),
+                        'desc' => $this->l('Default status for customer message threads created for Ciklik orders'),
                         'identifier' => 'thread_status',
                         'cast' => 'strval',
                         'list' => $thread_statuses,
@@ -505,8 +530,8 @@ class AdminConfigureCiklikController extends ModuleAdminController
             $values = [];
         } else {
             // Filtrer pour ne garder que les entiers valides (ex. [3, 'foo', 4] => [3, 4])
-            $values = array_filter($values, function($val) {
-                return is_numeric($val) && (int)$val > 0;
+            $values = array_filter($values, function ($val) {
+                return is_numeric($val) && (int) $val > 0;
             });
         }
 
@@ -518,27 +543,27 @@ class AdminConfigureCiklikController extends ModuleAdminController
      * Traite les données après la soumission du formulaire
      * Met à jour la visibilité de l'onglet des fréquences si le mode fréquence change
      * et s'assure que tous les onglets sont créés
-     * 
+     *
      * @return void
      */
     public function postProcess()
     {
         parent::postProcess();
-        
+
         // S'assurer que tous les onglets d'administration sont installés/mis à jour
         // Cette méthode est idempotente et créera les onglets s'ils n'existent pas
         $installer = new Installer();
         $installer->installAdminTabs($this->module);
-        
+
         // Mettre à jour la visibilité de l'onglet des fréquences lorsque le mode fréquence change
         $installer->updateFrequenciesTabVisibility();
-        
+
         // Vider le cache pour que les nouveaux onglets apparaissent immédiatement
         if (class_exists('Tools')) {
             Tools::clearSmartyCache();
             Tools::clearCache();
         }
-        
+
         // Forcer la reconstruction du cache des menus si la méthode existe
         if (method_exists('Tab', 'resetStaticCache')) {
             Tab::resetStaticCache();
@@ -554,7 +579,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
             . 'WHERE deleted = 0
                     AND paid = 1
                     AND invoice = 1
-            ORDER BY name ASC'
+            ORDER BY name ASC',
         );
     }
 
@@ -572,9 +597,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
 
     public function beforeUpdateOptions()
     {
-
         if (Configuration::get(Ciklik::CONFIG_API_TOKEN) !== Tools::getValue(Ciklik::CONFIG_API_TOKEN)) {
-
             try {
                 $ciklikShopApi = new Shop($this->context->link);
 
@@ -598,7 +621,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
                             'headers' => [
                                 'Authorization' => 'Bearer ' . Tools::getValue(Ciklik::CONFIG_API_TOKEN),
                             ],
-                        ]
+                        ],
                     );
                 }
 
@@ -615,7 +638,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
         if ($this->moduleContainer === null) {
             $this->moduleContainer = new PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer(
                 $this->module->name,
-                $this->module->getLocalPath()
+                $this->module->getLocalPath(),
             );
         }
 
