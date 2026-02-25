@@ -13,6 +13,7 @@ js/node_modules
 sftp-config.json
 .php_cs.cache
 .php-cs-fixer.cache
+.phpunit.result.cache
 zip.sh
 /ignore/
 .osgrep

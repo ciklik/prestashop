@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author    Ciklik SAS <support@ciklik.co>
  * @copyright Since 2017 Metrogeek SAS
@@ -12,21 +13,21 @@ if (file_exists($autoloadPath)) {
 
 use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
+use PrestaShop\Module\Ciklik\Api\Subscription;
 use PrestaShop\Module\Ciklik\Data\PaymentMethodData;
 use PrestaShop\Module\Ciklik\Data\ShopData;
+use PrestaShop\Module\Ciklik\Helpers\PriceHelper;
+use PrestaShop\Module\Ciklik\Helpers\SubscriptionHelper;
 use PrestaShop\Module\Ciklik\Install\Installer;
 use PrestaShop\Module\Ciklik\Managers\CiklikAttribute;
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
+use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
+use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikRefund;
 use PrestaShop\Module\Ciklik\Managers\CiklikSpecificPrice;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscribable;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
-use PrestaShop\Module\Ciklik\Api\Subscription;
-use PrestaShop\Module\Ciklik\Helpers\PriceHelper;
-use PrestaShop\Module\Ciklik\Helpers\SubscriptionHelper;
-use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
-use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -36,35 +37,36 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.14.0';
-    const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
-    const CONFIG_MODE = 'CIKLIK_MODE';
-    const CONFIG_HOST = 'CIKLIK_HOST';
-    const CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID = 'CIKLIK_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID';
-    const CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID = 'CIKLIK_FREQUENCIES_ATTRIBUTE_GROUP_ID';
-    const CONFIG_ONEOFF_ATTRIBUTE_ID = 'CIKLIK_ONEOFF_ATTRIBUTE_ID';
-    const CONFIG_SUBSCRIPTION_ATTRIBUTE_ID = 'CIKLIK_SUBSCRIPTION_ATTRIBUTE_ID';
-    const CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID = 'CIKLIK_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID';
-    const CONFIG_PRODUCT_NAME_SUFFIXES = 'CIKLIK_PRODUCT_NAME_SUFFIXES';
-    const CONFIG_WEBSERVICE_ID = 'CIKLIK_WEBSERVICE_ID';
-    const CONFIG_DELEGATE_OPTIONS_DISPLAY = 'CIKLIK_DELEGATE_OPTIONS_DISPLAY';
-    const CONFIG_DEBUG_LOGS_ENABLED = 'CIKLIK_DEBUG_LOGS_ENABLED';
-    const MODULE_ADMIN_CONTROLLER = 'AdminConfigureCiklik';
-    const CONFIG_ORDER_STATE = 'CIKLIK_ORDER_STATE';
-    const CONFIG_ENABLE_ENGAGEMENT = 'CIKLIK_ENABLE_ENGAGEMENT';
-    const CONFIG_ENGAGEMENT_INTERVAL = 'CIKLIK_ENGAGEMENT_INTERVAL';
-    const CONFIG_ENGAGEMENT_INTERVAL_COUNT = 'CIKLIK_ENGAGEMENT_INTERVAL_COUNT';
-    const CONFIG_ALLOW_CHANGE_NEXT_BILLING = 'CIKLIK_ALLOW_CHANGE_NEXT_BILLING';
-    const CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT = 'CIKLIK_ENABLE_CUSTOMER_GROUP_ASSIGNMENT';
-    const CONFIG_CUSTOMER_GROUP_TO_ASSIGN = 'CIKLIK_CUSTOMER_GROUP_TO_ASSIGN';
-    const CONFIG_ENABLE_CHANGE_INTERVAL = 'CIKLIK_ENABLE_CHANGE_INTERVAL';
-    const CONFIG_ENABLE_UPSELL = 'CIKLIK_ENABLE_UPSELL';
-    const CONFIG_USE_FREQUENCY_MODE = 'CIKLIK_FREQUENCY_MODE';
-    const CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE = 'CIKLIK_FALLBACK_TO_DEFAULT_ATTRIBUTE';
-    const CONFIG_ENABLE_ORDER_THREAD = 'CIKLIK_ENABLE_ORDER_THREAD';
-    const CONFIG_ORDER_THREAD_STATUS = 'CIKLIK_ORDER_THREAD_STATUS';
+    public const VERSION = '1.14.0';
+    public const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
+    public const CONFIG_MODE = 'CIKLIK_MODE';
+    public const CONFIG_HOST = 'CIKLIK_HOST';
+    public const CONFIG_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID = 'CIKLIK_PURCHASE_TYPE_ATTRIBUTE_GROUP_ID';
+    public const CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID = 'CIKLIK_FREQUENCIES_ATTRIBUTE_GROUP_ID';
+    public const CONFIG_ONEOFF_ATTRIBUTE_ID = 'CIKLIK_ONEOFF_ATTRIBUTE_ID';
+    public const CONFIG_SUBSCRIPTION_ATTRIBUTE_ID = 'CIKLIK_SUBSCRIPTION_ATTRIBUTE_ID';
+    public const CONFIG_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID = 'CIKLIK_DEFAULT_SUBSCRIPTION_ATTRIBUTE_ID';
+    public const CONFIG_PRODUCT_NAME_SUFFIXES = 'CIKLIK_PRODUCT_NAME_SUFFIXES';
+    public const CONFIG_WEBSERVICE_ID = 'CIKLIK_WEBSERVICE_ID';
+    public const CONFIG_DELEGATE_OPTIONS_DISPLAY = 'CIKLIK_DELEGATE_OPTIONS_DISPLAY';
+    public const CONFIG_DEBUG_LOGS_ENABLED = 'CIKLIK_DEBUG_LOGS_ENABLED';
+    public const MODULE_ADMIN_CONTROLLER = 'AdminConfigureCiklik';
+    public const CONFIG_ORDER_STATE = 'CIKLIK_ORDER_STATE';
+    public const CONFIG_ENABLE_ENGAGEMENT = 'CIKLIK_ENABLE_ENGAGEMENT';
+    public const CONFIG_ENGAGEMENT_INTERVAL = 'CIKLIK_ENGAGEMENT_INTERVAL';
+    public const CONFIG_ENGAGEMENT_INTERVAL_COUNT = 'CIKLIK_ENGAGEMENT_INTERVAL_COUNT';
+    public const CONFIG_ALLOW_CHANGE_NEXT_BILLING = 'CIKLIK_ALLOW_CHANGE_NEXT_BILLING';
+    public const CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT = 'CIKLIK_ENABLE_CUSTOMER_GROUP_ASSIGNMENT';
+    public const CONFIG_CUSTOMER_GROUP_TO_ASSIGN = 'CIKLIK_CUSTOMER_GROUP_TO_ASSIGN';
+    public const CONFIG_ENABLE_CHANGE_INTERVAL = 'CIKLIK_ENABLE_CHANGE_INTERVAL';
+    public const CONFIG_ENABLE_UPSELL = 'CIKLIK_ENABLE_UPSELL';
+    public const CONFIG_USE_FREQUENCY_MODE = 'CIKLIK_FREQUENCY_MODE';
+    public const CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE = 'CIKLIK_FALLBACK_TO_DEFAULT_ATTRIBUTE';
+    public const CONFIG_ENABLE_ORDER_THREAD = 'CIKLIK_ENABLE_ORDER_THREAD';
+    public const CONFIG_ORDER_THREAD_STATUS = 'CIKLIK_ORDER_THREAD_STATUS';
+    public const CONFIG_FREQUENCY_PRICE_BASE = 'CIKLIK_FREQUENCY_PRICE_BASE';
     /**
-     * @var \Monolog\Logger
+     * @var Monolog\Logger
      */
     private $logger;
     private $container;
@@ -74,7 +76,7 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.14.0';
+        $this->version = '1.15.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -97,7 +99,7 @@ class Ciklik extends PaymentModule
         if ($this->container === null) {
             $this->container = new PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer(
                 $this->name,
-                $this->getLocalPath()
+                $this->getLocalPath(),
             );
         }
     }
@@ -133,12 +135,13 @@ class Ciklik extends PaymentModule
      * Appelé automatiquement par PrestaShop lors de la mise à jour du module.
      *
      * @param string $version La version depuis laquelle on effectue la mise à jour
+     *
      * @return bool
      */
     public function upgradeModule($version)
     {
         $installer = new Installer();
-        
+
         // S'assurer que les onglets d'administration sont installés/mis à jour lors de la mise à jour
         // Cette méthode est idempotente, donc sûre à appeler à chaque mise à jour
         if (!$installer->installAdminTabs($this)) {
@@ -156,7 +159,7 @@ class Ciklik extends PaymentModule
     {
         if (self::isCiklikAddonsBuild()) {
             // Load dependencies manager
-            $mboInstaller = new \Prestashop\ModuleLibMboInstaller\DependencyBuilder($this);
+            $mboInstaller = new Prestashop\ModuleLibMboInstaller\DependencyBuilder($this);
 
             if (!$mboInstaller->areDependenciesMet()) {
                 $dependencies = $mboInstaller->handleDependencies();
@@ -171,7 +174,7 @@ class Ciklik extends PaymentModule
 
     /**
      * This hook called after a new Attribute is created
-     * 
+     *
      * Only for 8.0+
      *
      * @param array $params
@@ -183,7 +186,7 @@ class Ciklik extends PaymentModule
                 (int) $params['id_attribute'],
                 Tools::getValue('interval'),
                 (int) Tools::getValue('interval_count'),
-                (int) Tools::getValue('id_frequency', 0)
+                (int) Tools::getValue('id_frequency', 0),
             );
         }
     }
@@ -267,6 +270,7 @@ class Ciklik extends PaymentModule
 
         if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
             CiklikSubscribable::handle($idProduct);
+
             return;
         }
 
@@ -276,7 +280,7 @@ class Ciklik extends PaymentModule
             return;
         }
 
-        $enabled = (bool)Tools::getValue('ciklik_subscription_enabled');
+        $enabled = (bool) Tools::getValue('ciklik_subscription_enabled');
 
         if ($enabled) {
             $frequencies = Tools::getValue('ciklik_frequencies', []);
@@ -285,7 +289,7 @@ class Ciklik extends PaymentModule
                 foreach ($frequencies as $frequencyId) {
                     Db::getInstance()->insert('ciklik_product_frequency', [
                         'id_product' => $idProduct,
-                        'id_frequency' => (int)$frequencyId
+                        'id_frequency' => (int) $frequencyId,
                     ]);
                 }
             }
@@ -374,7 +378,7 @@ class Ciklik extends PaymentModule
         $paymentOption->setCallToActionText(
             array_key_exists($language->iso_code, $method->name)
                 ? $method->name[$language->iso_code]
-                : $method->name[current(array_keys($method->name))]
+                : $method->name[current(array_keys($method->name))],
         );
         $paymentOption->setAction($this->context->link->getModuleLink($this->name, 'external', [], true));
 
@@ -444,7 +448,7 @@ class Ciklik extends PaymentModule
         $this->context->smarty->assign([
             'transactionsLink' => $this->context->link->getModuleLink(
                 $this->name,
-                'account'
+                'account',
             ),
         ]);
 
@@ -556,7 +560,7 @@ class Ciklik extends PaymentModule
             'transaction' => $transaction,
             'transactionsLink' => $this->context->link->getModuleLink(
                 $this->name,
-                'account'
+                'account',
             ),
         ]);
 
@@ -698,7 +702,7 @@ class Ciklik extends PaymentModule
                 // Récupère tous les abonnements actifs du client
                 $subscriptionsData = (new Subscription($this->context->link))
                     ->getAll(['query' => ['filter' => ['customer_id' => $ciklik_customer['ciklik_uuid']]]]);
-                
+
                 // Si des abonnements sont trouvés, on les stocke
                 if (!empty($subscriptionsData)) {
                     $subscriptions = $subscriptionsData;
@@ -728,8 +732,15 @@ class Ciklik extends PaymentModule
             return '';
         }
 
-        // Prix du produit
-        $productPrice = isset($params['product']['price']) ? (float) $params['product']['price'] : 0;
+        // Prix du produit selon le mode de calcul
+        $priceBase = Configuration::get(self::CONFIG_FREQUENCY_PRICE_BASE);
+        if ($priceBase === 'gross') {
+            // Mode gross : prix TTC sans réductions existantes
+            $productPrice = Product::getPriceStatic($idProduct, true, null, 6, null, false, false);
+        } else {
+            // Mode net : prix TTC après réductions existantes
+            $productPrice = isset($params['product']['price']) ? (float) $params['product']['price'] : 0;
+        }
 
         // Préparer les variables pour le template
         $templateVars = [
@@ -820,7 +831,7 @@ class Ciklik extends PaymentModule
                     $attribute = CiklikCombination::getOne(
                         (int) $product['id_product'],
                         $ciklik_attributes['frequency_id_attribute'],
-                        $constraint_attributes_ids
+                        $constraint_attributes_ids,
                     );
 
                     if (!is_array($attribute) || !(int) $attribute['id_product_attribute']) {
@@ -848,7 +859,7 @@ class Ciklik extends PaymentModule
                     $attribute = CiklikCombination::getOne(
                         (int) $product['id_product'],
                         (int) Configuration::get(self::CONFIG_ONEOFF_ATTRIBUTE_ID),
-                        $constraint_attributes_ids
+                        $constraint_attributes_ids,
                     );
 
                     if (!is_array($attribute) || !(int) $attribute['id_product_attribute']) {
@@ -978,10 +989,10 @@ class Ciklik extends PaymentModule
             return;
         }
 
-        $idProduct = (int)$params['id_product'];
-        
+        $idProduct = (int) $params['id_product'];
+
         $frequencies = CiklikFrequency::getFrequenciesForFrequencyMode();
-        
+
         // Récupère les fréquences sélectionnées pour ce produit
         $query = new DbQuery();
         $query->select('id_frequency');
@@ -989,55 +1000,51 @@ class Ciklik extends PaymentModule
         $query->where('id_product = ' . $idProduct);
         $selectedFrequencies = Db::getInstance()->executeS($query);
         $selectedFrequencies = array_column($selectedFrequencies, 'id_frequency');
-        
-        
+
         $this->context->smarty->assign([
             'ciklik_subscription_enabled' => SubscriptionHelper::isSubscriptionEnabled($idProduct),
             'ciklik_frequencies' => $frequencies,
-            'selected_frequencies' => $selectedFrequencies
+            'selected_frequencies' => $selectedFrequencies,
         ]);
-        
+
         return $this->display(__FILE__, 'views/templates/admin/product_subscription_tab.tpl');
     }
-    
+
     public function hookActionProductUpdate($params)
     {
         if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
             return;
         }
 
-        $idProduct = (int)$params['id_product'];
-        
+        $idProduct = (int) $params['id_product'];
+
         // Vérifie si l'abonnement est activé
-        $enabled = (bool)Tools::getValue('ciklik_subscription_enabled');
-        
+        $enabled = (bool) Tools::getValue('ciklik_subscription_enabled');
+
         if ($enabled) {
             // Sauvegarde les fréquences sélectionnées
             $frequencies = Tools::getValue('ciklik_frequencies', []);
-            
+
             // Supprime les anciennes fréquences
             Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
-            
+
             // Ajoute les nouvelles fréquences
             if (!empty($frequencies)) {
                 foreach ($frequencies as $frequencyId) {
                     Db::getInstance()->insert('ciklik_product_frequency', [
                         'id_product' => $idProduct,
-                        'id_frequency' => (int)$frequencyId
+                        'id_frequency' => (int) $frequencyId,
                     ]);
                 }
             }
-            
         } else {
             // Supprime les fréquences
             Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
         }
     }
 
-
     public function hookActionCartUpdateQuantityBefore($params)
     {
-        
         if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
             return;
         }
@@ -1049,13 +1056,13 @@ class Ciklik extends PaymentModule
 
         // Récupère la fréquence sélectionnée
         $selectedFrequency = Tools::getValue('ciklik_frequency');
-        
-        
+
         // Si aucune fréquence n'est sélectionnée pour un produit en abonnement, on supprime les données de fréquence
         if (!$selectedFrequency) {
             CiklikItemFrequency::deleteByCartAndProduct($cart->id, $idProduct);
             // Supprimer aussi les prix spécifiques existants
             CiklikSpecificPrice::remove($idProduct, $idProductAttribute, $cart->id);
+
             return;
         }
 
@@ -1073,20 +1080,20 @@ class Ciklik extends PaymentModule
                     $idProductAttribute,
                     $cart,
                     $frequency,
-                    $cart->id_customer ? (int)$cart->id_customer : null,
-                    !$cart->id_customer ? (int)$cart->id_guest : null
+                    $cart->id_customer ? (int) $cart->id_customer : null,
+                    !$cart->id_customer ? (int) $cart->id_guest : null,
                 );
             }
 
             // Utilise la nouvelle classe CiklikItemFrequency pour stocker la fréquence
             try {
                 CiklikItemFrequency::save(
-                    (int)$cart->id,
-                    (int)$selectedFrequency,
-                    (int)$idProduct,
-                    (int)$idProductAttribute,
-                    $cart->id_customer ? (int)$cart->id_customer : null,
-                    !$cart->id_customer ? (int)$cart->id_guest : null
+                    (int) $cart->id,
+                    (int) $selectedFrequency,
+                    (int) $idProduct,
+                    (int) $idProductAttribute,
+                    $cart->id_customer ? (int) $cart->id_customer : null,
+                    !$cart->id_customer ? (int) $cart->id_guest : null,
                 );
             } catch (Exception $e) {
                 PrestaShopLogger::addLog(
@@ -1094,7 +1101,7 @@ class Ciklik extends PaymentModule
                     3,
                     null,
                     'ciklik',
-                    $idProduct
+                    $idProduct,
                 );
             }
         }
@@ -1113,15 +1120,15 @@ class Ciklik extends PaymentModule
         foreach ($products as $product) {
             // Récupère la fréquence depuis la table ciklik_items_frequency
             $frequencyData = CiklikItemFrequency::getByCartAndProduct($cart->id, $product['id_product']);
-            
+
             if ($frequencyData) {
                 // Récupère le nom de la fréquence depuis la base de données
                 $query = new DbQuery();
                 $query->select('name');
                 $query->from('ciklik_frequency');
-                $query->where('id_frequency = ' . (int)$frequencyData['frequency_id']);
+                $query->where('id_frequency = ' . (int) $frequencyData['frequency_id']);
                 $frequencyName = Db::getInstance()->getValue($query);
-                
+
                 if ($frequencyName) {
                     $subscriptionInfos[$product['id_product']] = $frequencyName;
                 }
@@ -1133,7 +1140,7 @@ class Ciklik extends PaymentModule
         }
 
         $this->context->smarty->assign([
-            'subscription_infos' => $subscriptionInfos
+            'subscription_infos' => $subscriptionInfos,
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/displayShoppingCart.tpl');
@@ -1154,15 +1161,15 @@ class Ciklik extends PaymentModule
 
         // Mise à jour des données de fréquence pour le panier actuel
         CiklikItemFrequency::updateCustomerFromGuest(
-            (int)$cart->id_guest,
-            (int)$customer->id,
-            (int)$cart->id
+            (int) $cart->id_guest,
+            (int) $customer->id,
+            (int) $cart->id,
         );
 
         // Transfert des prix spécifiques de l'invité vers le client connecté
         CiklikSpecificPrice::transferFromGuestToCustomer(
-            (int)$cart->id,
-            (int)$customer->id
+            (int) $cart->id,
+            (int) $customer->id,
         );
     }
 
@@ -1177,7 +1184,7 @@ class Ciklik extends PaymentModule
                 [
                     'media' => 'all',
                     'priority' => 200,
-                ]
+                ],
             );
 
             // Charge le JavaScript pour les options d'abonnement
@@ -1187,7 +1194,7 @@ class Ciklik extends PaymentModule
                 [
                     'position' => 'bottom',
                     'priority' => 200,
-                ]
+                ],
             );
         }
     }
