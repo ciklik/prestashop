@@ -57,10 +57,14 @@ class CartSubscriptionData
             $frequencyData = CiklikItemFrequency::getByCartAndProduct($cart->id, $product['id_product']);
 
             if ($frequencyData) {
-                $hasSubscriptions = true;
-
                 // Récupère les détails de la fréquence
                 $frequency = CiklikFrequency::getFrequencyById((int) $frequencyData['frequency_id']);
+
+                if (!$frequency) {
+                    continue;
+                }
+
+                $hasSubscriptions = true;
 
                 $items[] = [
                     'id_product' => (int) $product['id_product'],
@@ -104,10 +108,14 @@ class CartSubscriptionData
             $frequencyData = CiklikItemFrequency::getByOrderAndProduct($order->id, $product['product_id']);
 
             if ($frequencyData) {
-                $hasSubscriptions = true;
-
                 // Récupère les détails de la fréquence
                 $frequency = CiklikFrequency::getFrequencyById((int) $frequencyData['frequency_id']);
+
+                if (!$frequency) {
+                    continue;
+                }
+
+                $hasSubscriptions = true;
 
                 $items[] = [
                     'id_product' => (int) $product['product_id'],

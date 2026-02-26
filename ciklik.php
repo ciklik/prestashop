@@ -1116,24 +1116,18 @@ class Ciklik extends PaymentModule
         }
 
         $cart = $this->context->cart;
-        $products = $cart->getProducts();
+
+        $query = new DbQuery();
+        $query->select('cif.product_id, cf.name');
+        $query->from('ciklik_items_frequency', 'cif');
+        $query->innerJoin('ciklik_frequency', 'cf', 'cf.id_frequency = cif.frequency_id');
+        $query->where('cif.cart_id = ' . (int) $cart->id);
+        $results = Db::getInstance()->executeS($query);
+
         $subscriptionInfos = [];
-
-        foreach ($products as $product) {
-            // Récupère la fréquence depuis la table ciklik_items_frequency
-            $frequencyData = CiklikItemFrequency::getByCartAndProduct($cart->id, $product['id_product']);
-
-            if ($frequencyData) {
-                // Récupère le nom de la fréquence depuis la base de données
-                $query = new DbQuery();
-                $query->select('name');
-                $query->from('ciklik_frequency');
-                $query->where('id_frequency = ' . (int) $frequencyData['frequency_id']);
-                $frequencyName = Db::getInstance()->getValue($query);
-
-                if ($frequencyName) {
-                    $subscriptionInfos[$product['id_product']] = $frequencyName;
-                }
+        if ($results) {
+            foreach ($results as $row) {
+                $subscriptionInfos[$row['product_id']] = $row['name'];
             }
         }
 

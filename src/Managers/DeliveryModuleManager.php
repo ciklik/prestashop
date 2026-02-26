@@ -31,7 +31,13 @@ class DeliveryModuleManager
                 return;
             }
             $carrierModuleName = strtolower($carrier->external_module_name);
-            // Génère le nom de la méthode à appeler
+
+            // Modules transporteur supportés
+            $allowedModules = ['mondialrelay', 'dpdfrance', 'colissimo', 'nkmgls', 'chronopost'];
+            if (!in_array($carrierModuleName, $allowedModules, true)) {
+                return;
+            }
+
             $method = 'handle' . str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $carrierModuleName)));
             if (method_exists(__CLASS__, $method)) {
                 static::$method($cart);
