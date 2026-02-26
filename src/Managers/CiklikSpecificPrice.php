@@ -33,24 +33,29 @@ class CiklikSpecificPrice
         array $frequency
     ): bool {
         try {
-            // Log initial
-            \PrestaShopLogger::addLog(
-                'CiklikSpecificPrice::createForFrequency started - Product: ' . $idProduct . ', Cart: ' . $cart->id,
-                1,
-                null,
-                'ciklik',
-                $idProduct,
-            );
+            $debugEnabled = \Configuration::get(\Ciklik::CONFIG_DEBUG_LOGS_ENABLED);
 
-            // Vérifier si un prix spécifique existe déjà
-            if (self::exists($idProduct, $idProductAttribute, $cart->id, $cart->id_customer)) {
+            if ($debugEnabled) {
                 \PrestaShopLogger::addLog(
-                    'Specific price already exists for this product/cart combination',
+                    'CiklikSpecificPrice::createForFrequency started - Product: ' . $idProduct . ', Cart: ' . $cart->id,
                     1,
                     null,
                     'ciklik',
                     $idProduct,
                 );
+            }
+
+            // Vérifier si un prix spécifique existe déjà
+            if (self::exists($idProduct, $idProductAttribute, $cart->id, $cart->id_customer)) {
+                if ($debugEnabled) {
+                    \PrestaShopLogger::addLog(
+                        'Specific price already exists for this product/cart combination',
+                        1,
+                        null,
+                        'ciklik',
+                        $idProduct,
+                    );
+                }
 
                 return false;
             }
@@ -87,13 +92,15 @@ class CiklikSpecificPrice
                 $finalPriceHT = self::computeNetPrice($basePriceHT, $frequency);
 
                 if ($finalPriceHT === false) {
-                    \PrestaShopLogger::addLog(
-                        'Net mode: no valid discount or invalid base price (base=' . $basePriceHT . ')',
-                        2,
-                        null,
-                        'ciklik',
-                        $idProduct,
-                    );
+                    if ($debugEnabled) {
+                        \PrestaShopLogger::addLog(
+                            'Net mode: no valid discount or invalid base price (base=' . $basePriceHT . ')',
+                            2,
+                            null,
+                            'ciklik',
+                            $idProduct,
+                        );
+                    }
 
                     return false;
                 }
@@ -102,43 +109,33 @@ class CiklikSpecificPrice
                 $specificPrice->reduction = 0;
                 $specificPrice->reduction_type = 'amount';
 
-                \PrestaShopLogger::addLog(
-                    'Net mode: base=' . $basePriceHT . ', final=' . $finalPriceHT,
-                    1,
-                    null,
-                    'ciklik',
-                    $idProduct,
-                );
+                if ($debugEnabled) {
+                    \PrestaShopLogger::addLog(
+                        'Net mode: base=' . $basePriceHT . ', final=' . $finalPriceHT,
+                        1,
+                        null,
+                        'ciklik',
+                        $idProduct,
+                    );
+                }
             } else {
                 // Mode gross : comportement par défaut, réduction sur prix brut catalogue
                 if (!empty($frequency['discount_price']) && (float) $frequency['discount_price'] > 0) {
                     $specificPrice->reduction_type = 'amount';
                     $specificPrice->reduction = (float) $frequency['discount_price'];
-                    \PrestaShopLogger::addLog(
-                        'Using amount reduction: ' . $frequency['discount_price'],
-                        1,
-                        null,
-                        'ciklik',
-                        $idProduct,
-                    );
                 } elseif (!empty($frequency['discount_percent']) && (float) $frequency['discount_percent'] > 0) {
                     $specificPrice->reduction_type = 'percentage';
                     $specificPrice->reduction = (float) $frequency['discount_percent'] / 100;
-                    \PrestaShopLogger::addLog(
-                        'Using percentage reduction: ' . $frequency['discount_percent'] . '%',
-                        1,
-                        null,
-                        'ciklik',
-                        $idProduct,
-                    );
                 } else {
-                    \PrestaShopLogger::addLog(
-                        'No valid discount found in frequency data',
-                        2,
-                        null,
-                        'ciklik',
-                        $idProduct,
-                    );
+                    if ($debugEnabled) {
+                        \PrestaShopLogger::addLog(
+                            'No valid discount found in frequency data',
+                            2,
+                            null,
+                            'ciklik',
+                            $idProduct,
+                        );
+                    }
 
                     return false;
                 }
@@ -150,31 +147,35 @@ class CiklikSpecificPrice
             $specificPrice->from = date('Y-m-d H:i:s', strtotime('-1 day'));
             $specificPrice->to = date('Y-m-d H:i:s', strtotime('+1 year'));
 
-            \PrestaShopLogger::addLog(
-                'Attempting to save specific price with data: ' . json_encode([
-                    'id_product' => $specificPrice->id_product,
-                    'id_product_attribute' => $specificPrice->id_product_attribute,
-                    'id_customer' => $specificPrice->id_customer,
-                    'id_cart' => $specificPrice->id_cart,
-                    'reduction_type' => $specificPrice->reduction_type,
-                    'reduction' => $specificPrice->reduction,
-                ]),
-                1,
-                null,
-                'ciklik',
-                $idProduct,
-            );
-
-            $result = $specificPrice->add();
-
-            if ($result) {
+            if ($debugEnabled) {
                 \PrestaShopLogger::addLog(
-                    'Specific price created successfully with ID: ' . $specificPrice->id,
+                    'Attempting to save specific price with data: ' . json_encode([
+                        'id_product' => $specificPrice->id_product,
+                        'id_product_attribute' => $specificPrice->id_product_attribute,
+                        'id_customer' => $specificPrice->id_customer,
+                        'id_cart' => $specificPrice->id_cart,
+                        'reduction_type' => $specificPrice->reduction_type,
+                        'reduction' => $specificPrice->reduction,
+                    ]),
                     1,
                     null,
                     'ciklik',
                     $idProduct,
                 );
+            }
+
+            $result = $specificPrice->add();
+
+            if ($result) {
+                if ($debugEnabled) {
+                    \PrestaShopLogger::addLog(
+                        'Specific price created successfully with ID: ' . $specificPrice->id,
+                        1,
+                        null,
+                        'ciklik',
+                        $idProduct,
+                    );
+                }
 
                 return true;
             }
@@ -313,28 +314,14 @@ class CiklikSpecificPrice
         if ($specificPrices) {
             foreach ($specificPrices as $specificPriceData) {
                 try {
-                    // Créer un nouveau prix spécifique pour le client
-                    $newSpecificPrice = new \SpecificPrice();
-                    $newSpecificPrice->id_product = $specificPriceData['id_product'];
-                    $newSpecificPrice->id_product_attribute = $specificPriceData['id_product_attribute'];
-                    $newSpecificPrice->id_customer = $idCustomer;
-                    $newSpecificPrice->id_cart = $specificPriceData['id_cart'];
-                    $newSpecificPrice->id_shop = $specificPriceData['id_shop'];
-                    $newSpecificPrice->id_currency = $specificPriceData['id_currency'];
-                    $newSpecificPrice->id_country = $specificPriceData['id_country'];
-                    $newSpecificPrice->id_group = 0;
-                    $newSpecificPrice->reduction_type = $specificPriceData['reduction_type'];
-                    $newSpecificPrice->reduction = $specificPriceData['reduction'];
-                    $newSpecificPrice->from_quantity = $specificPriceData['from_quantity'];
-                    $newSpecificPrice->price = $specificPriceData['price'];
-                    $newSpecificPrice->reduction_tax = $specificPriceData['reduction_tax'];
-                    $newSpecificPrice->from = $specificPriceData['from'];
-                    $newSpecificPrice->to = $specificPriceData['to'];
+                    // Mise à jour directe du customer_id pour éviter les doublons
+                    $result = \Db::getInstance()->update(
+                        'specific_price',
+                        ['id_customer' => (int) $idCustomer],
+                        'id_specific_price = ' . (int) $specificPriceData['id_specific_price'],
+                    );
 
-                    if ($newSpecificPrice->add()) {
-                        // Supprimer l'ancien prix spécifique
-                        $oldSpecificPrice = new \SpecificPrice($specificPriceData['id_specific_price']);
-                        $oldSpecificPrice->delete();
+                    if ($result) {
                         $transferred = true;
                     }
                 } catch (\Exception $e) {

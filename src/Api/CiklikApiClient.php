@@ -199,7 +199,10 @@ class CiklikApiClient
             $module = \Module::getInstanceByName('ciklik');
             $logger = $module->getLogger();
             $logger->debug('route: ' . $this->getRoute());
-            $logger->debug('options: ' . var_export($options, true));
+            // Ne pas logger les headers (contiennent le Bearer token)
+            $sanitizedOptions = $options;
+            unset($sanitizedOptions['headers']);
+            $logger->debug('options: ' . var_export($sanitizedOptions, true));
             $logger->debug('response: ' . var_export($response, true));
         }
 

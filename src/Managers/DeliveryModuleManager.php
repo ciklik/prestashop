@@ -629,7 +629,7 @@ class DeliveryModuleManager
 
     public static function isRelais($idCarrier)
     {
-        $carrier = new Carrier($idCarrier);
+        $carrier = new \Carrier($idCarrier);
 
         return in_array($carrier->id_reference, self::getChronoRelaisIDs());
     }

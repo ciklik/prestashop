@@ -35,9 +35,10 @@ class CiklikAttribute
             VALUES (' . $id_attribute . ', ' . (int) \Configuration::get('PS_LANG_DEFAULT') . ', \'' . pSQL($name) . '\')
         ');
 
+        $id_shop = (int) \Context::getContext()->shop->id ?: 1;
         \Db::getInstance()->execute('
             INSERT INTO `' . _DB_PREFIX_ . 'attribute_shop` (`id_attribute`, `id_shop`)
-            VALUES (' . $id_attribute . ', 1)
+            VALUES (' . $id_attribute . ', ' . $id_shop . ')
         ');
 
         return $id_attribute;
@@ -45,9 +46,9 @@ class CiklikAttribute
 
     public static function delete(int $id_attribute): bool
     {
-        return \Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'attribute` WHERE `id_attribute` = ' . $id_attribute)
-
-            && \Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'attribute_lang` WHERE `id_attribute` = ' . $id_attribute);
+        return \Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'attribute` WHERE `id_attribute` = ' . (int) $id_attribute)
+            && \Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'attribute_lang` WHERE `id_attribute` = ' . (int) $id_attribute)
+            && \Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'attribute_shop` WHERE `id_attribute` = ' . (int) $id_attribute);
     }
 
     public static function isFrequencyAttribute(int $id_attribute): bool

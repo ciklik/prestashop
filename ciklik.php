@@ -883,7 +883,9 @@ class Ciklik extends PaymentModule
                 }
 
                 $ciklik_attributes['subscription_price'] = Product::getPriceStatic((int) $product['id_product'], true, $ciklik_attributes['id_product_attribute']);
-                $ciklik_attributes['discount_percentage'] = floor((($ciklik_attributes['subscription_reference_price'] - $ciklik_attributes['subscription_price']) / $ciklik_attributes['subscription_reference_price']) * 100);
+                $ciklik_attributes['discount_percentage'] = $ciklik_attributes['subscription_reference_price'] > 0
+                    ? floor((($ciklik_attributes['subscription_reference_price'] - $ciklik_attributes['subscription_price']) / $ciklik_attributes['subscription_reference_price']) * 100)
+                    : 0;
             }
         }
 

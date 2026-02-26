@@ -14,6 +14,27 @@ if (!defined('_PS_VERSION_')) {
 
 class SubscriptionDeliveryAddressData
 {
+    /** @var string */
+    public $first_name;
+
+    /** @var string */
+    public $last_name;
+
+    /** @var string */
+    public $address;
+
+    /** @var string|null */
+    public $address1;
+
+    /** @var string */
+    public $postcode;
+
+    /** @var string */
+    public $city;
+
+    /** @var string */
+    public $country;
+
     private function __construct(
         string $first_name,
         string $last_name,
