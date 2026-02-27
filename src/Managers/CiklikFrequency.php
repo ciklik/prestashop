@@ -55,15 +55,6 @@ class CiklikFrequency
         return \Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'ciklik_frequencies` WHERE `id_attribute` = ' . $id_attribute);
     }
 
-    public static function isFrequencyAttribute(int $id_attribute): bool
-    {
-        return \Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
-            SELECT `id_attribute_group`
-            FROM `' . _DB_PREFIX_ . 'attribute`
-            WHERE `id_attribute` = ' . $id_attribute . '
-        ') === (int) \Configuration::get('CIKLIK_FREQUENCIES_ATTRIBUTE_GROUP_ID');
-    }
-
     /*
     * Les méthodes suivantes sont utilisées pour le mode fréquence
     */

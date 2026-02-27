@@ -57,10 +57,10 @@ class CiklikAttribute
             return (int) \Configuration::get('CIKLIK_FREQUENCIES_ATTRIBUTE_GROUP_ID') === (int) \Tools::getValue('id_attribute_group');
         }
 
-        return \Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
+        return (int) \Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
             SELECT `id_attribute_group`
             FROM `' . _DB_PREFIX_ . 'attribute`
-            WHERE `id_attribute` = ' . $id_attribute . '
+            WHERE `id_attribute` = ' . (int) $id_attribute . '
         ') === (int) \Configuration::get('CIKLIK_FREQUENCIES_ATTRIBUTE_GROUP_ID');
     }
 }
