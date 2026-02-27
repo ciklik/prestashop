@@ -366,42 +366,4 @@ class CiklikSpecificPrice
         return (int) \Db::getInstance()->getValue($query) > 0;
     }
 
-    /**
-     * Nettoie les prix spécifiques obsolètes (plus anciens que X jours)
-     *
-     * @param int $daysOld Nombre de jours (par défaut 30)
-     *
-     * @return int Nombre de prix spécifiques supprimés
-     */
-    public static function cleanup(int $daysOld = 30): int
-    {
-        $cutoffDate = date('Y-m-d H:i:s', strtotime("-{$daysOld} days"));
-
-        $query = new \DbQuery();
-        $query->select('id_specific_price');
-        $query->from('specific_price');
-        $query->where('from < "' . pSQL($cutoffDate) . '"');
-        $query->where('id_cart > 0'); // Seulement les prix spécifiques liés à des paniers
-
-        $specificPrices = \Db::getInstance()->executeS($query);
-        $deleted = 0;
-
-        foreach ($specificPrices as $specificPriceData) {
-            try {
-                $specificPrice = new \SpecificPrice($specificPriceData['id_specific_price']);
-                if ($specificPrice->delete()) {
-                    ++$deleted;
-                }
-            } catch (\Exception $e) {
-                \PrestaShopLogger::addLog(
-                    'Error during specific price cleanup: ' . $e->getMessage(),
-                    3,
-                    null,
-                    'CiklikSpecificPrice',
-                );
-            }
-        }
-
-        return $deleted;
-    }
 }
