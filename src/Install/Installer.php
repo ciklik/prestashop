@@ -102,15 +102,35 @@ class Installer
      */
     private function uninstallConfiguration(): bool
     {
-        return (bool) \Configuration::deleteByName(\Ciklik::CONFIG_API_TOKEN)
-            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_MODE)
-            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_HOST)
-            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES)
-            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_WEBSERVICE_ID)
-            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_DEBUG_LOGS_ENABLED)
-            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_ENABLE_ORDER_THREAD)
-            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_ORDER_THREAD_STATUS)
-            && (bool) \Configuration::deleteByName(\Ciklik::CONFIG_FREQUENCY_PRICE_BASE);
+        $keys = [
+            \Ciklik::CONFIG_API_TOKEN,
+            \Ciklik::CONFIG_MODE,
+            \Ciklik::CONFIG_HOST,
+            \Ciklik::CONFIG_PRODUCT_NAME_SUFFIXES,
+            \Ciklik::CONFIG_WEBSERVICE_ID,
+            \Ciklik::CONFIG_DEBUG_LOGS_ENABLED,
+            \Ciklik::CONFIG_ENABLE_ORDER_THREAD,
+            \Ciklik::CONFIG_ORDER_THREAD_STATUS,
+            \Ciklik::CONFIG_FREQUENCY_PRICE_BASE,
+            \Ciklik::CONFIG_ORDER_STATE,
+            \Ciklik::CONFIG_ENABLE_ENGAGEMENT,
+            \Ciklik::CONFIG_ENGAGEMENT_INTERVAL,
+            \Ciklik::CONFIG_ENGAGEMENT_INTERVAL_COUNT,
+            \Ciklik::CONFIG_ALLOW_CHANGE_NEXT_BILLING,
+            \Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT,
+            \Ciklik::CONFIG_CUSTOMER_GROUP_TO_ASSIGN,
+            \Ciklik::CONFIG_ENABLE_CHANGE_INTERVAL,
+            \Ciklik::CONFIG_ENABLE_UPSELL,
+            \Ciklik::CONFIG_USE_FREQUENCY_MODE,
+            \Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE,
+            \Ciklik::CONFIG_DELEGATE_OPTIONS_DISPLAY,
+        ];
+
+        foreach ($keys as $key) {
+            \Configuration::deleteByName($key);
+        }
+
+        return true;
     }
 
     /**
