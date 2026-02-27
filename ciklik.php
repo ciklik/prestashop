@@ -1082,8 +1082,6 @@ class Ciklik extends PaymentModule
                     $idProductAttribute,
                     $cart,
                     $frequency,
-                    $cart->id_customer ? (int) $cart->id_customer : null,
-                    !$cart->id_customer ? (int) $cart->id_guest : null,
                 );
             }
 
