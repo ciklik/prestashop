@@ -14,6 +14,7 @@ if (file_exists($autoloadPath)) {
 use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Api\Subscription;
+use PrestaShop\Module\Ciklik\Data\CartSubscriptionData;
 use PrestaShop\Module\Ciklik\Data\PaymentMethodData;
 use PrestaShop\Module\Ciklik\Data\ShopData;
 use PrestaShop\Module\Ciklik\Helpers\PriceHelper;
@@ -555,6 +556,14 @@ class Ciklik extends PaymentModule
             $transaction = $orderPayment->transaction_id;
         }
 
+        $subscriptionData = [];
+        if (Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            $cartSubscription = CartSubscriptionData::fromOrder($order);
+            if ($cartSubscription->hasSubscribableItems()) {
+                $subscriptionData = $cartSubscription->getItems();
+            }
+        }
+
         $this->context->smarty->assign([
             'moduleName' => $this->name,
             'transaction' => $transaction,
@@ -562,6 +571,7 @@ class Ciklik extends PaymentModule
                 $this->name,
                 'account',
             ),
+            'subscription_items' => $subscriptionData,
         ]);
 
         return $this->context->smarty->fetch('module:ciklik/views/templates/hook/displayPaymentReturn.tpl');

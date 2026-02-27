@@ -47,6 +47,7 @@ $_MODULE['<{ciklik}prestashop>displaycustomeraccount_4ca2c509994c2776d0880357b4e
 $_MODULE['<{ciklik}prestashop>displayorderconfirmation_e4a5003bedaa73765b838faa2251864f'] = 'Tu referencia de transacción es %transaction%.';
 $_MODULE['<{ciklik}prestashop>displayorderdetail_e4a5003bedaa73765b838faa2251864f'] = 'Tu referencia de transacción es %transaction%.';
 $_MODULE['<{ciklik}prestashop>displaypaymentreturn_e4a5003bedaa73765b838faa2251864f'] = 'Tu referencia de transacción es %transaction%.';
+$_MODULE['<{ciklik}prestashop>displaypaymentreturn_11505e49b8050e064743cf2fa9121623'] = 'Detalles de la suscripción';
 $_MODULE['<{ciklik}prestashop>displaypdfinvoice_e4a5003bedaa73765b838faa2251864f'] = 'Tu referencia de transacción es %transaction%.';
 
 // Change Delivery Address Modal
