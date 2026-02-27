@@ -123,30 +123,6 @@ class CiklikItemFrequency
     }
 
     /**
-     * Récupère une fréquence par produit et combinaison
-     *
-     * @param int $productId ID du produit
-     * @param int|null $productAttributeId ID de la combinaison (optionnel)
-     *
-     * @return array|null Les données de fréquence ou null si non trouvé
-     */
-    public static function getByProduct(int $productId, ?int $productAttributeId = null): ?array
-    {
-        $query = new \DbQuery();
-        $query->select('*');
-        $query->from('ciklik_items_frequency');
-        $query->where('product_id = ' . (int) $productId);
-
-        if ($productAttributeId !== null) {
-            $query->where('id_product_attribute = ' . (int) $productAttributeId);
-        } else {
-            $query->where('id_product_attribute IS NULL');
-        }
-
-        return \Db::getInstance()->getRow($query);
-    }
-
-    /**
      * Met à jour le customer_id pour un guest_id
      *
      * @param int $guestId ID du visiteur
