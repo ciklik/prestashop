@@ -202,3 +202,22 @@ $_MODULE['<{ciklik}prestashop>refund_50bbecd2ef08b6e0d3d69a9b5313294d'] = 'Erreu
 $_MODULE['<{ciklik}prestashop>refund_69c00601627a9011bf5c4816abf00b5a'] = 'Une erreur est survenue pendant le remboursement';
 $_MODULE['<{ciklik}prestashop>refund_4ba820211f99849725468bd56fc50216'] = 'Erreur : le montant est supérieur au maximum remboursable';
 $_MODULE['<{ciklik}prestashop>displayrefundshookcontroller_6c1bad435d103e5c1b777b48125b215f'] = 'Montant (max. %s)';
+
+// Order Subscription Info - Actions Admin
+$_MODULE['<{ciklik}prestashop>order_subscription_info_bbcc24757dd5eeb6db1cc7b9e6a5984c'] = 'Désactiver l\'abonnement';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_25ed3ee01b530b0dfc6ec5ae93477473'] = 'Réactiver l\'abonnement';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_6a25e539d72c9ad1213e80af3c168f21'] = 'Changer la date de prochain paiement';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_70d9be9b139893aa6c69b5e77e614311'] = 'Confirmer';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_ea4788705e6873b424c65e91c2846b19'] = 'Annuler';
+
+// Manage Controller
+$_MODULE['<{ciklik}prestashop>manage_08de2fdaabcd120b8ca1388d21179921'] = 'Accès refusé';
+$_MODULE['<{ciklik}prestashop>manage_db26e10564e958809d798e8048fcbc0a'] = 'Jeton de sécurité invalide';
+$_MODULE['<{ciklik}prestashop>manage_dbf373dd3565accf2d2fd19700f6a5ae'] = 'Action invalide';
+$_MODULE['<{ciklik}prestashop>manage_f60c3d3ed78581b149864a5a75c31752'] = 'UUID d\'abonnement invalide';
+$_MODULE['<{ciklik}prestashop>manage_73054f7704d6df6884dffd93bfc3ee58'] = 'Une erreur est survenue lors de la mise à jour de l\'abonnement.';
+$_MODULE['<{ciklik}prestashop>manage_e14841823d733848b4203193e701adb5'] = 'L\'abonnement a été désactivé.';
+$_MODULE['<{ciklik}prestashop>manage_8d415edab4d18466ee61bdfdc57082f0'] = 'L\'abonnement a été réactivé.';
+$_MODULE['<{ciklik}prestashop>manage_1877df0bda1d8925e344c9c457c7a709'] = 'La date de prochain paiement a été mise à jour.';
+$_MODULE['<{ciklik}prestashop>manage_adc58f1d615417a70417cd447f17ea91'] = 'Format de date invalide';
+$_MODULE['<{ciklik}prestashop>manage_d2685f05870f1944ca3218525ebd423b'] = 'La date doit être dans le futur';

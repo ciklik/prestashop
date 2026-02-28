@@ -91,6 +91,8 @@ class DisplayOrderSubscriptionInfoHookController
             'moduleDisplayName' => $this->module->displayName,
             'subscription' => $subscription,
             'ciklik_order_url' => 'https://app.ciklik.co/app/resources/checkout-orders/' . $orderData->ciklik_order_id,
+            'manageActionUrl' => $this->context->link->getModuleLink('ciklik', 'manage'),
+            'manageAjaxToken' => sha1(_COOKIE_KEY_ . 'ciklik_manage'),
         ]);
 
         return $this->context->smarty->fetch('module:ciklik/views/templates/admin/order_subscription_info.tpl');

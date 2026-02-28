@@ -202,3 +202,22 @@ $_MODULE['<{ciklik}prestashop>refund_50bbecd2ef08b6e0d3d69a9b5313294d'] = 'Błą
 $_MODULE['<{ciklik}prestashop>refund_69c00601627a9011bf5c4816abf00b5a'] = 'Wystąpił błąd podczas przetwarzania zwrotu';
 $_MODULE['<{ciklik}prestashop>refund_4ba820211f99849725468bd56fc50216'] = 'Błąd: kwota przekracza maksymalną kwotę do zwrotu';
 $_MODULE['<{ciklik}prestashop>displayrefundshookcontroller_6c1bad435d103e5c1b777b48125b215f'] = 'Kwota (maks. %s)';
+
+// Order Subscription Info - Akcje admina
+$_MODULE['<{ciklik}prestashop>order_subscription_info_bbcc24757dd5eeb6db1cc7b9e6a5984c'] = 'Dezaktywuj subskrypcję';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_25ed3ee01b530b0dfc6ec5ae93477473'] = 'Reaktywuj subskrypcję';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_6a25e539d72c9ad1213e80af3c168f21'] = 'Zmień datę następnej płatności';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_70d9be9b139893aa6c69b5e77e614311'] = 'Potwierdź';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_ea4788705e6873b424c65e91c2846b19'] = 'Anuluj';
+
+// Manage Controller
+$_MODULE['<{ciklik}prestashop>manage_08de2fdaabcd120b8ca1388d21179921'] = 'Odmowa dostępu';
+$_MODULE['<{ciklik}prestashop>manage_db26e10564e958809d798e8048fcbc0a'] = 'Nieprawidłowy token bezpieczeństwa';
+$_MODULE['<{ciklik}prestashop>manage_dbf373dd3565accf2d2fd19700f6a5ae'] = 'Nieprawidłowa akcja';
+$_MODULE['<{ciklik}prestashop>manage_f60c3d3ed78581b149864a5a75c31752'] = 'Nieprawidłowy UUID subskrypcji';
+$_MODULE['<{ciklik}prestashop>manage_73054f7704d6df6884dffd93bfc3ee58'] = 'Wystąpił błąd podczas aktualizacji subskrypcji.';
+$_MODULE['<{ciklik}prestashop>manage_e14841823d733848b4203193e701adb5'] = 'Subskrypcja została dezaktywowana.';
+$_MODULE['<{ciklik}prestashop>manage_8d415edab4d18466ee61bdfdc57082f0'] = 'Subskrypcja została reaktywowana.';
+$_MODULE['<{ciklik}prestashop>manage_1877df0bda1d8925e344c9c457c7a709'] = 'Data następnej płatności została zaktualizowana.';
+$_MODULE['<{ciklik}prestashop>manage_adc58f1d615417a70417cd447f17ea91'] = 'Nieprawidłowy format daty';
+$_MODULE['<{ciklik}prestashop>manage_d2685f05870f1944ca3218525ebd423b'] = 'Data musi być w przyszłości';
