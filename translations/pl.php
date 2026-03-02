@@ -147,6 +147,8 @@ $_MODULE['<{ciklik}prestashop>order_subscription_info_4994a8ffeba4ac3140beb89e8d
 $_MODULE['<{ciklik}prestashop>order_subscription_info_386c339d37e737a436499d423a77df0c'] = 'Waluta';
 $_MODULE['<{ciklik}prestashop>order_subscription_info_914419aa32f04011357d3b604a86d7eb'] = 'Przewoźnik';
 $_MODULE['<{ciklik}prestashop>order_subscription_info_2b5932460c4f1e726c2fe5eb4c84cf64'] = 'Dodatkowe produkty';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_5ebab16f2adfc2a669f90fad5e5ee36f'] = 'Zobacz na Ciklik';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_52eb43485175b27d516a58a137af2d9a'] = 'Szczegóły techniczne';
 
 // Admin Configure Controller
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c3bf447eabe632720a3aa1a7ce401274'] = 'Otwarty';
