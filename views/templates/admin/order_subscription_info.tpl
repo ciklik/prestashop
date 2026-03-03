@@ -141,8 +141,8 @@
                         <tbody>
                             {foreach from=$subscription->upsells item=upsell}
                                 <tr>
-                                    <td>{$upsell->name|escape:'html':'UTF-8'}</td>
-                                    <td>{$upsell->quantity|intval}</td>
+                                    <td>{$upsell.display_name|escape:'html':'UTF-8'}</td>
+                                    <td>{$upsell.quantity|intval}</td>
                                 </tr>
                             {/foreach}
                         </tbody>
