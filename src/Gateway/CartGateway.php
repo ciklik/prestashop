@@ -318,6 +318,9 @@ class CartGateway extends AbstractGateway implements EntityGateway
         // Gestion des points relais
         DeliveryModuleManager::handleDeliveryModule($cart);
 
+        // Permet aux modules tiers de modifier le panier avant le rebill
+        self::executePreRebillHook($cart, $cartFingerprintData);
+
         $this->cartResponse($cart, false, $cartFingerprintData->upsells);
     }
 
@@ -431,6 +434,34 @@ class CartGateway extends AbstractGateway implements EntityGateway
         }
 
         return $product['id_product'] . ':' . ($product['id_product_attribute'] ?? 0);
+    }
+
+    /**
+     * Exécute le hook actionCiklikCartBeforeRebill avec gestion des erreurs
+     *
+     * Permet aux modules tiers de modifier le panier avant le rebill
+     * (ex: ajout de codes promo, modifications de quantités, etc.)
+     *
+     * @param \Cart $cart Le panier de rebill
+     * @param CartFingerprintData $cartFingerprintData Données du fingerprint
+     */
+    public static function executePreRebillHook(\Cart $cart, CartFingerprintData $cartFingerprintData)
+    {
+        try {
+            \Hook::exec('actionCiklikCartBeforeRebill', [
+                'cart' => $cart,
+                'cartFingerprintData' => $cartFingerprintData,
+            ]);
+        } catch (\Exception $e) {
+            \PrestaShopLogger::addLog(
+                'actionCiklikCartBeforeRebill - Erreur module tiers: ' . $e->getMessage(),
+                3,
+                null,
+                'CartGateway',
+                $cart->id,
+                true
+            );
+        }
     }
 
     /**

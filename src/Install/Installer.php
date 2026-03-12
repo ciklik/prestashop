@@ -250,6 +250,7 @@ class Installer
                 'displayShoppingCart',
                 'actionAuthentication',
                 'actionProductUpdate',
+                'actionCiklikCartBeforeRebill',
             ];
         } else {
             // Hooks pour presta 8+
@@ -278,6 +279,7 @@ class Installer
                 'displayShoppingCart',
                 'actionAuthentication',
                 'actionProductUpdate',
+                'actionCiklikCartBeforeRebill',
             ];
         }
 

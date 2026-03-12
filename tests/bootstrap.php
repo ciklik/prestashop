@@ -193,4 +193,71 @@ class PrestaShopLogger
     }
 }
 
+/**
+ * Stub Hook pour les tests unitaires
+ *
+ * Enregistre les appels et permet de simuler des erreurs modules tiers.
+ */
+class Hook
+{
+    /** @var array Enregistrement des appels pour assertions */
+    public static $calls = [];
+
+    /** @var \Exception|null Exception à lever lors du prochain appel */
+    private static $throwException;
+
+    /**
+     * @param string $hookName Nom du hook
+     * @param array $params Paramètres du hook
+     */
+    public static function exec($hookName, $params = [], $id_module = null, $array_return = false, $check_exceptions = true, $use_push = false, $id_shop = null, $chain = false)
+    {
+        self::$calls[] = ['hookName' => $hookName, 'params' => $params];
+
+        if (self::$throwException) {
+            $e = self::$throwException;
+            self::$throwException = null;
+
+            throw $e;
+        }
+
+        return '';
+    }
+
+    /**
+     * Configure une exception à lever au prochain appel
+     *
+     * @param \Exception $e
+     */
+    public static function setThrowException(\Exception $e)
+    {
+        self::$throwException = $e;
+    }
+
+    public static function resetMocks()
+    {
+        self::$calls = [];
+        self::$throwException = null;
+    }
+}
+
+/**
+ * Stub Cart minimal pour les tests unitaires
+ */
+class Cart
+{
+    public $id;
+    public $id_customer;
+    public $id_address_delivery;
+    public $id_address_invoice;
+    public $id_lang;
+    public $id_currency;
+    public $id_carrier;
+
+    public function __construct($id = null)
+    {
+        $this->id = $id;
+    }
+}
+
 require_once __DIR__ . '/../vendor/autoload.php';

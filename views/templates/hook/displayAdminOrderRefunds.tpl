@@ -8,7 +8,7 @@
     <div class="card-header">
       <h3 class="card-header-title">
         <img src="{$moduleLogoSrc}" alt="{$moduleDisplayName}" width="20" height="20">
-        {l s='CIKLIK Refunds' mod='ciklik'}<br>
+        {l s='CIKLIK Refunds' mod='ciklik'}
       </h3>
     </div>
     <div class="card-body">
@@ -17,17 +17,17 @@
           <p>{l s='This will be applied in your Ciklik dashboard automatically.' mod='ciklik'}</p>
         </div>
       </div>
-      <div class="alert alert-success ciklik-success"  style="display:none" data-alert="success"></div>
+      <div class="alert alert-success ciklik-success" style="display:none" data-alert="success"></div>
       <div class="alert alert-danger ciklik-danger" style="display:none" data-alert="danger"></div>
-        <div class="alert alert-info ciklik-info" {if ! $refund.refunded}style="display:none"{/if}>
-          {l s='Refunded:' mod='ciklik'}<span id="refunded">{$refund.refunded}</span>
-        </div>
+      <div class="alert alert-info ciklik-info" {if ! $refund.refunded}style="display:none"{/if}>
+        {l s='Refunded:' mod='ciklik'} <span id="refunded">{$refund.refunded|escape:'htmlall':'UTF-8'}</span>
+      </div>
       {if $refund.available}
         <form id="ciklik-refund" method="POST" action="{$actionUrl|escape:'htmlall':'UTF-8'}" class="defaultForm form-horizontal form-ciklik disabled">
           <input type="hidden" name="orderId" required value="{$order.id|escape:'htmlall':'UTF-8'}"/>
           <input type="hidden" name="ajax_token" value="{$ajaxToken|escape:'htmlall':'UTF-8'}"/>
           <div class="form-group row">
-            <label class='control-label text-right col-lg-4'>
+            <label class="control-label text-right text-end col-lg-4">
               <span class="text-danger">*</span> {l s='Refund type' mod='ciklik'}
             </label>
             <div class="col-sm">
@@ -46,8 +46,8 @@
             </div>
           </div>
           <div class="form-group row" id="amountDisplay" style="display: none">
-            <label class='control-label text-right col-lg-4' for="amount">
-              <span class="text-danger">*</span><span id="maxRefundable">{$refund.max}<span>
+            <label class="control-label text-right text-end col-lg-4" for="amount">
+              <span class="text-danger">*</span> <span id="maxRefundable">{$refund.max|escape:'htmlall':'UTF-8'}</span>
             </label>
             <div class="col-sm">
               <div class="input-group">
@@ -58,14 +58,12 @@
                         id="amount"
                         placeholder="{l s='Amount to refund...' mod='ciklik'}"
                 />
-                <div class="input-group-append">
-                  <div class="input-group-text">{$order.currencySymbol|escape:'htmlall':'UTF-8'}</div>
-                </div>
+                <span class="input-group-text">{$order.currencySymbol|escape:'htmlall':'UTF-8'}</span>
               </div>
             </div>
           </div>
-          <div class="text-right">
-            <button type="submit" class="button btn btn-primary button-medium pull-right">{l s='Proceed the refund' mod='ciklik'}</button>
+          <div class="text-right text-end">
+            <button type="submit" class="btn btn-primary">{l s='Proceed the refund' mod='ciklik'}</button>
           </div>
         </form>
       {/if}
@@ -87,11 +85,10 @@
       }
     });
 
-
     $form.submit(function (e) {
       if (e) {
         e.preventDefault();
-        $($form.find('[type=submit]')).attr("disabled", true);
+        $($form.find('[type=submit]')).attr('disabled', true);
         $('.ciklik-danger').html('').hide();
         $('.ciklik-success').html('').hide();
 
@@ -108,23 +105,27 @@
             ajax_token: $form.find('[name=ajax_token]').val()
           }
         })
-                .done(function (data) {
-                  $('.ciklik-success').html(data.message).show();
-                  $('#refunded').html(data.refund.refunded);
-                  $('#maxRefundable').html(data.refund.max);
-                  $('.ciklik-info').show();
-                  if (! data.refund.available) {
-                    $form.hide()
-                  }
-                })
-                .fail(function (data) {
-                  var jsondata = JSON.parse(data.responseText);
-                  $('.ciklik-danger').html(jsondata.message).show();
-                })
-                .always(function(){
-                  $($form.find('[type=submit]')).attr('disabled', false);
-                  $($form.find('input[id=amount]')).val('');
-                });
+        .done(function (data) {
+          $('.ciklik-success').html(data.message).show();
+          $('#refunded').text(data.refund.refunded);
+          $('#maxRefundable').text(data.refund.max);
+          $('.ciklik-info').show();
+          if (!data.refund.available) {
+            $form.hide();
+          }
+        })
+        .fail(function (data) {
+          try {
+            var jsondata = JSON.parse(data.responseText);
+            $('.ciklik-danger').html(jsondata.message).show();
+          } catch (e) {
+            $('.ciklik-danger').html('An error occurred').show();
+          }
+        })
+        .always(function () {
+          $($form.find('[type=submit]')).attr('disabled', false);
+          $($form.find('input[id=amount]')).val('');
+        });
 
         return false;
       }
