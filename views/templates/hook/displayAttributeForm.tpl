@@ -9,7 +9,7 @@
 {/if}
 
 <div class="form-group">
-  <label class="control-label col-lg-4 required" for="customer-group">{l s='Type d\'intervalle' mod='ciklik'}</label>
+  <label class="control-label col-lg-4 required" for="customer-group">{l s='Interval type' mod='ciklik'}</label>
   <div class="col-lg-8">
     <select name="interval" class="fixed-width-xl">
       {foreach from=$intervals item=interval}
@@ -20,7 +20,7 @@
 </div>
 
 <div class="form-group">
-  <label class="control-label col-lg-4 required" for="customer-group">{l s='Valeur d\'intervalle' mod='ciklik'}</label>
+  <label class="control-label col-lg-4 required" for="customer-group">{l s='Interval value' mod='ciklik'}</label>
   <div class="col-lg-8">
     <select name="interval_count" class="fixed-width-xl">
       {foreach from=$interval_counts item=interval_count}

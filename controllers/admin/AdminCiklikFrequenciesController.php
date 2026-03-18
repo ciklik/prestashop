@@ -69,7 +69,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
     {
         parent::init();
 
-        $this->page_header_toolbar_title = $this->l('Gestion des Fréquences');
+        $this->page_header_toolbar_title = $this->l('Frequency Management');
 
         // Vérifier si le mode fréquence est activé
         if (!Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
@@ -97,14 +97,14 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
                 'filter_key' => 'id_frequency',
             ],
             'name' => [
-                'title' => $this->l('Nom'),
+                'title' => $this->l('Name'),
                 'width' => 200,
                 'type' => 'text',
                 'search' => false,
                 'filter_key' => 'name',
             ],
             'interval_count' => [
-                'title' => $this->l('Nombre d\'intervalles'),
+                'title' => $this->l('Interval count'),
                 'width' => 100,
                 'type' => 'int',
                 'align' => 'center',
@@ -112,19 +112,19 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
                 'filter_key' => 'interval_count',
             ],
             'interval' => [
-                'title' => $this->l('Intervalle'),
+                'title' => $this->l('Interval'),
                 'width' => 100,
                 'type' => 'select',
                 'list' => [
-                    'day' => $this->l('Journalier'),
-                    'week' => $this->l('Hebdomadaire'),
-                    'month' => $this->l('Mensuel'),
+                    'day' => $this->l('Daily'),
+                    'week' => $this->l('Weekly'),
+                    'month' => $this->l('Monthly'),
                 ],
                 'search' => false,
                 'filter_key' => 'interval',
             ],
             'discount_percent' => [
-                'title' => $this->l('Remise (%)'),
+                'title' => $this->l('Discount (%)'),
                 'width' => 100,
                 'type' => 'percent',
                 'align' => 'right',
@@ -132,7 +132,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
                 'filter_key' => 'discount_percent',
             ],
             'discount_price' => [
-                'title' => $this->l('Remise (montant)'),
+                'title' => $this->l('Discount (amount)'),
                 'width' => 100,
                 'type' => 'price',
                 'align' => 'right',
@@ -144,34 +144,34 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
         // Définition des champs du formulaire
         $this->fields_form = [
             'legend' => [
-                'title' => $this->l('Fréquence'),
+                'title' => $this->l('Frequency'),
                 'icon' => 'icon-cogs',
             ],
             'input' => [
                 [
                     'type' => 'text',
-                    'label' => $this->l('Nom'),
+                    'label' => $this->l('Name'),
                     'name' => 'name',
                     'required' => true,
                     'maxlength' => 255,
                 ],
                 [
                     'type' => 'text',
-                    'label' => $this->l('Nombre d\'intervalles'),
+                    'label' => $this->l('Interval count'),
                     'name' => 'interval_count',
                     'required' => true,
                     'class' => 'fixed-width-sm',
                 ],
                 [
                     'type' => 'select',
-                    'label' => $this->l('Intervalle'),
+                    'label' => $this->l('Interval'),
                     'name' => 'interval',
                     'required' => true,
                     'options' => [
                         'query' => [
-                            ['id' => 'day', 'name' => $this->l('Journalier')],
-                            ['id' => 'week', 'name' => $this->l('Hebdomadaire')],
-                            ['id' => 'month', 'name' => $this->l('Mensuel')],
+                            ['id' => 'day', 'name' => $this->l('Daily')],
+                            ['id' => 'week', 'name' => $this->l('Weekly')],
+                            ['id' => 'month', 'name' => $this->l('Monthly')],
                         ],
                         'id' => 'id',
                         'name' => 'name',
@@ -179,21 +179,21 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
                 ],
                 [
                     'type' => 'text',
-                    'label' => $this->l('Remise (%)'),
+                    'label' => $this->l('Discount (%)'),
                     'name' => 'discount_percent',
                     'class' => 'fixed-width-sm',
                     'suffix' => '%',
                 ],
                 [
                     'type' => 'text',
-                    'label' => $this->l('Remise (montant)'),
+                    'label' => $this->l('Discount (amount)'),
                     'name' => 'discount_price',
                     'class' => 'fixed-width-sm',
                     'suffix' => $this->context->currency->sign,
                 ],
             ],
             'submit' => [
-                'title' => $this->l('Enregistrer'),
+                'title' => $this->l('Save'),
             ],
         ];
     }
@@ -243,14 +243,14 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
         try {
             $id = CiklikFrequencyManager::saveFrequency($frequencyData);
             if ($id) {
-                $this->confirmations[] = $this->l('Fréquence créée avec succès.');
+                $this->confirmations[] = $this->l('Frequency created successfully.');
                 Tools::redirectAdmin($this->context->link->getAdminLink('AdminCiklikFrequencies'));
             } else {
-                $this->errors[] = $this->l('Erreur lors de la création de la fréquence.');
+                $this->errors[] = $this->l('Error creating frequency.');
             }
         } catch (Exception $e) {
             // Échappement XSS du message d'exception (source externe potentiellement non fiable)
-            $this->errors[] = $this->l('Erreur: ') . Tools::htmlentitiesUTF8($e->getMessage());
+            $this->errors[] = $this->l('Error: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
 
         return false;
@@ -265,7 +265,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
     {
         $id_frequency = (int) Tools::getValue('id_frequency');
         if (!$id_frequency) {
-            $this->errors[] = $this->l('ID de fréquence invalide.');
+            $this->errors[] = $this->l('Invalid frequency ID.');
 
             return false;
         }
@@ -280,14 +280,14 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
         try {
             $id = CiklikFrequencyManager::saveFrequency($frequencyData);
             if ($id) {
-                $this->confirmations[] = $this->l('Fréquence modifiée avec succès.');
+                $this->confirmations[] = $this->l('Frequency updated successfully.');
                 Tools::redirectAdmin($this->context->link->getAdminLink('AdminCiklikFrequencies'));
             } else {
-                $this->errors[] = $this->l('Erreur lors de la modification de la fréquence.');
+                $this->errors[] = $this->l('Error updating frequency.');
             }
         } catch (Exception $e) {
             // Échappement XSS du message d'exception (source externe potentiellement non fiable)
-            $this->errors[] = $this->l('Erreur: ') . Tools::htmlentitiesUTF8($e->getMessage());
+            $this->errors[] = $this->l('Error: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
 
         return false;
@@ -300,7 +300,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
      */
     public function processDelete()
     {
-        $this->errors[] = $this->l('La suppression des fréquences n\'est pas autorisée. Vous pouvez uniquement les modifier.');
+        $this->errors[] = $this->l('Deleting frequencies is not allowed. You can only edit them.');
         Tools::redirectAdmin($this->context->link->getAdminLink('AdminCiklikFrequencies'));
     }
 
@@ -416,18 +416,18 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
 
         // Validation du nom
         if (empty($name) || !Validate::isString($name) || strlen($name) > 255) {
-            $this->errors[] = $this->l('Le nom doit être une chaîne non vide de maximum 255 caractères.');
+            $this->errors[] = $this->l('Name must be a non-empty string of maximum 255 characters.');
         }
 
         // Validation du nombre d'intervalles
         if (!Validate::isUnsignedInt($interval_count) || (int) $interval_count <= 0) {
-            $this->errors[] = $this->l('Le nombre d\'intervalles doit être un entier positif.');
+            $this->errors[] = $this->l('Interval count must be a positive integer.');
         }
 
         // Validation de l'intervalle
         $allowedIntervals = ['day', 'week', 'month'];
         if (!in_array($interval, $allowedIntervals, true)) {
-            $this->errors[] = $this->l('L\'intervalle doit être l\'un des suivants: jour, semaine, mois.');
+            $this->errors[] = $this->l('Interval must be one of: day, week, month.');
         }
 
         // Validation des champs de remise
@@ -484,7 +484,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
         if ($discount_percent_trimmed !== '' && $discount_percent_trimmed !== '0' && $discount_percent_trimmed !== '0.00') {
             $discount_percent_value = (float) $discount_percent;
             if (!Validate::isFloat($discount_percent) || $discount_percent_value < 0 || $discount_percent_value > 100) {
-                $errors[] = $this->l('Le pourcentage de remise doit être entre 0 et 100.');
+                $errors[] = $this->l('Discount percentage must be between 0 and 100.');
             }
         }
 
@@ -493,7 +493,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
         if ($discount_price_trimmed !== '' && $discount_price_trimmed !== '0' && $discount_price_trimmed !== '0.00') {
             $discount_price_value = (float) $discount_price;
             if (!Validate::isFloat($discount_price) || $discount_price_value < 0) {
-                $errors[] = $this->l('Le montant de remise doit être un nombre positif.');
+                $errors[] = $this->l('Discount amount must be a positive number.');
             }
         }
 

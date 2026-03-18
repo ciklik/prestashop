@@ -102,9 +102,9 @@ class AdminConfigureCiklikController extends ModuleAdminController
         $frequencies_attributes = self::getCiklikAttributes(Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID);
 
         $intervals = [
-            ['engagement_interval' => 'month', 'name' => $this->trans('Mensuel', [], 'Modules.Ciklik')],
-            ['engagement_interval' => 'week', 'name' => $this->trans('Hebdomadaire', [], 'Modules.Ciklik')],
-            ['engagement_interval' => 'day', 'name' => $this->trans('Journalier', [], 'Modules.Ciklik')],
+            ['engagement_interval' => 'month', 'name' => $this->l('Monthly')],
+            ['engagement_interval' => 'week', 'name' => $this->l('Weekly')],
+            ['engagement_interval' => 'day', 'name' => $this->l('Daily')],
         ];
 
         $thread_statuses = [
@@ -126,8 +126,8 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'type' => 'radio',
                         'title' => $this->l('Mode'),
                         'choices' => [
-                            'SANDBOX' => $this->trans('Démo', [], 'Modules.Ciklik.Admin'),
-                            'LIVE' => $this->trans('Production/Dev/Test', [], 'Modules.Ciklik.Admin'),
+                            'SANDBOX' => $this->l('Demo'),
+                            'LIVE' => $this->l('Production/Dev/Test'),
                         ],
                         'required' => true,
                     ],
@@ -311,9 +311,9 @@ class AdminConfigureCiklikController extends ModuleAdminController
         $frequencies_attributes = self::getCiklikAttributes(Ciklik::CONFIG_FREQUENCIES_ATTRIBUTE_GROUP_ID);
 
         $intervals = [
-            ['engagement_interval' => 'month', 'name' => $this->trans('Mensuel', [], 'Modules.Ciklik')],
-            ['engagement_interval' => 'week', 'name' => $this->trans('Hebdomadaire', [], 'Modules.Ciklik')],
-            ['engagement_interval' => 'day', 'name' => $this->trans('Journalier', [], 'Modules.Ciklik')],
+            ['engagement_interval' => 'month', 'name' => $this->l('Monthly')],
+            ['engagement_interval' => 'week', 'name' => $this->l('Weekly')],
+            ['engagement_interval' => 'day', 'name' => $this->l('Daily')],
         ];
 
         $thread_statuses = [
@@ -335,8 +335,8 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'type' => 'radio',
                         'title' => $this->l('Mode'),
                         'choices' => [
-                            'SANDBOX' => $this->trans('Test', [], 'Modules.Ciklik.Admin'),
-                            'LIVE' => $this->trans('Production', [], 'Modules.Ciklik.Admin'),
+                            'SANDBOX' => $this->l('Test'),
+                            'LIVE' => $this->l('Production'),
                         ],
                         'required' => true,
                     ],
@@ -625,10 +625,10 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     );
                 }
 
-                $this->confirmations[] = $this->trans('Connection successful', [], 'Modules.Ciklik.Admin');
+                $this->confirmations[] = $this->l('Connection successful');
             } catch (Exception $e) {
                 // Échappement XSS du message d'exception (source externe potentiellement non fiable)
-                $this->errors[] = $this->trans('Connection failed', [], 'Modules.Ciklik.Admin') . ' ' . Tools::htmlentitiesUTF8($e->getMessage());
+                $this->errors[] = $this->l('Connection failed') . ' ' . Tools::htmlentitiesUTF8($e->getMessage());
             }
         }
     }

@@ -1,5 +1,5 @@
 {*
-* @author    Ciklik SAS <support@ciklik.co>
+* @author    Metrogeek SAS <support@ciklik.co>
 * @copyright Since 2017 Metrogeek SAS
 * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
 *}
@@ -9,7 +9,7 @@
        data-currency-code="{if isset($currency.iso_code)}{$currency.iso_code}{else}EUR{/if}"
        data-locale="{if isset($language.iso_code)}{$language.iso_code}{else}fr{/if}"
        data-base-price="{if isset($product.price) && $product.price}{$product.price}{else}0{/if}">
-    <h3 class="subscription-title">{l s='Type d\'achat' mod='ciklik'}</h3>
+    <h3 class="subscription-title">{l s='Purchase type' mod='ciklik'}</h3>
 
     <div class="subscription-frequencies">
       {* Option achat unique *}
@@ -17,7 +17,7 @@
         <input type="radio" name="ciklik_frequency" id="frequency_0" value="0" checked>
         <label for="frequency_0" class="frequency-card">
           <div class="frequency-header">
-            <span class="frequency-name">{l s='Achat unique' mod='ciklik'}</span>
+            <span class="frequency-name">{l s='One-time purchase' mod='ciklik'}</span>
           </div>
           <div class="frequency-price">
             <span class="current-price" data-base-price="0">
@@ -34,7 +34,7 @@
             <input type="radio" name="ciklik_frequency" id="frequency_{$frequency.id_frequency}" value="{$frequency.id_frequency}">
             <label for="frequency_{$frequency.id_frequency}" class="frequency-card discount-card">
               <div class="frequency-header">
-                <span class="frequency-name">{l s='Abonnement' mod='ciklik'} : {$frequency.name|escape:'html':'UTF-8'}</span>
+                <span class="frequency-name">{l s='Subscription' mod='ciklik'} : {$frequency.name|escape:'html':'UTF-8'}</span>
                 <span class="discount-badge">
                   {if $frequency.discount_percent > 0}
                     -{$frequency.discount_percent|floatval}%
@@ -62,7 +62,7 @@
             <input type="radio" name="ciklik_frequency" id="frequency_{$frequency.id_frequency}" value="{$frequency.id_frequency}">
             <label for="frequency_{$frequency.id_frequency}" class="frequency-card">
               <div class="frequency-header">
-                <span class="frequency-name">{l s='Abonnement' mod='ciklik'} : {$frequency.name|escape:'html':'UTF-8'}</span>
+                <span class="frequency-name">{l s='Subscription' mod='ciklik'} : {$frequency.name|escape:'html':'UTF-8'}</span>
               </div>
               <div class="frequency-price">
                 <span class="current-price" data-base-price="0">

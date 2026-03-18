@@ -82,11 +82,11 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
         parent::init();
 
         // Définir le titre de la page après init() (le contexte langue est initialisé)
-        $this->page_header_toolbar_title = $this->l('Abonnements et Commandes');
+        $this->page_header_toolbar_title = $this->l('Subscriptions and Orders');
 
         // Vérifier si le token API est configuré
         if (!Configuration::get(Ciklik::CONFIG_API_TOKEN)) {
-            $this->warnings[] = $this->l('Le token API Ciklik n\'est pas configuré. Veuillez le configurer dans les paramètres du module.');
+            $this->warnings[] = $this->l('The Ciklik API token is not configured. Please configure it in the module settings.');
         }
     }
 
@@ -172,15 +172,15 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                     }
                     $pagination = $this->extractPagination($response);
                 } else {
-                    $errors[] = $this->l('Erreur lors de la récupération des abonnements: ') .
+                    $errors[] = $this->l('Error fetching subscriptions: ') .
                         $this->formatApiErrors($response);
                 }
             } else {
-                $errors[] = $this->l('Format de réponse API inattendu lors de la récupération des abonnements.');
+                $errors[] = $this->l('Unexpected API response format when fetching subscriptions.');
             }
         } catch (Exception $e) {
             // Échappement XSS du message d'exception (source externe potentiellement non fiable)
-            $errors[] = $this->l('Erreur API: ') . Tools::htmlentitiesUTF8($e->getMessage());
+            $errors[] = $this->l('API Error: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
 
         $this->context->smarty->assign([
@@ -238,12 +238,12 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                 }
                 $pagination = $this->extractPagination($response);
             } else {
-                $errors[] = $this->l('Erreur lors de la récupération des commandes: ') .
+                $errors[] = $this->l('Error fetching orders: ') .
                     $this->formatApiErrors($response);
             }
         } catch (Exception $e) {
             // Échappement XSS du message d'exception (source externe potentiellement non fiable)
-            $errors[] = $this->l('Erreur API: ') . Tools::htmlentitiesUTF8($e->getMessage());
+            $errors[] = $this->l('API Error: ') . Tools::htmlentitiesUTF8($e->getMessage());
         }
 
         // Construire les liens vers les commandes PrestaShop et récupérer les informations clients
@@ -538,7 +538,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
             return $response['message'];
         }
 
-        return $this->l('Erreur inconnue');
+        return $this->l('Unknown error');
     }
 
     /**

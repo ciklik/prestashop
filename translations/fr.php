@@ -96,6 +96,7 @@ $_MODULE['<{ciklik}prestashop>listupsellsubscriptionanddelete_694e8d1f2ee056f98e
 $_MODULE['<{ciklik}prestashop>displayproductactions_c59d9c52944b0b8f9665fecf5bcd0552'] = 'Ajouter à l\'abonnement';
 
 // Display Product Subscription Options Hook
+$_MODULE['<{ciklik}prestashop>displayproductsubscriptionoptions_66bb7817698e25f8b3f1dec5ad5496d2'] = 'Type d\'achat';
 $_MODULE['<{ciklik}prestashop>displayproductsubscriptionoptions_ab845cd4b6879705432d579b185986db'] = 'Achat unique';
 $_MODULE['<{ciklik}prestashop>displayproductsubscriptionoptions_abf75ad7b004e5dc55d051b73bf6557d'] = 'Abonnement';
 
@@ -192,9 +193,51 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a88ed40ae0590ad78c3
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_b17e723da6db93b6384bef7851e79303'] = 'Utiliser la personnalisation des abonnements';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9b91e16a322557991689aae4206a1669'] = 'Suffixe de nom de produit';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c5cafc973a510a661a19cb6100458eb5'] = 'Valeurs de déclinaisons ajoutées au nom transmis à Ciklik';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9030e39f00132d583da4122532e509e9'] = 'Mensuel';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_6c25e6a6da95b3d583c6ec4c3f82ed4d'] = 'Hebdomadaire';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c512b685438f41daa7386329a3b8f8d3'] = 'Journalier';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_f0258b6685684c113bad94d91b8fa02a'] = 'Démo';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9129df053193a4eb2b60392cede8adb3'] = 'Production/Dev/Test';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_0cbc6611f5540bd0809a388dc95a615b'] = 'Test';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_756d97bb256b8580d4d71ee0c547804e'] = 'Production';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3956a19a769b2ba5e4c32b6fdd915675'] = 'Connexion réussie';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_1be415f041c0d8f2e10093a7b4236694'] = 'Échec de la connexion';
 
 // Admin Frequencies Controller
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_f94022cb57dc9531d8b9c23fd6dda661'] = 'Gestion des Fréquences';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_b718adec73e04ce3ec720dd11a06a308'] = 'ID';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_49ee3087348e8d44e1feda1917443987'] = 'Nom';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_f044f316eef9bf821322b68804da8a03'] = 'Nombre d\'intervalles';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_d16dd01adf735ed9b87eebff5fc39ce5'] = 'Intervalle';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_c512b685438f41daa7386329a3b8f8d3'] = 'Journalier';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_6c25e6a6da95b3d583c6ec4c3f82ed4d'] = 'Hebdomadaire';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_9030e39f00132d583da4122532e509e9'] = 'Mensuel';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_9ba58ad734a38b533febf81361bd1a4f'] = 'Remise (%)';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_a45c381d659bf992d65fbb5b491e8944'] = 'Remise (montant)';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_7cf395303ce3665a9834721d4b748e4b'] = 'Fréquence';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_c9cc8cce247e49bae79f15173ce97354'] = 'Enregistrer';
 $_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_dff63518371f8f4598bc3ef3efb0b1e6'] = 'Ajouter une fréquence';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_f97d2eb0a66987899d02bb180936afa3'] = 'Erreur : ';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_a6d05a012d032b85819d09019f34c504'] = 'Fréquence créée avec succès.';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_786ef1e2939601ce1147d9580fa44513'] = 'Erreur lors de la création de la fréquence.';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_b49e7ece0db023a2f1b4957d20db2760'] = 'ID de fréquence invalide.';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_1f77d575f5b801afa7a7465e95c60bb4'] = 'Fréquence modifiée avec succès.';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_a95453672bb9528dd556da652c81f131'] = 'Erreur lors de la modification de la fréquence.';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_abbc961db301dc6842e48853d147a35b'] = 'La suppression des fréquences n\'est pas autorisée. Vous pouvez uniquement les modifier.';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_ef984f8de2ce08d2836779a773024849'] = 'Le nom doit être une chaîne non vide de maximum 255 caractères.';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_203c15bcb6d28cc3fff6f5fc3f43242a'] = 'Le nombre d\'intervalles doit être un entier positif.';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_aee1c073e22ea29172889f650c0183e6'] = 'L\'intervalle doit être l\'un des suivants : jour, semaine, mois.';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_3a9fc568c2db45a8f9047c5447c9c04a'] = 'Le pourcentage de remise doit être entre 0 et 100.';
+$_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_76026c309855d54554b2f3ccdee929d2'] = 'Le montant de remise doit être un nombre positif.';
+
+// Admin Subscriptions & Orders Controller
+$_MODULE['<{ciklik}prestashop>admincikliksubscriptionsorderscontroller_ecce7616981f26ce93b94d8e2cee68dc'] = 'Abonnements et Commandes';
+$_MODULE['<{ciklik}prestashop>admincikliksubscriptionsorderscontroller_6ff158783905a751445832ffde806875'] = 'Le token API Ciklik n\'est pas configuré. Veuillez le configurer dans les paramètres du module.';
+$_MODULE['<{ciklik}prestashop>admincikliksubscriptionsorderscontroller_c8290364ff0f22872901fd17a756c76e'] = 'Erreur lors de la récupération des abonnements : ';
+$_MODULE['<{ciklik}prestashop>admincikliksubscriptionsorderscontroller_c6c9729b1fda50353d5b7882ca12e6ce'] = 'Format de réponse API inattendu lors de la récupération des abonnements.';
+$_MODULE['<{ciklik}prestashop>admincikliksubscriptionsorderscontroller_6feca47a558009c1ae241dbfa91ed615'] = 'Erreur API : ';
+$_MODULE['<{ciklik}prestashop>admincikliksubscriptionsorderscontroller_af62ecdcc0668d9955cb80e6dffc79b4'] = 'Erreur lors de la récupération des commandes : ';
+$_MODULE['<{ciklik}prestashop>admincikliksubscriptionsorderscontroller_aee9784c03b80d38d3271cde2b252b8d'] = 'Erreur inconnue';
 
 // Refund Controller
 $_MODULE['<{ciklik}prestashop>refund_e06d1ba70f1331e9f9a113cc2f887d3f'] = 'Accès interdit';
