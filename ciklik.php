@@ -275,6 +275,16 @@ class Ciklik extends PaymentModule
             return;
         }
 
+        $this->saveProductFrequencies($idProduct);
+    }
+
+    /**
+     * Sauvegarde les associations produit/fréquences depuis le formulaire produit BO
+     *
+     * @param int $idProduct ID du produit
+     */
+    private function saveProductFrequencies($idProduct)
+    {
         // Ne rien faire si la requête ne contient pas les données Ciklik
         // (mise à jour via module externe, API, connecteur Sage, etc.)
         if (!Tools::getIsset('ciklik_subscription_enabled')) {
@@ -283,19 +293,20 @@ class Ciklik extends PaymentModule
 
         $enabled = (bool) Tools::getValue('ciklik_subscription_enabled');
 
+        // Supprime les anciennes associations
+        Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . (int) $idProduct);
+
+        // Ajoute les nouvelles associations si activé
         if ($enabled) {
             $frequencies = Tools::getValue('ciklik_frequencies', []);
-            Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
             if (!empty($frequencies)) {
                 foreach ($frequencies as $frequencyId) {
                     Db::getInstance()->insert('ciklik_product_frequency', [
-                        'id_product' => $idProduct,
+                        'id_product' => (int) $idProduct,
                         'id_frequency' => (int) $frequencyId,
                     ]);
                 }
             }
-        } else {
-            Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
         }
     }
 
@@ -1013,13 +1024,87 @@ class Ciklik extends PaymentModule
         $selectedFrequencies = Db::getInstance()->executeS($query);
         $selectedFrequencies = array_column($selectedFrequencies, 'id_frequency');
 
+        // Trier par type d'intervalle puis par interval_count
+        $intervalOrder = ['day' => 1, 'week' => 2, 'month' => 3, 'year' => 4];
+        usort($frequencies, function ($a, $b) use ($intervalOrder) {
+            $orderA = isset($intervalOrder[$a['interval']]) ? $intervalOrder[$a['interval']] : 99;
+            $orderB = isset($intervalOrder[$b['interval']]) ? $intervalOrder[$b['interval']] : 99;
+            if ($orderA !== $orderB) {
+                return $orderA - $orderB;
+            }
+
+            return (int) $a['interval_count'] - (int) $b['interval_count'];
+        });
+
+        // Enrichir chaque fréquence et regrouper par intervalle
+        $intervalLabels = [
+            'day' => $this->l('Daily'),
+            'week' => $this->l('Weekly'),
+            'month' => $this->l('Monthly'),
+            'year' => $this->l('Yearly'),
+        ];
+
+        $groupedFrequencies = [];
+        foreach ($frequencies as &$frequency) {
+            $frequency['description'] = $this->buildFrequencyDescription(
+                $frequency['interval'],
+                (int) $frequency['interval_count'],
+            );
+
+            $interval = $frequency['interval'];
+            if (!isset($groupedFrequencies[$interval])) {
+                $groupedFrequencies[$interval] = [
+                    'label' => isset($intervalLabels[$interval]) ? $intervalLabels[$interval] : ucfirst($interval),
+                    'frequencies' => [],
+                ];
+            }
+            $groupedFrequencies[$interval]['frequencies'][] = $frequency;
+        }
+        unset($frequency);
+
         $this->context->smarty->assign([
             'ciklik_subscription_enabled' => SubscriptionHelper::isSubscriptionEnabled($idProduct),
-            'ciklik_frequencies' => $frequencies,
+            'grouped_frequencies' => $groupedFrequencies,
             'selected_frequencies' => $selectedFrequencies,
+            'has_frequencies' => !empty($frequencies),
+            'admin_frequencies_link' => $this->context->link->getAdminLink('AdminCiklikFrequencies'),
+            'currency_sign' => $this->context->currency->sign,
+            'selected_count' => count($selectedFrequencies),
+            'total_count' => count($frequencies),
+            'group_count' => count($groupedFrequencies),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/product_subscription_tab.tpl');
+    }
+
+    /**
+     * Construit une description lisible pour un intervalle de fréquence
+     *
+     * @param string $interval Type d'intervalle (day, week, month, year)
+     * @param int $intervalCount Nombre d'intervalles
+     *
+     * @return string Description lisible
+     */
+    private function buildFrequencyDescription($interval, $intervalCount)
+    {
+        $units = [
+            'day' => [$this->l('day'), $this->l('days')],
+            'week' => [$this->l('week'), $this->l('weeks')],
+            'month' => [$this->l('month'), $this->l('months')],
+            'year' => [$this->l('year'), $this->l('years')],
+        ];
+
+        if (!isset($units[$interval])) {
+            return '';
+        }
+
+        $unit = $units[$interval][$intervalCount > 1 ? 1 : 0];
+
+        if ($intervalCount === 1) {
+            return sprintf($this->l('Every %s'), $unit);
+        }
+
+        return sprintf($this->l('Every %d %s'), $intervalCount, $unit);
     }
 
     public function hookActionProductUpdate($params)
@@ -1028,31 +1113,7 @@ class Ciklik extends PaymentModule
             return;
         }
 
-        $idProduct = (int) $params['id_product'];
-
-        // Vérifie si l'abonnement est activé
-        $enabled = (bool) Tools::getValue('ciklik_subscription_enabled');
-
-        if ($enabled) {
-            // Sauvegarde les fréquences sélectionnées
-            $frequencies = Tools::getValue('ciklik_frequencies', []);
-
-            // Supprime les anciennes fréquences
-            Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
-
-            // Ajoute les nouvelles fréquences
-            if (!empty($frequencies)) {
-                foreach ($frequencies as $frequencyId) {
-                    Db::getInstance()->insert('ciklik_product_frequency', [
-                        'id_product' => $idProduct,
-                        'id_frequency' => (int) $frequencyId,
-                    ]);
-                }
-            }
-        } else {
-            // Supprime les fréquences
-            Db::getInstance()->delete('ciklik_product_frequency', 'id_product = ' . $idProduct);
-        }
+        $this->saveProductFrequencies((int) $params['id_product']);
     }
 
     public function hookActionCartUpdateQuantityBefore($params)
