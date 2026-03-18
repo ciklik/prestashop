@@ -52,6 +52,23 @@ class Subscription extends CiklikApiClient
         return $response;
     }
 
+    /**
+     * Récupère les abonnements bruts sans transformation en DTO
+     *
+     * Utilisé par la prévision de stock pour éviter les appels coûteux
+     * de processContents()/processUpsells() lors de l'agrégation.
+     *
+     * @param array $options Options API (filtres, pagination, etc.)
+     *
+     * @return array Réponse API brute (body non transformé)
+     */
+    public function indexRaw(array $options = [])
+    {
+        $this->setRoute('subscriptions');
+
+        return $this->get($options);
+    }
+
     public function getOne(string $ciklik_subscription_uuid)
     {
         $error = $this->setRouteWithValidation(

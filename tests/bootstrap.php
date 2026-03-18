@@ -138,7 +138,7 @@ class Db
 
         if (!empty(self::$mockUpdateResults)) {
             $next = array_shift(self::$mockUpdateResults);
-            if ($next instanceof \Exception) {
+            if ($next instanceof Exception) {
                 throw $next;
             }
 
@@ -203,7 +203,7 @@ class Hook
     /** @var array Enregistrement des appels pour assertions */
     public static $calls = [];
 
-    /** @var \Exception|null Exception à lever lors du prochain appel */
+    /** @var Exception|null Exception à lever lors du prochain appel */
     private static $throwException;
 
     /**
@@ -227,9 +227,9 @@ class Hook
     /**
      * Configure une exception à lever au prochain appel
      *
-     * @param \Exception $e
+     * @param Exception $e
      */
-    public static function setThrowException(\Exception $e)
+    public static function setThrowException(Exception $e)
     {
         self::$throwException = $e;
     }
@@ -258,6 +258,137 @@ class Cart
     {
         $this->id = $id;
     }
+}
+
+/**
+ * Stub Configuration pour les tests unitaires
+ */
+class Configuration
+{
+    /** @var array Valeurs mockées */
+    private static $values = [];
+
+    public static function get($key, $idLang = null, $idShopGroup = null, $idShop = null)
+    {
+        if (isset(self::$values[$key])) {
+            return self::$values[$key];
+        }
+
+        return false;
+    }
+
+    public static function updateValue($key, $value)
+    {
+        self::$values[$key] = $value;
+
+        return true;
+    }
+
+    public static function resetMocks()
+    {
+        self::$values = [];
+    }
+}
+
+/**
+ * Stub StockAvailable pour les tests unitaires
+ */
+class StockAvailable
+{
+    /** @var array Stock mocké [id_product:id_product_attribute => quantity] */
+    private static $stocks = [];
+
+    public static function getQuantityAvailableByProduct($idProduct, $idProductAttribute = 0)
+    {
+        $key = $idProduct . ':' . $idProductAttribute;
+
+        return isset(self::$stocks[$key]) ? self::$stocks[$key] : 0;
+    }
+
+    public static function setMockStock($idProduct, $idProductAttribute, $quantity)
+    {
+        self::$stocks[$idProduct . ':' . $idProductAttribute] = $quantity;
+    }
+
+    public static function resetMocks()
+    {
+        self::$stocks = [];
+    }
+}
+
+/**
+ * Stub Product pour les tests unitaires
+ */
+class Product
+{
+    public $id;
+    public $name;
+
+    /** @var array Noms mockés [id => name] */
+    private static $mockNames = [];
+
+    public function __construct($id = null, $full = false, $idLang = null)
+    {
+        $this->id = $id;
+        $this->name = isset(self::$mockNames[$id]) ? self::$mockNames[$id] : '';
+    }
+
+    public static function setMockName($id, $name)
+    {
+        self::$mockNames[$id] = $name;
+    }
+
+    public static function resetMocks()
+    {
+        self::$mockNames = [];
+    }
+}
+
+/**
+ * Stub Combination pour les tests unitaires
+ */
+class Combination
+{
+    public $id;
+
+    /** @var array Attributs mockés [id => [['name' => '...']]] */
+    private static $mockAttributes = [];
+
+    public function __construct($id = null)
+    {
+        $this->id = $id;
+    }
+
+    public function getAttributesName($idLang)
+    {
+        return isset(self::$mockAttributes[$this->id]) ? self::$mockAttributes[$this->id] : [];
+    }
+
+    public static function setMockAttributes($id, $attributes)
+    {
+        self::$mockAttributes[$id] = $attributes;
+    }
+
+    public static function resetMocks()
+    {
+        self::$mockAttributes = [];
+    }
+}
+
+/**
+ * Stub Ciklik (constantes du module) pour les tests unitaires
+ */
+class Ciklik
+{
+    public const VERSION = '1.17.0';
+    public const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
+    public const CONFIG_MODE = 'CIKLIK_MODE';
+    public const CONFIG_HOST = 'CIKLIK_HOST';
+    public const CONFIG_USE_FREQUENCY_MODE = 'CIKLIK_FREQUENCY_MODE';
+    public const CONFIG_DEBUG_LOGS_ENABLED = 'CIKLIK_DEBUG_LOGS_ENABLED';
+    public const CONFIG_ENABLE_ENGAGEMENT = 'CIKLIK_ENABLE_ENGAGEMENT';
+    public const CONFIG_ENGAGEMENT_INTERVAL = 'CIKLIK_ENGAGEMENT_INTERVAL';
+    public const CONFIG_ENGAGEMENT_INTERVAL_COUNT = 'CIKLIK_ENGAGEMENT_INTERVAL_COUNT';
 }
 
 require_once __DIR__ . '/../vendor/autoload.php';

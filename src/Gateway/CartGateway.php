@@ -459,7 +459,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
                 null,
                 'CartGateway',
                 $cart->id,
-                true
+                true,
             );
         }
     }

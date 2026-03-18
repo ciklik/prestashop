@@ -365,5 +365,4 @@ class CiklikSpecificPrice
 
         return (int) \Db::getInstance()->getValue($query) > 0;
     }
-
 }

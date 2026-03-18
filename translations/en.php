@@ -223,3 +223,29 @@ $_MODULE['<{ciklik}prestashop>manage_8d415edab4d18466ee61bdfdc57082f0'] = 'Subsc
 $_MODULE['<{ciklik}prestashop>manage_1877df0bda1d8925e344c9c457c7a709'] = 'Next billing date has been updated.';
 $_MODULE['<{ciklik}prestashop>manage_adc58f1d615417a70417cd447f17ea91'] = 'Invalid date format';
 $_MODULE['<{ciklik}prestashop>manage_d2685f05870f1944ca3218525ebd423b'] = 'The date must be in the future';
+
+// Stock Forecast Controller
+$_MODULE['<{ciklik}prestashop>adminciklikstockforecastcontroller_46e38c6b2a25d4ac1ef454ed39c937b1'] = 'Stock Forecast';
+$_MODULE['<{ciklik}prestashop>adminciklikstockforecastcontroller_6ff158783905a751445832ffde806875'] = 'The Ciklik API token is not configured. Please configure it in the module settings.';
+$_MODULE['<{ciklik}prestashop>adminciklikstockforecastcontroller_6feca47a558009c1ae241dbfa91ed615'] = 'API Error: ';
+
+// Stock Forecast Template
+$_MODULE['<{ciklik}prestashop>index_d757c6ec841415e23bbc9930914da519'] = 'Forecast period';
+$_MODULE['<{ciklik}prestashop>index_5da618e8e4b89c66fe86e32cdafde142'] = 'From';
+$_MODULE['<{ciklik}prestashop>index_e12167aa0a7698e6ebc92b4ce3909b53'] = 'To';
+$_MODULE['<{ciklik}prestashop>index_d54f2d352d24fd0af6118ced06f050d7'] = 'Compute forecast';
+$_MODULE['<{ciklik}prestashop>index_b2de4cbf505f9d9ffefd8dc959a5bb2d'] = 'Active subscriptions';
+$_MODULE['<{ciklik}prestashop>index_32a772f3c6fcb3c99a138704484c8ba4'] = 'Renewals in period';
+$_MODULE['<{ciklik}prestashop>index_63b0fb63d3e4532f62a1bbce2fc70b40'] = 'Distinct products';
+$_MODULE['<{ciklik}prestashop>index_afe8600392b1a8be6256bbc64622a58d'] = 'Stock alerts';
+$_MODULE['<{ciklik}prestashop>index_a0f3b9f05780072988c0ee6b2e9a6081'] = 'Stock forecast';
+$_MODULE['<{ciklik}prestashop>index_69ddf9adbc8e0dc340b600fe3f89a66a'] = 'No renewals planned for this period.';
+$_MODULE['<{ciklik}prestashop>index_deb10517653c255364175796ace3553f'] = 'Product';
+$_MODULE['<{ciklik}prestashop>index_47ac923d219501859fb68fed8c8db77b'] = 'Combination';
+$_MODULE['<{ciklik}prestashop>index_f3533a2e4c824994e48a0ef4414d8e90'] = 'Quantity needed';
+$_MODULE['<{ciklik}prestashop>index_26836ce9edf85fbf50e50d534adbfc74'] = 'Current stock';
+$_MODULE['<{ciklik}prestashop>index_6ff6ee659463c9626310dff27e9980fc'] = 'Stock after';
+$_MODULE['<{ciklik}prestashop>index_ec53a8c4f07baed5d8825072c89799be'] = 'Status';
+$_MODULE['<{ciklik}prestashop>index_adf867e5a1152dbe8097aa01d72a0159'] = 'Insufficient';
+$_MODULE['<{ciklik}prestashop>index_28d0edd045e05cf5af64e35ae0c4c6ef'] = 'Low';
+$_MODULE['<{ciklik}prestashop>index_e0aa021e21dddbd6d8cecec71e9cf564'] = 'OK';

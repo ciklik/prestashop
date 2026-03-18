@@ -418,6 +418,20 @@ class Installer
         $subscriptionsOrdersTab->id_parent = $parentTabId;
         $subscriptionsOrdersTab->save();
 
+        // Onglet pour la prévision de stock
+        $stockForecastTab = $this->updateOrCreateTab(
+            'AdminCiklikStockForecast',
+            'Stock Forecast',
+            'Prévision de Stock',
+            $parentTabId,
+            $module,
+            1,
+        );
+
+        if (!$stockForecastTab) {
+            return false;
+        }
+
         // S'assurer que l'onglet parent est actif
         $parentTab = new \Tab($parentTabId);
         $parentTab->active = 1;
@@ -530,7 +544,7 @@ class Installer
 
     private function uninstallAdminTabs(): bool
     {
-        foreach (['AdminCiklikFrequencies', 'AdminCiklikSubscriptionsOrders'] as $tabClassName) {
+        foreach (['AdminCiklikFrequencies', 'AdminCiklikSubscriptionsOrders', 'AdminCiklikStockForecast'] as $tabClassName) {
             $idTab = \Tab::getIdFromClassName($tabClassName);
             if ($idTab) {
                 $tab = new \Tab($idTab);
