@@ -253,6 +253,7 @@ class Cart
     public $id_lang;
     public $id_currency;
     public $id_carrier;
+    public $secure_key;
 
     public function __construct($id = null)
     {
@@ -389,6 +390,9 @@ class Ciklik
     public const CONFIG_ENABLE_ENGAGEMENT = 'CIKLIK_ENABLE_ENGAGEMENT';
     public const CONFIG_ENGAGEMENT_INTERVAL = 'CIKLIK_ENGAGEMENT_INTERVAL';
     public const CONFIG_ENGAGEMENT_INTERVAL_COUNT = 'CIKLIK_ENGAGEMENT_INTERVAL_COUNT';
+    public const CONFIG_ORDER_STATE = 'CIKLIK_ORDER_STATE';
+    public const CONFIG_ENABLE_CREATION_ORDER_STATE = 'CIKLIK_ENABLE_CREATION_ORDER_STATE';
+    public const CONFIG_CREATION_ORDER_STATE = 'CIKLIK_CREATION_ORDER_STATE';
 }
 
 require_once __DIR__ . '/../vendor/autoload.php';

@@ -202,6 +202,10 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_0cbc6611f5540bd0809
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_756d97bb256b8580d4d71ee0c547804e'] = 'Production';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3956a19a769b2ba5e4c32b6fdd915675'] = 'Connection successful';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_1be415f041c0d8f2e10093a7b4236694'] = 'Connection failed';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_8c4ebeec9fb966f20ea668ca88021418'] = 'Spezifischen Status für Abonnement-Erstellung aktivieren';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_63867c49fccb06cf2d1806948ac3cf9d'] = 'Einen anderen Bestellstatus für die erste Abonnement-Bestellung verwenden. Verlängerungen behalten den Standardstatus oben.';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_e6d92c9b4277a1b37d501b92b3e2ffdb'] = 'Bestellstatus für Abonnement-Erstellung';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_6a0044cc599db74c4ab1c98c962d1dd7'] = 'Status wird nur auf die erste Abonnement-Bestellung angewendet';
 
 // Admin Frequencies Controller
 $_MODULE['<{ciklik}prestashop>adminciklikfrequenciescontroller_f94022cb57dc9531d8b9c23fd6dda661'] = 'Frequency Management';

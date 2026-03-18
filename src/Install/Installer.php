@@ -92,7 +92,9 @@ class Installer
             && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_DEBUG_LOGS_ENABLED, '0')
             && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_ENABLE_ORDER_THREAD, '1')
             && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_ORDER_THREAD_STATUS, 'open')
-            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_FREQUENCY_PRICE_BASE, 'gross');
+            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_FREQUENCY_PRICE_BASE, 'gross')
+            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_ENABLE_CREATION_ORDER_STATE, '0')
+            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_CREATION_ORDER_STATE, '0');
     }
 
     /**
@@ -124,6 +126,8 @@ class Installer
             \Ciklik::CONFIG_USE_FREQUENCY_MODE,
             \Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE,
             \Ciklik::CONFIG_DELEGATE_OPTIONS_DISPLAY,
+            \Ciklik::CONFIG_ENABLE_CREATION_ORDER_STATE,
+            \Ciklik::CONFIG_CREATION_ORDER_STATE,
         ];
 
         foreach ($keys as $key) {

@@ -12,6 +12,7 @@ if (!defined('_PS_VERSION_')) {
 /**
  * Mise à jour vers 1.17.0 :
  * - Ajout de l'onglet "Prévision de Stock" dans le back-office
+ * - Ajout de la configuration pour le statut différencié création/renouvellement
  *
  * @param Module $module Instance du module
  *
@@ -21,5 +22,7 @@ function upgrade_module_1_17_0($module)
 {
     $installer = new PrestaShop\Module\Ciklik\Install\Installer();
 
-    return $installer->installAdminTabs($module);
+    return $installer->installAdminTabs($module)
+        && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_ENABLE_CREATION_ORDER_STATE, '0')
+        && (bool) Configuration::updateGlobalValue(Ciklik::CONFIG_CREATION_ORDER_STATE, '0');
 }

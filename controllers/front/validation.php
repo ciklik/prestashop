@@ -46,6 +46,12 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
 
         $orderValidationData = OrderValidationData::create($this->context->cart, $orderData);
 
+        // Statut différencié pour les créations d'abonnement
+        if (Configuration::get(Ciklik::CONFIG_ENABLE_CREATION_ORDER_STATE)
+            && (int) Configuration::get(Ciklik::CONFIG_CREATION_ORDER_STATE) > 0) {
+            $orderValidationData->id_order_state = (int) Configuration::get(Ciklik::CONFIG_CREATION_ORDER_STATE);
+        }
+
         $this->module->validateOrder(
             $orderValidationData->id_cart,
             $orderValidationData->id_order_state,
