@@ -21,34 +21,34 @@
     <div class="panel">
         <div class="panel-heading">
             <i class="icon-filter"></i>
-            {l s='Filtres' mod='ciklik'}
+            {l s='Filters' mod='ciklik'}
         </div>
         <div class="form-wrapper">
             <div class="form-group">
-                <label class="control-label col-lg-3">{l s='Statut' mod='ciklik'}</label>
+                <label class="control-label col-lg-3">{l s='Status' mod='ciklik'}</label>
                 <div class="col-lg-9">
                     <select name="filter_status" class="form-control fixed-width-md">
-                        <option value="">{l s='-- Tous --' mod='ciklik'}</option>
-                        <option value="pending" {if $filters.filter_status == 'pending'}selected{/if}>{l s='En attente' mod='ciklik'}</option>
-                        <option value="completed" {if $filters.filter_status == 'completed'}selected{/if}>{l s='Terminé' mod='ciklik'}</option>
-                        <option value="canceled" {if $filters.filter_status == 'canceled'}selected{/if}>{l s='Annulé' mod='ciklik'}</option>
+                        <option value="">{l s='-- All --' mod='ciklik'}</option>
+                        <option value="pending" {if $filters.filter_status == 'pending'}selected{/if}>{l s='Pending' mod='ciklik'}</option>
+                        <option value="completed" {if $filters.filter_status == 'completed'}selected{/if}>{l s='Paid' mod='ciklik'}</option>
+                        <option value="canceled" {if $filters.filter_status == 'canceled'}selected{/if}>{l s='Canceled' mod='ciklik'}</option>
                     </select>
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-lg-3">{l s='UUID Abonnement' mod='ciklik'}</label>
+                <label class="control-label col-lg-3">{l s='Subscription UUID' mod='ciklik'}</label>
                 <div class="col-lg-9">
                     <input type="text" name="filter_subscription_uuid" value="{$filters.filter_subscription_uuid|escape:'html':'UTF-8'}" class="form-control">
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-lg-3">{l s='ID Utilisateur' mod='ciklik'}</label>
+                <label class="control-label col-lg-3">{l s='User ID' mod='ciklik'}</label>
                 <div class="col-lg-9">
                     <input type="text" name="filter_user_id" value="{$filters.filter_user_id|escape:'html':'UTF-8'}" class="form-control">
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-lg-3">{l s='Total payé' mod='ciklik'}</label>
+                <label class="control-label col-lg-3">{l s='Total paid' mod='ciklik'}</label>
                 <div class="col-lg-9">
                     <input type="text" name="filter_total_paid" value="{$filters.filter_total_paid|escape:'html':'UTF-8'}" class="form-control">
                 </div>
@@ -60,13 +60,13 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-lg-3">{l s='UUID Client' mod='ciklik'}</label>
+                <label class="control-label col-lg-3">{l s='Customer UUID' mod='ciklik'}</label>
                 <div class="col-lg-9">
                     <input type="text" name="filter_by_customer_uuid" value="{$filters.filter_by_customer_uuid|escape:'html':'UTF-8'}" class="form-control">
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-lg-3">{l s='ID Commande PrestaShop' mod='ciklik'}</label>
+                <label class="control-label col-lg-3">{l s='PrestaShop Order ID' mod='ciklik'}</label>
                 <div class="col-lg-9">
                     <input type="text" name="filter_prestashop_order_id" value="{$filters.filter_prestashop_order_id|escape:'html':'UTF-8'}" class="form-control">
                 </div>
@@ -74,7 +74,7 @@
             <div class="form-group">
                 <div class="col-lg-9 col-lg-offset-3">
                     <button type="submit" class="btn btn-default">
-                        <i class="icon-search"></i> {l s='Rechercher' mod='ciklik'}
+                        <i class="icon-search"></i> {l s='Search' mod='ciklik'}
                     </button>
                 </div>
             </div>
@@ -85,18 +85,18 @@
 <div class="panel">
     <div class="panel-heading">
         <i class="icon-list"></i>
-        {l s='Liste des Commandes' mod='ciklik'}
+        {l s='Orders list' mod='ciklik'}
     </div>
     <div class="table-responsive-row clearfix">
         <table class="table">
             <thead>
                 <tr class="nodrag nodrop">
-                    <th>{l s='Commande Ciklik' mod='ciklik'}</th>
-                    <th>{l s='Statut' mod='ciklik'}</th>
-                    <th>{l s='Total payé' mod='ciklik'}</th>
-                    <th>{l s='Créé le' mod='ciklik'}</th>
-                    <th>{l s='UUID Abonnement' mod='ciklik'}</th>
-                    <th>{l s='Commande PrestaShop' mod='ciklik'}</th>
+                    <th>{l s='Ciklik Order' mod='ciklik'}</th>
+                    <th>{l s='Status' mod='ciklik'}</th>
+                    <th>{l s='Total paid' mod='ciklik'}</th>
+                    <th>{l s='Created on' mod='ciklik'}</th>
+                    <th>{l s='Subscription UUID' mod='ciklik'}</th>
+                    <th>{l s='PrestaShop Order ID' mod='ciklik'}</th>
                 </tr>
             </thead>
             <tbody>
@@ -110,11 +110,11 @@
                             </td>
                             <td>
                                 {if $order.status == 'completed'}
-                                    <span class="label label-success">{l s='Payée' mod='ciklik'}</span>
+                                    <span class="label label-success">{l s='Paid' mod='ciklik'}</span>
                                 {elseif $order.status == 'pending'}
-                                    <span class="label label-warning">{l s='En attente' mod='ciklik'}</span>
+                                    <span class="label label-warning">{l s='Pending' mod='ciklik'}</span>
                                 {elseif $order.status == 'failed'}
-                                    <span class="label label-danger">{l s='Echec' mod='ciklik'}</span>
+                                    <span class="label label-danger">{l s='Failed' mod='ciklik'}</span>
                                 {else}
                                     <span class="label label-default">{$order.status|escape:'html':'UTF-8'}</span>
                                 {/if}
@@ -138,12 +138,12 @@
                                     {$order.subscription_uuid|escape:'html':'UTF-8'}
                                     {if isset($order.customer_email) && $order.customer_email}
                                         <br>
-                                        <strong>{l s='Client:' mod='ciklik'}</strong><br>
+                                        <strong>{l s='Customer:' mod='ciklik'}</strong><br>
                                         <a href="mailto:{$order.customer_email|escape:'html':'UTF-8'}">{$order.customer_email|escape:'html':'UTF-8'}</a>
                                         {if isset($order.customer_link) && $order.customer_link}
                                             <br>
                                             <a href="{$order.customer_link|escape:'html':'UTF-8'}" target="_blank" class="btn btn-xs btn-default">
-                                                <i class="icon-user"></i> {l s='Voir la fiche client' mod='ciklik'}
+                                                <i class="icon-user"></i> {l s='View customer profile' mod='ciklik'}
                                             </a>
                                         {/if}
                                     {/if}
@@ -155,10 +155,10 @@
                                 
                                 {if isset($order.prestashop_order_link) && $order.prestashop_order_link}
                                     <a href="{$order.prestashop_order_link|escape:'html':'UTF-8'}" target="_blank" class="btn btn-default">
-                                        <i class="icon-external-link"></i> {l s='Voir la commande' mod='ciklik'} #{$order.prestashop_order_id|escape:'html':'UTF-8'}
+                                        <i class="icon-external-link"></i> {l s='View order' mod='ciklik'} #{$order.prestashop_order_id|escape:'html':'UTF-8'}
                                     </a>
                                 {elseif isset($order.prestashop_order_id) && $order.prestashop_order_id}
-                                    {l s='Commande' mod='ciklik'} #{$order.prestashop_order_id|escape:'html':'UTF-8'}
+                                    {l s='Order' mod='ciklik'} #{$order.prestashop_order_id|escape:'html':'UTF-8'}
                                 {else}
                                     -
                                 {/if}
@@ -167,7 +167,7 @@
                     {/foreach}
                 {else}
                     <tr>
-                        <td colspan="6" class="text-center">{l s='Aucune commande trouvée' mod='ciklik'}</td>
+                        <td colspan="6" class="text-center">{l s='No order found' mod='ciklik'}</td>
                     </tr>
                 {/if}
             </tbody>

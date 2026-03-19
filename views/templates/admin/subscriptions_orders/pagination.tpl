@@ -9,21 +9,21 @@
     <div class="panel-footer">
         <div class="row">
             <div class="col-lg-6">
-                {l s='Page' mod='ciklik'} {$pagination.current_page|escape:'html':'UTF-8'} {l s='sur' mod='ciklik'} {$pagination.total_pages|escape:'html':'UTF-8'}
+                {l s='Page' mod='ciklik'} {$pagination.current_page|escape:'html':'UTF-8'} {l s='of' mod='ciklik'} {$pagination.total_pages|escape:'html':'UTF-8'}
                 {if isset($pagination.from) && isset($pagination.to)}
-                    ({l s='Résultats' mod='ciklik'} {$pagination.from|escape:'html':'UTF-8'} - {$pagination.to|escape:'html':'UTF-8'} {l s='sur' mod='ciklik'} {$pagination.total|escape:'html':'UTF-8'})
+                    ({l s='Results' mod='ciklik'} {$pagination.from|escape:'html':'UTF-8'} - {$pagination.to|escape:'html':'UTF-8'} {l s='of' mod='ciklik'} {$pagination.total|escape:'html':'UTF-8'})
                 {/if}
             </div>
             <div class="col-lg-6 text-right">
                 <div class="btn-group" role="group">
                     {if isset($pagination_links.first) && $pagination_links.first}
                         <a href="{$pagination_links.first|escape:'html':'UTF-8'}" class="btn btn-default btn-sm">
-                            <i class="icon-angle-double-left"></i> {l s='Première' mod='ciklik'}
+                            <i class="icon-angle-double-left"></i> {l s='First' mod='ciklik'}
                         </a>
                     {/if}
                     {if isset($pagination_links.prev) && $pagination_links.prev}
                         <a href="{$pagination_links.prev|escape:'html':'UTF-8'}" class="btn btn-default btn-sm">
-                            <i class="icon-angle-left"></i> {l s='Précédent' mod='ciklik'}
+                            <i class="icon-angle-left"></i> {l s='Previous' mod='ciklik'}
                         </a>
                     {/if}
                     
@@ -39,12 +39,12 @@
                     
                     {if isset($pagination_links.next) && $pagination_links.next}
                         <a href="{$pagination_links.next|escape:'html':'UTF-8'}" class="btn btn-default btn-sm">
-                            {l s='Suivant' mod='ciklik'} <i class="icon-angle-right"></i>
+                            {l s='Next' mod='ciklik'} <i class="icon-angle-right"></i>
                         </a>
                     {/if}
                     {if isset($pagination_links.last) && $pagination_links.last}
                         <a href="{$pagination_links.last|escape:'html':'UTF-8'}" class="btn btn-default btn-sm">
-                            {l s='Dernière' mod='ciklik'} <i class="icon-angle-double-right"></i>
+                            {l s='Last' mod='ciklik'} <i class="icon-angle-double-right"></i>
                         </a>
                     {/if}
                 </div>

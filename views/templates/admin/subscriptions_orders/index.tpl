@@ -6,18 +6,18 @@
 <div class="panel">
     <div class="panel-heading">
         <i class="icon-list"></i>
-        {l s='Abonnements et Commandes' mod='ciklik'}
+        {l s='Subscriptions and Orders' mod='ciklik'}
     </div>
     <div class="panel-body">
         <ul class="nav nav-tabs" role="tablist">
             <li role="presentation" class="{if $current_tab == 'subscriptions'}active{/if}">
                 <a href="{$link->getAdminLink('AdminCiklikSubscriptionsOrders', true, [], ['tab' => 'subscriptions'])|escape:'html':'UTF-8'}" aria-controls="subscriptions" role="tab">
-                    {l s='Abonnements' mod='ciklik'}
+                    {l s='Subscriptions' mod='ciklik'}
                 </a>
             </li>
             <li role="presentation" class="{if $current_tab == 'orders'}active{/if}">
                 <a href="{$link->getAdminLink('AdminCiklikSubscriptionsOrders', true, [], ['tab' => 'orders'])|escape:'html':'UTF-8'}" aria-controls="orders" role="tab">
-                    {l s='Commandes' mod='ciklik'}
+                    {l s='Orders' mod='ciklik'}
                 </a>
             </li>
         </ul>

@@ -21,36 +21,36 @@
     <div class="panel">
         <div class="panel-heading">
             <i class="icon-filter"></i>
-            {l s='Filtres' mod='ciklik'}
+            {l s='Filters' mod='ciklik'}
         </div>
         <div class="form-wrapper">
             <div class="form-group">
-                <label class="control-label col-lg-3">{l s='Activé' mod='ciklik'}</label>
+                <label class="control-label col-lg-3">{l s='Activated' mod='ciklik'}</label>
                 <div class="col-lg-9">
                     <select name="filter_activated" class="form-control fixed-width-md">
-                        <option value="">{l s='-- Tous --' mod='ciklik'}</option>
-                        <option value="1" {if $filters.filter_activated == '1'}selected{/if}>{l s='Oui' mod='ciklik'}</option>
-                        <option value="0" {if $filters.filter_activated == '0'}selected{/if}>{l s='Non' mod='ciklik'}</option>
+                        <option value="">{l s='-- All --' mod='ciklik'}</option>
+                        <option value="1" {if $filters.filter_activated == '1'}selected{/if}>{l s='Yes' mod='ciklik'}</option>
+                        <option value="0" {if $filters.filter_activated == '0'}selected{/if}>{l s='No' mod='ciklik'}</option>
                     </select>
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-lg-3">{l s='Annulé' mod='ciklik'}</label>
+                <label class="control-label col-lg-3">{l s='Canceled' mod='ciklik'}</label>
                 <div class="col-lg-9">
                     <select name="filter_canceled" class="form-control fixed-width-md">
-                        <option value="">{l s='-- Tous --' mod='ciklik'}</option>
-                        <option value="1" {if $filters.filter_canceled == '1'}selected{/if}>{l s='Oui' mod='ciklik'}</option>
-                        <option value="0" {if $filters.filter_canceled == '0'}selected{/if}>{l s='Non' mod='ciklik'}</option>
+                        <option value="">{l s='-- All --' mod='ciklik'}</option>
+                        <option value="1" {if $filters.filter_canceled == '1'}selected{/if}>{l s='Yes' mod='ciklik'}</option>
+                        <option value="0" {if $filters.filter_canceled == '0'}selected{/if}>{l s='No' mod='ciklik'}</option>
                     </select>
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-lg-3">{l s='Expiré' mod='ciklik'}</label>
+                <label class="control-label col-lg-3">{l s='Expired' mod='ciklik'}</label>
                 <div class="col-lg-9">
                     <select name="filter_expired" class="form-control fixed-width-md">
-                        <option value="">{l s='-- Tous --' mod='ciklik'}</option>
-                        <option value="1" {if $filters.filter_expired == '1'}selected{/if}>{l s='Oui' mod='ciklik'}</option>
-                        <option value="0" {if $filters.filter_expired == '0'}selected{/if}>{l s='Non' mod='ciklik'}</option>
+                        <option value="">{l s='-- All --' mod='ciklik'}</option>
+                        <option value="1" {if $filters.filter_expired == '1'}selected{/if}>{l s='Yes' mod='ciklik'}</option>
+                        <option value="0" {if $filters.filter_expired == '0'}selected{/if}>{l s='No' mod='ciklik'}</option>
                     </select>
                 </div>
             </div>
@@ -61,7 +61,7 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-lg-3">{l s='ID Client' mod='ciklik'}</label>
+                <label class="control-label col-lg-3">{l s='Customer ID' mod='ciklik'}</label>
                 <div class="col-lg-9">
                     <input type="text" name="filter_customer_id" value="{$filters.filter_customer_id|escape:'html':'UTF-8'}" class="form-control">
                 </div>
@@ -69,7 +69,7 @@
             <div class="form-group">
                 <div class="col-lg-9 col-lg-offset-3">
                     <button type="submit" class="btn btn-default">
-                        <i class="icon-search"></i> {l s='Rechercher' mod='ciklik'}
+                        <i class="icon-search"></i> {l s='Search' mod='ciklik'}
                     </button>
                 </div>
             </div>
@@ -80,18 +80,18 @@
 <div class="panel">
     <div class="panel-heading">
         <i class="icon-list"></i>
-        {l s='Liste des Abonnements' mod='ciklik'}
+        {l s='Subscriptions list' mod='ciklik'}
     </div>
     <div class="table-responsive-row clearfix">
         <table class="table">
             <thead>
                 <tr class="nodrag nodrop">
-                    <th>{l s='ID Abo Ciklik' mod='ciklik'}</th>
-                    <th>{l s='Actif' mod='ciklik'}</th>
-                    <th>{l s='Créé le' mod='ciklik'}</th>
-                    <th>{l s='Date de fin' mod='ciklik'}</th>
-                    <th>{l s='Prochain paiement' mod='ciklik'}</th>
-                    <th>{l s='Fréquence & Produits' mod='ciklik'}</th>
+                    <th>{l s='Ciklik Subscription ID' mod='ciklik'}</th>
+                    <th>{l s='Active' mod='ciklik'}</th>
+                    <th>{l s='Created on' mod='ciklik'}</th>
+                    <th>{l s='End date' mod='ciklik'}</th>
+                    <th>{l s='Next payment' mod='ciklik'}</th>
+                    <th>{l s='Frequency & Products' mod='ciklik'}</th>
                 </tr>
             </thead>
             <tbody>
@@ -100,18 +100,18 @@
                         <tr>
                             <td>{$subscription.uuid|escape:'html':'UTF-8'}
                             <br>
-                            <strong>{l s='Client:' mod='ciklik'}</strong><br>
+                            <strong>{l s='Customer:' mod='ciklik'}</strong><br>
                              {if isset($subscription.customer_email) && $subscription.customer_email}
                                     <a href="mailto:{$subscription.customer_email|escape:'html':'UTF-8'}">{$subscription.customer_email|escape:'html':'UTF-8'}</a>
                                     {if isset($subscription.customer_link) && $subscription.customer_link}
                                         <br>
                                         <a href="{$subscription.customer_link|escape:'html':'UTF-8'}" target="_blank" class="btn btn-xs btn-default">
-                                            <i class="icon-user"></i> {l s='Fiche client' mod='ciklik'}
+                                            <i class="icon-user"></i> {l s='Customer profile' mod='ciklik'}
                                         </a>
                                     {/if}
                                 {elseif isset($subscription.customer_link) && $subscription.customer_link}
                                     <a href="{$subscription.customer_link|escape:'html':'UTF-8'}" target="_blank" class="btn btn-xs btn-default">
-                                        <i class="icon-user"></i> {l s='Fiche client' mod='ciklik'}
+                                        <i class="icon-user"></i> {l s='Customer profile' mod='ciklik'}
                                     </a>
                                 {else}
                                     -
@@ -119,9 +119,9 @@
                             </td>
                             <td>
                                 {if $subscription.active}
-                                    <span class="label label-success">{l s='Oui' mod='ciklik'}</span>
+                                    <span class="label label-success">{l s='Yes' mod='ciklik'}</span>
                                 {else}
-                                    <span class="label label-danger">{l s='Non' mod='ciklik'}</span>
+                                    <span class="label label-danger">{l s='No' mod='ciklik'}</span>
                                 {/if}
                             </td>
                             <td>
@@ -147,14 +147,14 @@
                             </td>
                             <td>
                                {$subscription.display_interval|escape:'html':'UTF-8'} <br>
-                               <strong>{l s='Produit(s):' mod='ciklik'}</strong><br>
+                               <strong>{l s='Product(s):' mod='ciklik'}</strong><br>
                                {$subscription.display_content|escape:'html':'UTF-8'}
                             </td>
                         </tr>
                     {/foreach}
                 {else}
                     <tr>
-                        <td colspan="6" class="text-center">{l s='Aucun abonnement trouvé' mod='ciklik'}</td>
+                        <td colspan="6" class="text-center">{l s='No subscription found' mod='ciklik'}</td>
                     </tr>
                 {/if}
             </tbody>

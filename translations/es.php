@@ -296,3 +296,125 @@ $_MODULE['<{ciklik}prestashop>index_ec53a8c4f07baed5d8825072c89799be'] = 'Estado
 $_MODULE['<{ciklik}prestashop>index_adf867e5a1152dbe8097aa01d72a0159'] = 'Insuficiente';
 $_MODULE['<{ciklik}prestashop>index_28d0edd045e05cf5af64e35ae0c4c6ef'] = 'Bajo';
 $_MODULE['<{ciklik}prestashop>index_e0aa021e21dddbd6d8cecec71e9cf564'] = 'OK';
+
+// ciklik.php - interval translations
+$_MODULE['<{ciklik}prestashop>ciklik_c512b685438f41daa7386329a3b8f8d3'] = 'Diario';
+$_MODULE['<{ciklik}prestashop>ciklik_6c25e6a6da95b3d583c6ec4c3f82ed4d'] = 'Semanal';
+$_MODULE['<{ciklik}prestashop>ciklik_9030e39f00132d583da4122532e509e9'] = 'Mensual';
+$_MODULE['<{ciklik}prestashop>ciklik_cf5ea7953dc47105e0eb179dbefaaf46'] = 'Anual';
+$_MODULE['<{ciklik}prestashop>ciklik_628b7db04235f228d40adc671413a8c8'] = 'day';
+$_MODULE['<{ciklik}prestashop>ciklik_44fdec47036f482b68b748f9d786801b'] = 'days';
+$_MODULE['<{ciklik}prestashop>ciklik_172a8327fcd3685ab3c0f740d031da09'] = 'week';
+$_MODULE['<{ciklik}prestashop>ciklik_ae60f11ab51860bdb22794a943335a34'] = 'weeks';
+$_MODULE['<{ciklik}prestashop>ciklik_7436f942d5ea836cb84f1bb2527d8286'] = 'month';
+$_MODULE['<{ciklik}prestashop>ciklik_da36cfaf48b9e19896e23e1207040d1e'] = 'months';
+$_MODULE['<{ciklik}prestashop>ciklik_84cdc76cabf41bd7c961f6ab12f117d8'] = 'year';
+$_MODULE['<{ciklik}prestashop>ciklik_75aeb98e5241592ad6a6c2c4c78a16ef'] = 'years';
+$_MODULE['<{ciklik}prestashop>ciklik_6fc473c3b5128bcdb9a23d270155ddd1'] = 'Every %s';
+$_MODULE['<{ciklik}prestashop>ciklik_3204d99329835a7ddb1240cdd5503bde'] = 'Every %d %s';
+
+// AdminConfigureCiklikController - missing entries
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a02758d758e8bec77a33d7f392eb3f8a'] = 'No currency has been set for this module.';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_5161b4f9ce9a8b7d966e8bf3c049f6f3'] = 'API Token';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_650be61892bf690026089544abbd9d26'] = 'Mode';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_1b53492c6676712f7449f3fb47976f0c'] = 'Enable debug logs';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c9cc8cce247e49bae79f15173ce97354'] = 'Save';
+
+// Refund Controller - new English-hash entries
+$_MODULE['<{ciklik}prestashop>refund_08de2fdaabcd120b8ca1388d21179921'] = 'Access denied';
+$_MODULE['<{ciklik}prestashop>refund_db26e10564e958809d798e8048fcbc0a'] = 'Invalid security token';
+$_MODULE['<{ciklik}prestashop>refund_cd41badf2abd4a993073f9b5611de271'] = 'Invalid order ID';
+$_MODULE['<{ciklik}prestashop>refund_24909e87dc242b9dd539e10609b8b050'] = 'Order not found';
+$_MODULE['<{ciklik}prestashop>refund_e963a2769e317ec3289dc057845cd3e2'] = 'Refund completed';
+$_MODULE['<{ciklik}prestashop>refund_4c5e3c2df99204c0c8f2ff527991cdee'] = 'Amount (max. %s)';
+$_MODULE['<{ciklik}prestashop>refund_97ccfabfcea35b9b1ac8a3b56c0c5743'] = 'Error: unable to find Ciklik transaction';
+$_MODULE['<{ciklik}prestashop>refund_a7140d90fa415a4a2370b561960c695e'] = 'An error occurred during the refund';
+$_MODULE['<{ciklik}prestashop>refund_55bd89cc39aa289baeeee575d378fdb0'] = 'Error: amount must be positive';
+$_MODULE['<{ciklik}prestashop>refund_f5c3d72a0c4fa8eaf7cb88f4edae6c5e'] = 'Error: amount exceeds maximum refundable';
+$_MODULE['<{ciklik}prestashop>refund_dcd655272d0fcad1d0aa2b7da7199995'] = 'Error: invalid refund type';
+
+// Product Subscription Tab
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_40c24246c30404710cbce71735c22eab'] = 'Ciklik Subscription';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_4e3ab8554777ccfe020fb1428e07f4b2'] = 'Manage frequencies';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_355bf82c6ac959c0d68a89c5931a150e'] = 'Subscriptions are enabled for this product.';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_d4b0b7eaf573ff32774d8f248a2820cf'] = 'Customers can choose a subscription frequency when adding this product to their cart.';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_a0d6cdb0ca2f72bc45f00d2b3a43ed6c'] = 'Subscriptions are disabled for this product.';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_01e430aff3c59c61e363516c75b920ed'] = 'Enable to allow customers to subscribe to this product at checkout.';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_93cba07454f06a4a960172bbd6e2a435'] = 'Yes';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_bafd7322c6e97d25b6299b5d6fe8920b'] = 'No';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_9580fd6a1681e03f4901a685abbbe574'] = 'No subscription frequencies have been created yet.';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_7c45a58068d21f7f9d2f674e92d0eb0e'] = 'Create your first frequency';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_7cef0a2705d54ba24aa8af5b7c13a889'] = 'Available frequencies';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_ef7de3f485174ff47f061ad27d83d0ee'] = 'selected';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_4c41e0bd957698b58100a5c687d757d9'] = 'Select all';
+$_MODULE['<{ciklik}prestashop>product_subscription_tab_52e3ce2bc983012661c3c11fe8b0f8ce'] = 'Deselect all';
+
+// Category 2 - English-based hash entries for existing templates
+$_MODULE['<{ciklik}prestashop>displayproductsubscriptionoptions_e13cbbdce28d599cdda51ecb945345b4'] = 'Compra única';
+$_MODULE['<{ciklik}prestashop>displayproductsubscriptionoptions_787ad0b7a17de4ad6b1711bbf8d79fcb'] = 'Suscripción';
+$_MODULE['<{ciklik}prestashop>displayshoppingcart_787ad0b7a17de4ad6b1711bbf8d79fcb'] = 'Suscripción';
+$_MODULE['<{ciklik}prestashop>displayattributeform_1123a527641cb5ca94a2c606bb4f7ecb'] = 'Tipo de intervalo';
+$_MODULE['<{ciklik}prestashop>displayattributeform_eeaacbb3db237c1dff73eac27cc12a64'] = 'Valor del intervalo';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_e13cbbdce28d599cdda51ecb945345b4'] = 'Compra única';
+
+// Subscriptions & Orders - index.tpl
+$_MODULE['<{ciklik}prestashop>index_ecce7616981f26ce93b94d8e2cee68dc'] = 'Subscriptions and Orders';
+$_MODULE['<{ciklik}prestashop>index_4ca2c509994c2776d0880357b4e8e5be'] = 'Subscriptions';
+$_MODULE['<{ciklik}prestashop>index_7442e29d7d53e549b78d93c46b8cdcfc'] = 'Orders';
+
+// Subscriptions & Orders - subscriptions.tpl
+$_MODULE['<{ciklik}prestashop>subscriptions_f3f43e30c8c7d78c6ac0173515e57a00'] = 'Filters';
+$_MODULE['<{ciklik}prestashop>subscriptions_cb456215c3333db0551bd0788bc258c7'] = 'Activated';
+$_MODULE['<{ciklik}prestashop>subscriptions_ecde22c9c146e5c9508c68a4eb75070e'] = '-- All --';
+$_MODULE['<{ciklik}prestashop>subscriptions_93cba07454f06a4a960172bbd6e2a435'] = 'Yes';
+$_MODULE['<{ciklik}prestashop>subscriptions_bafd7322c6e97d25b6299b5d6fe8920b'] = 'No';
+$_MODULE['<{ciklik}prestashop>subscriptions_0e22fe7d45f8e5632a4abf369b24e29c'] = 'Canceled';
+$_MODULE['<{ciklik}prestashop>subscriptions_24fe48030f7d3097d5882535b04c3fa8'] = 'Expired';
+$_MODULE['<{ciklik}prestashop>subscriptions_ce8ae9da5b7cd6c3df2929543a9af92d'] = 'Email';
+$_MODULE['<{ciklik}prestashop>subscriptions_d37c2bf1bd3143847fca087b354f920e'] = 'Customer ID';
+$_MODULE['<{ciklik}prestashop>subscriptions_13348442cc6a27032d2b4aa28b75a5d3'] = 'Search';
+$_MODULE['<{ciklik}prestashop>subscriptions_213387e89a12ef286e06421c7c7c0e88'] = 'Subscriptions list';
+$_MODULE['<{ciklik}prestashop>subscriptions_7a550ad687881ea8ade83fdac538de2c'] = 'Ciklik Subscription ID';
+$_MODULE['<{ciklik}prestashop>subscriptions_4d3d769b812b6faa6b76e1a8abaece2d'] = 'Active';
+$_MODULE['<{ciklik}prestashop>subscriptions_f7f19392da30e81c3abf433ce7b8ca38'] = 'Created on';
+$_MODULE['<{ciklik}prestashop>subscriptions_b7de7e4247d4ab279ef031b7a44c201d'] = 'End date';
+$_MODULE['<{ciklik}prestashop>subscriptions_cdb4baa13f6582e981e0541b2f46d299'] = 'Next payment';
+$_MODULE['<{ciklik}prestashop>subscriptions_2ef6d92f8a299fe0bb2194f0dcdfc111'] = 'Frequency & Products';
+$_MODULE['<{ciklik}prestashop>subscriptions_5eea367ea73b909880393bd1ae79fc67'] = 'Customer:';
+$_MODULE['<{ciklik}prestashop>subscriptions_983d941f43a055da5d53742891f0e1cc'] = 'Customer profile';
+$_MODULE['<{ciklik}prestashop>subscriptions_bcb296600c0e81778eaa4d095c7b54a6'] = 'Product(s):';
+$_MODULE['<{ciklik}prestashop>subscriptions_a5e1350fde74a4f280211d2380b582a8'] = 'No subscription found';
+
+// Subscriptions & Orders - orders.tpl
+$_MODULE['<{ciklik}prestashop>orders_f3f43e30c8c7d78c6ac0173515e57a00'] = 'Filters';
+$_MODULE['<{ciklik}prestashop>orders_ec53a8c4f07baed5d8825072c89799be'] = 'Status';
+$_MODULE['<{ciklik}prestashop>orders_ecde22c9c146e5c9508c68a4eb75070e'] = '-- All --';
+$_MODULE['<{ciklik}prestashop>orders_2d13df6f8b5e4c5af9f87e0dc39df69d'] = 'Pending';
+$_MODULE['<{ciklik}prestashop>orders_e0010a0a1a3259ab5c06a19bad532851'] = 'Paid';
+$_MODULE['<{ciklik}prestashop>orders_0e22fe7d45f8e5632a4abf369b24e29c'] = 'Canceled';
+$_MODULE['<{ciklik}prestashop>orders_e28dd61f7249598d991b35d4e711bebb'] = 'Subscription UUID';
+$_MODULE['<{ciklik}prestashop>orders_1edcdad89b3a2245d759a169da1bf5a3'] = 'User ID';
+$_MODULE['<{ciklik}prestashop>orders_ea067eb37801c5aab1a1c685eb97d601'] = 'Total paid';
+$_MODULE['<{ciklik}prestashop>orders_f31bbdd1b3e85bccd652680e16935819'] = 'Source';
+$_MODULE['<{ciklik}prestashop>orders_ba3df7ac6ddff5ce8adbc3da2ac37154'] = 'Customer UUID';
+$_MODULE['<{ciklik}prestashop>orders_5f63107da6e89bc77b3ee17ecfedce14'] = 'PrestaShop Order ID';
+$_MODULE['<{ciklik}prestashop>orders_13348442cc6a27032d2b4aa28b75a5d3'] = 'Search';
+$_MODULE['<{ciklik}prestashop>orders_5dadbd0ec9f0b182be4ead8dad39da79'] = 'Orders list';
+$_MODULE['<{ciklik}prestashop>orders_76287c1d6b313a230a663bba13a89188'] = 'Ciklik Order';
+$_MODULE['<{ciklik}prestashop>orders_f7f19392da30e81c3abf433ce7b8ca38'] = 'Created on';
+$_MODULE['<{ciklik}prestashop>orders_d7c8c85bf79bbe1b7188497c32c3b0ca'] = 'Failed';
+$_MODULE['<{ciklik}prestashop>orders_bca53fde466a76b7bee3e18997e94a7a'] = '€';
+$_MODULE['<{ciklik}prestashop>orders_5eea367ea73b909880393bd1ae79fc67'] = 'Customer:';
+$_MODULE['<{ciklik}prestashop>orders_9dd3bc54879dc9425d44de81f3d7dfdc'] = 'View customer profile';
+$_MODULE['<{ciklik}prestashop>orders_cb8fe83175bea4ba19d633b1dc6ea656'] = 'View order';
+$_MODULE['<{ciklik}prestashop>orders_a240fa27925a635b08dc28c9e4f9216d'] = 'Order';
+$_MODULE['<{ciklik}prestashop>orders_7422ce5bd4ca7fe70580111d456e5457'] = 'No order found';
+
+// Subscriptions & Orders - pagination.tpl
+$_MODULE['<{ciklik}prestashop>pagination_193cfc9be3b995831c6af2fea6650e60'] = 'Page';
+$_MODULE['<{ciklik}prestashop>pagination_8bf8854bebe108183caeb845c7676ae4'] = 'of';
+$_MODULE['<{ciklik}prestashop>pagination_fd69c5cf902969e6fb71d043085ddee6'] = 'Results';
+$_MODULE['<{ciklik}prestashop>pagination_7fb55ed0b7a30342ba6da306428cae04'] = 'First';
+$_MODULE['<{ciklik}prestashop>pagination_dd1f775e443ff3b9a89270713580a51b'] = 'Previous';
+$_MODULE['<{ciklik}prestashop>pagination_10ac3d04253ef7e1ddc73e6091c0cd55'] = 'Next';
+$_MODULE['<{ciklik}prestashop>pagination_d55b30607c2a9a2616347d6edb789f6b'] = 'Last';
