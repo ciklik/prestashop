@@ -50,7 +50,7 @@ class OrderGateway extends AbstractGateway implements EntityGateway
                     'ciklik_order_id' => $orderData->ciklik_order_id,
                     'order_type' => \Tools::getValue('order_type'),
                     'subscription_uuid' => \Tools::getValue('ciklik_subscription_uuid'),
-                ],
+                ]
             );
 
             $order = new \Order((int) $orderId);
@@ -92,7 +92,7 @@ class OrderGateway extends AbstractGateway implements EntityGateway
             $orderValidationData->extra_vars,
             $orderValidationData->currency_special,
             $orderValidationData->dont_touch_amount,
-            $orderValidationData->secure_key,
+            $orderValidationData->secure_key
         );
 
         // Lier les items avec fréquences du panier à la commande
@@ -109,7 +109,7 @@ class OrderGateway extends AbstractGateway implements EntityGateway
                 'ciklik_order_id' => $orderData->ciklik_order_id,
                 'order_type' => \Tools::getValue('order_type'),
                 'subscription_uuid' => \Tools::getValue('ciklik_subscription_uuid'),
-            ],
+            ]
         );
 
         $order = new \Order((int) $this->module->currentOrder);

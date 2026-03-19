@@ -48,7 +48,7 @@ class PaymentMethodData
             $data['id'],
             $data['name'],
             $data['class_key'],
-            $data['description'],
+            $data['description']
         );
     }
 

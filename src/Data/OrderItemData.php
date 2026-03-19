@@ -62,7 +62,7 @@ class OrderItemData
             $data['type'],
             $data['price'],
             $data['tax'],
-            $data['quantity'],
+            $data['quantity']
         );
     }
 

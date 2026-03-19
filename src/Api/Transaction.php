@@ -29,7 +29,7 @@ class Transaction extends CiklikApiClient
             'transactions/%s',
             $ciklik_transaction_id,
             'alphanumeric',
-            'Invalid transaction ID format',
+            'Invalid transaction ID format'
         );
 
         if (null !== $error) {
@@ -51,7 +51,7 @@ class Transaction extends CiklikApiClient
             'transactions/%s',
             $ciklik_transaction_id,
             'alphanumeric',
-            'Invalid transaction ID format',
+            'Invalid transaction ID format'
         );
 
         if (null !== $error) {

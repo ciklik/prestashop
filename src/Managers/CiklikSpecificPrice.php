@@ -41,7 +41,7 @@ class CiklikSpecificPrice
                     1,
                     null,
                     'ciklik',
-                    $idProduct,
+                    $idProduct
                 );
             }
 
@@ -53,7 +53,7 @@ class CiklikSpecificPrice
                         1,
                         null,
                         'ciklik',
-                        $idProduct,
+                        $idProduct
                     );
                 }
 
@@ -86,7 +86,7 @@ class CiklikSpecificPrice
                     1,
                     false,
                     $cart->id_customer ?: null,
-                    $cart->id,
+                    $cart->id
                 );
 
                 $finalPriceHT = self::computeNetPrice($basePriceHT, $frequency);
@@ -98,7 +98,7 @@ class CiklikSpecificPrice
                             2,
                             null,
                             'ciklik',
-                            $idProduct,
+                            $idProduct
                         );
                     }
 
@@ -115,7 +115,7 @@ class CiklikSpecificPrice
                         1,
                         null,
                         'ciklik',
-                        $idProduct,
+                        $idProduct
                     );
                 }
             } else {
@@ -133,7 +133,7 @@ class CiklikSpecificPrice
                             2,
                             null,
                             'ciklik',
-                            $idProduct,
+                            $idProduct
                         );
                     }
 
@@ -160,7 +160,7 @@ class CiklikSpecificPrice
                     1,
                     null,
                     'ciklik',
-                    $idProduct,
+                    $idProduct
                 );
             }
 
@@ -173,7 +173,7 @@ class CiklikSpecificPrice
                         1,
                         null,
                         'ciklik',
-                        $idProduct,
+                        $idProduct
                     );
                 }
 
@@ -184,7 +184,7 @@ class CiklikSpecificPrice
                 3,
                 null,
                 'ciklik',
-                $idProduct,
+                $idProduct
             );
 
             return false;
@@ -194,7 +194,7 @@ class CiklikSpecificPrice
                 3,
                 null,
                 'ciklik',
-                $idProduct,
+                $idProduct
             );
 
             return false;
@@ -281,7 +281,7 @@ class CiklikSpecificPrice
                     3,
                     null,
                     'CiklikSpecificPrice',
-                    $idProduct,
+                    $idProduct
                 );
             }
         }
@@ -318,7 +318,7 @@ class CiklikSpecificPrice
                     $result = \Db::getInstance()->update(
                         'specific_price',
                         ['id_customer' => (int) $idCustomer],
-                        'id_specific_price = ' . (int) $specificPriceData['id_specific_price'],
+                        'id_specific_price = ' . (int) $specificPriceData['id_specific_price']
                     );
 
                     if ($result) {
@@ -330,7 +330,7 @@ class CiklikSpecificPrice
                         3,
                         null,
                         'CiklikSpecificPrice',
-                        $specificPriceData['id_product'],
+                        $specificPriceData['id_product']
                     );
                 }
             }

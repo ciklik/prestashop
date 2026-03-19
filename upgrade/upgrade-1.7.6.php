@@ -25,7 +25,7 @@ function upgrade_module_1_7_6($module)
                 null,
                 'Ciklik',
                 null,
-                true,
+                true
             );
 
             return false;

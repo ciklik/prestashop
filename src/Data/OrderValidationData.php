@@ -82,7 +82,7 @@ class OrderValidationData
             ],
             $cart->id_currency,
             false,
-            $cart->secure_key,
+            $cart->secure_key
         );
     }
 }

@@ -190,7 +190,7 @@ class CiklikFrequency
                 null,
                 'CiklikFrequency',
                 null,
-                true,
+                true
             );
 
             return false;

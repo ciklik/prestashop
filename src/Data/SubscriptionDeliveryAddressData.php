@@ -82,7 +82,7 @@ class SubscriptionDeliveryAddressData
             $data['address1'],
             $data['postcode'],
             $data['city'],
-            $data['country']['name'],
+            $data['country']['name']
         );
     }
 }

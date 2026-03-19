@@ -83,7 +83,7 @@ class TransactionData
             $data['amount_refunded'],
             $data['failure_message'],
             $data['failure_code'],
-            new \DateTimeImmutable($data['created_at']),
+            new \DateTimeImmutable($data['created_at'])
         );
     }
 }

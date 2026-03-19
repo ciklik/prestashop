@@ -143,7 +143,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
                             null,
                             'ciklik',
                             $cart->id,
-                            true,
+                            true
                         );
                         $id_product_attribute = (int) \Product::getDefaultAttribute((int) $id_product);
                     }
@@ -219,7 +219,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
                             null,
                             'ciklik',
                             $cart->id,
-                            true,
+                            true
                         );
                         $id_variant = (int) \Product::getDefaultAttribute((int) $id_product);
                         // Mettre à jour le productKey si nécessaire
@@ -258,20 +258,20 @@ class CartGateway extends AbstractGateway implements EntityGateway
             // vérifier la quantité après updateQty
             if ($id_customization) {
                 \Db::getInstance()->getValue(
-                    'SELECT quantity FROM ' . _DB_PREFIX_ . 'customization WHERE id_customization = ' . (int) $id_customization,
+                    'SELECT quantity FROM ' . _DB_PREFIX_ . 'customization WHERE id_customization = ' . (int) $id_customization
                 );
 
                 // Forcer la quantité car PrestaShop l'a mise à jour avec la quantité du produit
                 \Db::getInstance()->update(
                     'customization',
                     ['quantity' => $quantity],
-                    'id_customization = ' . (int) $id_customization,
+                    'id_customization = ' . (int) $id_customization
                 );
                 // Forcer l'adresse de la custo, car Prestashop la supprime pendant la mise à jour du panier.
                 \Db::getInstance()->update(
                     'customization',
                     ['id_address_delivery' => (int) $cartFingerprintData->id_address_delivery],
-                    'id_customization = ' . (int) $id_customization,
+                    'id_customization = ' . (int) $id_customization
                 );
             }
         }
@@ -459,7 +459,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
                 null,
                 'CartGateway',
                 $cart->id,
-                true,
+                true
             );
         }
     }
@@ -511,7 +511,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
                 null,
                 'CartGateway',
                 $cart->id,
-                true,
+                true
             );
 
             return null;
@@ -555,7 +555,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
                         $id_product_attributeForSimu = (int) \Product::getIdProductAttributeByIdAttributes(
                             $product_for_template['id_product'],
                             $groupForSimu,
-                            true,
+                            true
                         );
 
                         $attribute['id_product_attributeForSimu'] = $id_product_attributeForSimu;
@@ -569,7 +569,7 @@ class CartGateway extends AbstractGateway implements EntityGateway
                             null,
                             false,
                             true,
-                            $combinationForSimu->minimal_quantity,
+                            $combinationForSimu->minimal_quantity
                         );
 
                         if (isset($product_for_template['ciklik']['subscription_reference_price']) && $product_for_template['ciklik']['subscription_reference_price'] > 0) {

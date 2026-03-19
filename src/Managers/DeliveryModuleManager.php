@@ -49,7 +49,7 @@ class DeliveryModuleManager
                 null,
                 'DeliveryModuleManager',
                 null,
-                true,
+                true
             );
         }
     }
@@ -87,7 +87,7 @@ class DeliveryModuleManager
                 null,
                 'DeliveryModuleManager',
                 null,
-                true,
+                true
             );
         }
     }
@@ -160,7 +160,7 @@ class DeliveryModuleManager
                         null,
                         'DeliveryModuleManager',
                         null,
-                        true,
+                        true
                     );
                 }
             }
@@ -171,7 +171,7 @@ class DeliveryModuleManager
                 null,
                 'DeliveryModuleManager',
                 null,
-                true,
+                true
             );
         }
     }
@@ -207,7 +207,7 @@ class DeliveryModuleManager
             $result = \Db::getInstance()->update(
                 'mondialrelay_selected_relay',
                 $data,
-                'id_cart = ' . (int) $cartId,
+                'id_cart = ' . (int) $cartId
             );
 
             if ($result) {
@@ -217,7 +217,7 @@ class DeliveryModuleManager
                     null,
                     'DeliveryModuleManager',
                     null,
-                    true,
+                    true
                 );
             }
         } catch (\Exception $e) {
@@ -227,7 +227,7 @@ class DeliveryModuleManager
                 null,
                 'DeliveryModuleManager',
                 null,
-                true,
+                true
             );
         }
     }
@@ -305,7 +305,7 @@ class DeliveryModuleManager
                     null,
                     'DeliveryModuleManager',
                     null,
-                    true,
+                    true
                 );
             }
         } catch (\Exception $e) {
@@ -315,7 +315,7 @@ class DeliveryModuleManager
                 null,
                 'DeliveryModuleManager',
                 null,
-                true,
+                true
             );
         }
     }
@@ -384,7 +384,7 @@ class DeliveryModuleManager
                     null,
                     'DeliveryModuleManager',
                     null,
-                    true,
+                    true
                 );
             }
         } catch (\Exception $e) {
@@ -394,7 +394,7 @@ class DeliveryModuleManager
                 null,
                 'DeliveryModuleManager',
                 null,
-                true,
+                true
             );
         }
     }
@@ -497,7 +497,7 @@ class DeliveryModuleManager
                     null,
                     'DeliveryModuleManager',
                     null,
-                    true,
+                    true
                 );
             }
         } catch (\Exception $e) {
@@ -507,7 +507,7 @@ class DeliveryModuleManager
                 null,
                 'DeliveryModuleManager',
                 null,
-                true,
+                true
             );
         }
     }
@@ -530,7 +530,7 @@ class DeliveryModuleManager
                 null,
                 'DeliveryModuleManager',
                 null,
-                true,
+                true
             );
 
             return false;
@@ -608,7 +608,7 @@ class DeliveryModuleManager
                     null,
                     'DeliveryModuleManager',
                     null,
-                    true,
+                    true
                 );
             }
         } catch (\Exception $e) {
@@ -618,7 +618,7 @@ class DeliveryModuleManager
                 null,
                 'DeliveryModuleManager',
                 null,
-                true,
+                true
             );
         }
     }

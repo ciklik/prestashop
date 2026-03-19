@@ -99,7 +99,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         (new Subscription($this->context->link))->update(
             $uuid,
-            ['active' => false],
+            ['active' => false]
         );
 
         $this->success[] = $this->module->l('Your subscription has been paused.', 'subscription');
@@ -117,7 +117,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         (new Subscription($this->context->link))->update(
             $uuid,
-            ['active' => true],
+            ['active' => true]
         );
 
         $this->success[] = $this->module->l('Your subscription has been resumed.', 'subscription');
@@ -163,7 +163,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         $result = (new Subscription($this->context->link))->update(
             $uuid,
-            ['next_billing' => $date->toDateString()],
+            ['next_billing' => $date->toDateString()]
         );
 
         if (!empty($result['errors'])) {
@@ -201,7 +201,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         $result = (new Subscription($this->context->link))->update(
             $uuid,
-            ['metadata' => ['prestashop_fingerprint' => $sub->external_fingerprint->encodeDatas()]],
+            ['metadata' => ['prestashop_fingerprint' => $sub->external_fingerprint->encodeDatas()]]
         );
 
         if (count($result['errors'])) {
@@ -261,7 +261,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                     'metadata' => ['prestashop_fingerprint' => $subscriptionData->external_fingerprint->encodeDatas()],
                     'interval' => $frequency['interval'],
                     'interval_count' => (int) $frequency['interval_count'],
-                ],
+                ]
             );
 
             if (count($result['errors'])) {
@@ -307,7 +307,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             // Envoyer la mise à jour à l'API
             $result = $subscriptionApi->update(
                 $subscriptionUuid,
-                $updateData,
+                $updateData
             );
 
             if (isset($result['errors']) && count($result['errors'])) {
@@ -372,7 +372,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         $result = $subscriptionApi->update(
             $uuid,
-            ['upsells' => $upsell],
+            ['upsells' => $upsell]
         );
 
         // Vérifie si l'appel API a réussi

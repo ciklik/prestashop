@@ -5,7 +5,7 @@ $config = new class() extends PrestaShop\CodingStandards\CsFixer\Config {
     {
         return array_merge(parent::getRules(), [
             'trailing_comma_in_multiline' => [
-                'elements' => ['arguments', 'arrays'],
+                'elements' => ['arrays'],
             ],
         ]);
     }

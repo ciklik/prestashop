@@ -27,7 +27,7 @@ class Customer extends CiklikApiClient
             'customers/%s',
             $ciklik_customer_uuid,
             'uuid',
-            'Invalid customer UUID format',
+            'Invalid customer UUID format'
         );
 
         if (null !== $error) {

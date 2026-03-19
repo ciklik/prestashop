@@ -94,7 +94,7 @@ class CartFingerprintData
             $data['id_carrier_reference'],
             isset($data['upsells']) ? $data['upsells'] : [],
             isset($data['frequency_id']) ? $data['frequency_id'] : null,
-            isset($data['customizations']) && $data['customizations'] !== false ? $data['customizations'] : [],
+            isset($data['customizations']) && $data['customizations'] !== false ? $data['customizations'] : []
         );
     }
 
@@ -116,7 +116,7 @@ class CartFingerprintData
             $carrier->id_reference,
             $upsells,
             $frequency_id,
-            $customizations,
+            $customizations
         );
     }
 
@@ -156,7 +156,7 @@ class CartFingerprintData
             (int) $data['id_carrier_reference'],
             isset($data['upsells']) ? $data['upsells'] : [],
             isset($data['frequency_id']) ? $data['frequency_id'] : null,
-            isset($data['customizations']) ? $data['customizations'] : [],
+            isset($data['customizations']) ? $data['customizations'] : []
         );
     }
 

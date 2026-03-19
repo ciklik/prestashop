@@ -110,7 +110,7 @@ class CiklikApiClient
 
         return $this->handleResponse(
             $response,
-            $options,
+            $options
         );
     }
 
@@ -135,7 +135,7 @@ class CiklikApiClient
 
         return $this->handleResponse(
             $response,
-            $options,
+            $options
         );
     }
 
@@ -160,7 +160,7 @@ class CiklikApiClient
 
         return $this->handleResponse(
             $response,
-            $options,
+            $options
         );
     }
 
@@ -185,7 +185,7 @@ class CiklikApiClient
 
         return $this->handleResponse(
             $response,
-            $options,
+            $options
         );
     }
 

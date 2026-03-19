@@ -64,7 +64,7 @@ class CiklikCombination
             FROM ' . _DB_PREFIX_ . 'product_attribute_combination pac
             LEFT JOIN ' . _DB_PREFIX_ . 'attribute a ON a.id_attribute = pac.id_attribute
             LEFT JOIN ' . _DB_PREFIX_ . 'attribute_group ag ON ag.id_attribute_group = a.id_attribute_group
-            WHERE pac.id_product_attribute = ' . (int) $id_product_attribute,
+            WHERE pac.id_product_attribute = ' . (int) $id_product_attribute
         );
 
         // Récupère l'ID du groupe d'attributs de fréquence
@@ -114,7 +114,7 @@ class CiklikCombination
             $result['display_name'] = sprintf(
                 '%s : %s',
                 $attributeGroup->name,
-                $attribute->name,
+                $attribute->name
             );
         }
 
@@ -188,7 +188,7 @@ class CiklikCombination
                 null, // Objet à l'origine du log (null si aucun)
                 'ciklik', // Nom du module ou du composant (optionnel)
                 null, // Identifiant de l'objet lié (optionnel)
-                true, // Permet d'afficher ou non l'erreur aux administrateurs (true = affiché)
+                true // Permet d'afficher ou non l'erreur aux administrateurs (true = affiché)
             );
         }
 

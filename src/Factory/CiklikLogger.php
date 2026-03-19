@@ -23,7 +23,7 @@ class CiklikLogger
     {
         $rotatingFileHandler = new RotatingFileHandler(
             _PS_ROOT_DIR_ . '/var/logs/ciklik',
-            static::MAX_FILES,
+            static::MAX_FILES
         );
         $logger = new Logger('ciklik');
         $logger->pushHandler($rotatingFileHandler);

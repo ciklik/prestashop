@@ -38,8 +38,8 @@ class Shop extends CiklikApiClient
                 $options,
                 [
                     'json' => ['metadata' => $metadata],
-                ],
-            ),
+                ]
+            )
         );
     }
 }

@@ -86,7 +86,7 @@ class CiklikItemFrequency
     {
         return \Db::getInstance()->delete(
             'ciklik_items_frequency',
-            'cart_id = ' . (int) $cartId . ' AND product_id = ' . (int) $productId,
+            'cart_id = ' . (int) $cartId . ' AND product_id = ' . (int) $productId
         );
     }
 
@@ -101,7 +101,7 @@ class CiklikItemFrequency
     {
         return \Db::getInstance()->delete(
             'ciklik_items_frequency',
-            'cart_id = ' . (int) $cartId,
+            'cart_id = ' . (int) $cartId
         );
     }
 
@@ -139,7 +139,7 @@ class CiklikItemFrequency
                 'customer_id' => (int) $customerId,
                 'guest_id' => null,
             ],
-            'guest_id = ' . (int) $guestId . ' AND cart_id = ' . (int) $cartId,
+            'guest_id = ' . (int) $guestId . ' AND cart_id = ' . (int) $cartId
         );
     }
 
@@ -175,7 +175,7 @@ class CiklikItemFrequency
             [
                 'order_id' => (int) $orderId,
             ],
-            'cart_id = ' . (int) $cartId,
+            'cart_id = ' . (int) $cartId
         );
     }
 

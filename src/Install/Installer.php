@@ -383,7 +383,7 @@ class Installer
             'Gestion des Fréquences',
             $parentTabId,
             $module,
-            $isFrequencyModeEnabled ? 1 : 0,
+            $isFrequencyModeEnabled ? 1 : 0
         );
 
         if (!$frequenciesTab) {
@@ -404,7 +404,7 @@ class Installer
             'Abonnements et Commandes',
             $parentTabId,
             $module,
-            1,
+            1
         );
 
         if (!$subscriptionsOrdersTab) {
@@ -429,7 +429,7 @@ class Installer
             'Prévision de Stock',
             $parentTabId,
             $module,
-            1,
+            1
         );
 
         if (!$stockForecastTab) {

@@ -75,7 +75,7 @@ class Subscription extends CiklikApiClient
             'subscriptions/%s',
             $ciklik_subscription_uuid,
             'uuid',
-            'Invalid subscription UUID format',
+            'Invalid subscription UUID format'
         );
 
         if (null !== $error) {
@@ -91,7 +91,7 @@ class Subscription extends CiklikApiClient
             'subscriptions/%s',
             $ciklik_subscription_uuid,
             'uuid',
-            'Invalid subscription UUID format',
+            'Invalid subscription UUID format'
         );
 
         if (null !== $error) {
@@ -109,7 +109,7 @@ class Subscription extends CiklikApiClient
             'subscriptions/%s',
             $ciklik_subscription_uuid,
             'uuid',
-            'Invalid subscription UUID format',
+            'Invalid subscription UUID format'
         );
 
         return $error ?? $this->delete();

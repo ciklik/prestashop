@@ -25,12 +25,12 @@ class RelatedEntitiesManager
 
         \Configuration::updateValue(
             \Ciklik::CONFIG_ONEOFF_ATTRIBUTE_ID,
-            CiklikAttribute::create('Achat en une fois', $purchaseTypeAttributeGroup->id),
+            CiklikAttribute::create('Achat en une fois', $purchaseTypeAttributeGroup->id)
         );
 
         \Configuration::updateValue(
             \Ciklik::CONFIG_SUBSCRIPTION_ATTRIBUTE_ID,
-            CiklikAttribute::create('Abonnement', $purchaseTypeAttributeGroup->id),
+            CiklikAttribute::create('Abonnement', $purchaseTypeAttributeGroup->id)
         );
 
         $frequencies = [

@@ -67,7 +67,7 @@ class Subscribable extends CiklikApiClient
         foreach ($data['products'] as $product) {
             $sanitizedProduct = array_intersect_key(
                 $product,
-                array_flip(self::ALLOWED_PRODUCT_KEYS),
+                array_flip(self::ALLOWED_PRODUCT_KEYS)
             );
 
             // Sanitize frequencies if present
@@ -76,7 +76,7 @@ class Subscribable extends CiklikApiClient
                 foreach ($sanitizedProduct['frequencies'] as $frequency) {
                     $sanitizedFrequencies[] = array_intersect_key(
                         $frequency,
-                        array_flip(self::ALLOWED_FREQUENCY_KEYS),
+                        array_flip(self::ALLOWED_FREQUENCY_KEYS)
                     );
                 }
                 $sanitizedProduct['frequencies'] = $sanitizedFrequencies;

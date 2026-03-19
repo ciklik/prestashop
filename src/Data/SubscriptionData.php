@@ -113,7 +113,7 @@ class SubscriptionData
             CarbonImmutable::parse($data['end_date']),
             $fingerprint,
             self::processContents($data['content']),
-            isset($fingerprint->upsells) ? self::processUpsells($fingerprint->upsells) : [],
+            isset($fingerprint->upsells) ? self::processUpsells($fingerprint->upsells) : []
         );
     }
 

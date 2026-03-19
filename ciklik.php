@@ -38,7 +38,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    public const VERSION = '1.17.0';
+    public const VERSION = '1.17.1';
     public const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     public const CONFIG_MODE = 'CIKLIK_MODE';
     public const CONFIG_HOST = 'CIKLIK_HOST';
@@ -79,7 +79,7 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.17.0';
+        $this->version = '1.17.1';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -102,7 +102,7 @@ class Ciklik extends PaymentModule
         if ($this->container === null) {
             $this->container = new PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer(
                 $this->name,
-                $this->getLocalPath(),
+                $this->getLocalPath()
             );
         }
     }
@@ -189,7 +189,7 @@ class Ciklik extends PaymentModule
                 (int) $params['id_attribute'],
                 Tools::getValue('interval'),
                 (int) Tools::getValue('interval_count'),
-                (int) Tools::getValue('id_frequency', 0),
+                (int) Tools::getValue('id_frequency', 0)
             );
         }
     }
@@ -392,7 +392,7 @@ class Ciklik extends PaymentModule
         $paymentOption->setCallToActionText(
             array_key_exists($language->iso_code, $method->name)
                 ? $method->name[$language->iso_code]
-                : $method->name[current(array_keys($method->name))],
+                : $method->name[current(array_keys($method->name))]
         );
         $paymentOption->setAction($this->context->link->getModuleLink($this->name, 'external', [], true));
 
@@ -462,7 +462,7 @@ class Ciklik extends PaymentModule
         $this->context->smarty->assign([
             'transactionsLink' => $this->context->link->getModuleLink(
                 $this->name,
-                'account',
+                'account'
             ),
         ]);
 
@@ -582,7 +582,7 @@ class Ciklik extends PaymentModule
             'transaction' => $transaction,
             'transactionsLink' => $this->context->link->getModuleLink(
                 $this->name,
-                'account',
+                'account'
             ),
             'subscription_items' => $subscriptionData,
         ]);
@@ -854,7 +854,7 @@ class Ciklik extends PaymentModule
                     $attribute = CiklikCombination::getOne(
                         (int) $product['id_product'],
                         $ciklik_attributes['frequency_id_attribute'],
-                        $constraint_attributes_ids,
+                        $constraint_attributes_ids
                     );
 
                     if (!is_array($attribute) || !(int) $attribute['id_product_attribute']) {
@@ -882,7 +882,7 @@ class Ciklik extends PaymentModule
                     $attribute = CiklikCombination::getOne(
                         (int) $product['id_product'],
                         (int) Configuration::get(self::CONFIG_ONEOFF_ATTRIBUTE_ID),
-                        $constraint_attributes_ids,
+                        $constraint_attributes_ids
                     );
 
                     if (!is_array($attribute) || !(int) $attribute['id_product_attribute']) {
@@ -1050,7 +1050,7 @@ class Ciklik extends PaymentModule
         foreach ($frequencies as &$frequency) {
             $frequency['description'] = $this->buildFrequencyDescription(
                 $frequency['interval'],
-                (int) $frequency['interval_count'],
+                (int) $frequency['interval_count']
             );
 
             $interval = $frequency['interval'];
@@ -1154,7 +1154,7 @@ class Ciklik extends PaymentModule
                     $idProduct,
                     $idProductAttribute,
                     $cart,
-                    $frequency,
+                    $frequency
                 );
             }
 
@@ -1166,7 +1166,7 @@ class Ciklik extends PaymentModule
                     (int) $idProduct,
                     (int) $idProductAttribute,
                     $cart->id_customer ? (int) $cart->id_customer : null,
-                    !$cart->id_customer ? (int) $cart->id_guest : null,
+                    !$cart->id_customer ? (int) $cart->id_guest : null
                 );
             } catch (Exception $e) {
                 PrestaShopLogger::addLog(
@@ -1174,7 +1174,7 @@ class Ciklik extends PaymentModule
                     3,
                     null,
                     'ciklik',
-                    $idProduct,
+                    $idProduct
                 );
             }
         }
@@ -1230,13 +1230,13 @@ class Ciklik extends PaymentModule
         CiklikItemFrequency::updateCustomerFromGuest(
             (int) $cart->id_guest,
             (int) $customer->id,
-            (int) $cart->id,
+            (int) $cart->id
         );
 
         // Transfert des prix spécifiques de l'invité vers le client connecté
         CiklikSpecificPrice::transferFromGuestToCustomer(
             (int) $cart->id,
-            (int) $customer->id,
+            (int) $customer->id
         );
     }
 
@@ -1251,7 +1251,7 @@ class Ciklik extends PaymentModule
                 [
                     'media' => 'all',
                     'priority' => 200,
-                ],
+                ]
             );
 
             // Charge le JavaScript pour les options d'abonnement
@@ -1261,7 +1261,7 @@ class Ciklik extends PaymentModule
                 [
                     'position' => 'bottom',
                     'priority' => 200,
-                ],
+                ]
             );
         }
     }

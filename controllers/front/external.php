@@ -23,7 +23,7 @@ class CiklikExternalModuleFrontController extends ModuleFrontController
                 (int) $this->context->language->id,
                 [
                     'step' => 1,
-                ],
+                ]
             ));
         }
 
@@ -36,7 +36,7 @@ class CiklikExternalModuleFrontController extends ModuleFrontController
                 (int) $this->context->language->id,
                 [
                     'step' => 1,
-                ],
+                ]
             ));
         }
     }
@@ -57,7 +57,7 @@ class CiklikExternalModuleFrontController extends ModuleFrontController
                 'order',
                 true,
                 (int) $this->context->language->id,
-                ['step' => 1],
+                ['step' => 1]
             ));
         }
 

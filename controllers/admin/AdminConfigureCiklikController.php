@@ -611,7 +611,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
             . 'WHERE deleted = 0
                     AND paid = 1
                     AND invoice = 1
-            ORDER BY name ASC',
+            ORDER BY name ASC'
         );
     }
 
@@ -653,7 +653,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
                             'headers' => [
                                 'Authorization' => 'Bearer ' . Tools::getValue(Ciklik::CONFIG_API_TOKEN),
                             ],
-                        ],
+                        ]
                     );
                 }
 
@@ -670,7 +670,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
         if ($this->moduleContainer === null) {
             $this->moduleContainer = new PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer(
                 $this->module->name,
-                $this->module->getLocalPath(),
+                $this->module->getLocalPath()
             );
         }
 

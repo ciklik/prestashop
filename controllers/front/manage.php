@@ -21,7 +21,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         // Vérification de l'accès admin (même logique que le refund)
         if (!CiklikRefund::canRun()) {
             $this->ajaxFailAndDie(
-                $this->module->l('Access denied', 'manage'),
+                $this->module->l('Access denied', 'manage')
             );
         }
 
@@ -31,7 +31,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         if (!$token || !hash_equals($expectedToken, $token)) {
             $this->ajaxFailAndDie(
                 $this->module->l('Invalid security token', 'manage'),
-                403,
+                403
             );
         }
 
@@ -49,7 +49,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
                 break;
             default:
                 $this->ajaxFailAndDie(
-                    $this->module->l('Invalid action', 'manage'),
+                    $this->module->l('Invalid action', 'manage')
                 );
         }
     }
@@ -67,13 +67,13 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             ]);
         } catch (Exception $e) {
             $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage'),
+                $this->module->l('An error occurred while updating the subscription.', 'manage')
             );
         }
 
         if (!$response['status']) {
             $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage'),
+                $this->module->l('An error occurred while updating the subscription.', 'manage')
             );
         }
 
@@ -99,13 +99,13 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             ]);
         } catch (Exception $e) {
             $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage'),
+                $this->module->l('An error occurred while updating the subscription.', 'manage')
             );
         }
 
         if (!$response['status']) {
             $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage'),
+                $this->module->l('An error occurred while updating the subscription.', 'manage')
             );
         }
 
@@ -129,7 +129,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         // Validation du format YYYY-MM-DD
         if (!$nextBilling || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $nextBilling)) {
             $this->ajaxFailAndDie(
-                $this->module->l('Invalid date format', 'manage'),
+                $this->module->l('Invalid date format', 'manage')
             );
         }
 
@@ -137,14 +137,14 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         $date = DateTime::createFromFormat('Y-m-d', $nextBilling);
         if (!$date || $date->format('Y-m-d') !== $nextBilling) {
             $this->ajaxFailAndDie(
-                $this->module->l('Invalid date format', 'manage'),
+                $this->module->l('Invalid date format', 'manage')
             );
         }
 
         $tomorrow = new DateTime('tomorrow');
         if ($date < $tomorrow) {
             $this->ajaxFailAndDie(
-                $this->module->l('The date must be in the future', 'manage'),
+                $this->module->l('The date must be in the future', 'manage')
             );
         }
 
@@ -154,13 +154,13 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             ]);
         } catch (Exception $e) {
             $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage'),
+                $this->module->l('An error occurred while updating the subscription.', 'manage')
             );
         }
 
         if (!$response['status']) {
             $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage'),
+                $this->module->l('An error occurred while updating the subscription.', 'manage')
             );
         }
 
@@ -184,7 +184,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
 
         if (!$uuid) {
             $this->ajaxFailAndDie(
-                $this->module->l('Invalid subscription UUID', 'manage'),
+                $this->module->l('Invalid subscription UUID', 'manage')
             );
         }
 

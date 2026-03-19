@@ -85,7 +85,7 @@ class OrderData
             new \DateTimeImmutable($data['created_at']),
             $data['subscription_uuid'] ?? null,
             self::formatPrice($data['total_paid'] ?? '0'),
-            isset($data['prestashop_order_id']) ? (int) $data['prestashop_order_id'] : null,
+            isset($data['prestashop_order_id']) ? (int) $data['prestashop_order_id'] : null
         );
     }
 

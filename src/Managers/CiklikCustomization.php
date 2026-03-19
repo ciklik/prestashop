@@ -40,7 +40,7 @@ class CiklikCustomization
                 null,
                 'CiklikCustomization',
                 $cart->id,
-                true,
+                true
             );
 
             return [];
@@ -82,7 +82,7 @@ class CiklikCustomization
             'SELECT id_customization FROM ' . _DB_PREFIX_ . 'customization
              WHERE id_cart = ' . (int) $cart->id . '
                AND id_product = ' . (int) $idProduct . '
-               AND id_product_attribute = ' . (int) $idProductAttribute,
+               AND id_product_attribute = ' . (int) $idProductAttribute
         );
         if (!$idCustomization) {
             \Db::getInstance()->insert('customization', [
@@ -118,7 +118,7 @@ class CiklikCustomization
             'SELECT id_customization FROM ' . _DB_PREFIX_ . 'customization
              WHERE id_cart = ' . (int) $cart->id . '
                AND id_product = ' . (int) $idProduct . '
-               AND id_product_attribute = ' . (int) $idProductAttribute,
+               AND id_product_attribute = ' . (int) $idProductAttribute
         );
         if (!$idCustomization) {
             \Db::getInstance()->insert('customization', [
@@ -143,7 +143,7 @@ class CiklikCustomization
                 'SELECT id_customization FROM ' . _DB_PREFIX_ . 'customized_data
                  WHERE id_customization = ' . (int) $idCustomization . '
                    AND `index` = ' . (int) $field['index'] . '
-                   AND type = 1',
+                   AND type = 1'
             );
             if ($existing) {
                 \Db::getInstance()->update(
@@ -151,7 +151,7 @@ class CiklikCustomization
                     [
                         'value' => pSQL($field['value']),
                     ],
-                    'id_customization = ' . (int) $idCustomization . ' AND `index` = ' . (int) $field['index'] . ' AND type = 1',
+                    'id_customization = ' . (int) $idCustomization . ' AND `index` = ' . (int) $field['index'] . ' AND type = 1'
                 );
             } else {
                 \Db::getInstance()->insert('customized_data', [
@@ -170,7 +170,7 @@ class CiklikCustomization
                 null,
                 'CiklikCustomization',
                 $idCustomization,
-                true,
+                true
             );
 
             return false;
@@ -184,7 +184,7 @@ class CiklikCustomization
                 'SELECT id_customization FROM ' . _DB_PREFIX_ . 'customized_data
                  WHERE id_customization = ' . (int) $idCustomization . '
                    AND `index` = ' . (int) $file['index'] . '
-                   AND type = 0',
+                   AND type = 0'
             );
             if ($existing) {
                 \Db::getInstance()->update(
@@ -192,7 +192,7 @@ class CiklikCustomization
                     [
                         'value' => pSQL($file['value']),
                     ],
-                    'id_customization = ' . (int) $idCustomization . ' AND `index` = ' . (int) $file['index'] . ' AND type = 0',
+                    'id_customization = ' . (int) $idCustomization . ' AND `index` = ' . (int) $file['index'] . ' AND type = 0'
                 );
             } else {
                 \Db::getInstance()->insert('customized_data', [
@@ -211,7 +211,7 @@ class CiklikCustomization
                 null,
                 'CiklikCustomization',
                 $idCustomization,
-                true,
+                true
             );
 
             return false;

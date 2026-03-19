@@ -122,7 +122,7 @@ class StockForecastAggregator
             // Stock actuel
             $stock = (int) \StockAvailable::getQuantityAvailableByProduct(
                 $need['id_product'],
-                $need['id_product_attribute'],
+                $need['id_product_attribute']
             );
             $need['current_stock'] = $stock;
             $need['stock_after'] = $stock - $need['quantity'];

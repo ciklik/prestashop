@@ -162,7 +162,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                                         [
                                             'id_customer' => (int) $customer->id,
                                             'viewcustomer' => 1,
-                                        ],
+                                        ]
                                     );
                                 }
                             }
@@ -194,7 +194,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
         ]);
 
         return $this->context->smarty->fetch(
-            _PS_MODULE_DIR_ . 'ciklik/views/templates/admin/subscriptions_orders/subscriptions.tpl',
+            _PS_MODULE_DIR_ . 'ciklik/views/templates/admin/subscriptions_orders/subscriptions.tpl'
         );
     }
 
@@ -260,7 +260,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                     [
                         'vieworder' => 1,
                         'id_order' => (int) $order['prestashop_order_id'],
-                    ],
+                    ]
                 );
             }
 
@@ -279,7 +279,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                             [
                                 'id_customer' => (int) $customer->id,
                                 'viewcustomer' => 1,
-                            ],
+                            ]
                         );
                     }
                 }
@@ -299,7 +299,7 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
         ]);
 
         return $this->context->smarty->fetch(
-            _PS_MODULE_DIR_ . 'ciklik/views/templates/admin/subscriptions_orders/orders.tpl',
+            _PS_MODULE_DIR_ . 'ciklik/views/templates/admin/subscriptions_orders/orders.tpl'
         );
     }
 

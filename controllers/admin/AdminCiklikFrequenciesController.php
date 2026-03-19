@@ -448,7 +448,7 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
     {
         $discountValidation = $this->validateDiscountFields(
             Tools::getValue('discount_percent'),
-            Tools::getValue('discount_price'),
+            Tools::getValue('discount_price')
         );
 
         // Échapper et nettoyer les données avant sauvegarde
