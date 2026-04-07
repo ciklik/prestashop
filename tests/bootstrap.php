@@ -395,4 +395,15 @@ class Ciklik
     public const CONFIG_CREATION_ORDER_STATE = 'CIKLIK_CREATION_ORDER_STATE';
 }
 
+/**
+ * Stub Link pour les tests unitaires
+ */
+class Link
+{
+    public function getModuleLink($module, $controller = 'default', $params = [], $ssl = null, $idLang = null, $idShop = null, $relativeProtocol = false)
+    {
+        return 'https://shop.test/module/' . $module . '/' . $controller;
+    }
+}
+
 require_once __DIR__ . '/../vendor/autoload.php';

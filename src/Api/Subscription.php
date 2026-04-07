@@ -114,4 +114,96 @@ class Subscription extends CiklikApiClient
 
         return $error ?? $this->delete();
     }
+
+    /**
+     * Met à jour la quantité d'un produit dans un abonnement
+     *
+     * @param string $subscriptionUuid UUID de l'abonnement
+     * @param string $externalId Identifiant externe du produit (format: id_product:id_product_attribute)
+     * @param int $quantity Nouvelle quantité
+     *
+     * @return array Réponse API
+     */
+    public function updateProductQuantity(string $subscriptionUuid, string $externalId, int $quantity)
+    {
+        if (!$this->isValidUuid($subscriptionUuid)) {
+            return $this->buildErrorResponse('Invalid subscription UUID format');
+        }
+
+        if (!$this->isValidExternalId($externalId)) {
+            return $this->buildErrorResponse('Invalid product identifier format');
+        }
+
+        // rawurlencode évite que parse_url interprète le ":" de l'external_id comme host:port
+        $this->setRoute('subscriptions/' . $subscriptionUuid . '/products/' . rawurlencode($externalId));
+
+        return $this->patch([
+            'json' => ['quantity' => $quantity],
+        ]);
+    }
+
+    /**
+     * Ajoute un produit à un abonnement (ou met à jour la quantité si déjà présent)
+     *
+     * @param string $subscriptionUuid UUID de l'abonnement
+     * @param array $data Données du produit (external_id, name, quantity, tax)
+     *
+     * @return array Réponse API
+     */
+    public function addProduct(string $subscriptionUuid, array $data)
+    {
+        $error = $this->setRouteWithValidation(
+            'subscriptions/%s/products',
+            $subscriptionUuid,
+            'uuid',
+            'Invalid subscription UUID format'
+        );
+
+        if (null !== $error) {
+            return $error;
+        }
+
+        return $this->post([
+            'json' => $data,
+        ]);
+    }
+
+    /**
+     * Supprime un produit d'un abonnement
+     *
+     * @param string $subscriptionUuid UUID de l'abonnement
+     * @param string $externalId Identifiant externe du produit (format: id_product:id_product_attribute)
+     *
+     * @return array Réponse API
+     */
+    public function removeProduct(string $subscriptionUuid, string $externalId)
+    {
+        if (!$this->isValidUuid($subscriptionUuid)) {
+            return $this->buildErrorResponse('Invalid subscription UUID format');
+        }
+
+        if (!$this->isValidExternalId($externalId)) {
+            return $this->buildErrorResponse('Invalid product identifier format');
+        }
+
+        // rawurlencode évite que parse_url interprète le ":" de l'external_id comme host:port
+        $this->setRoute('subscriptions/' . $subscriptionUuid . '/products/' . rawurlencode($externalId));
+
+        return $this->delete();
+    }
+
+    /**
+     * Valide le format d'un external_id de produit
+     *
+     * Format attendu : id_product:id_product_attribute (ex: 123:456)
+     * Avec optionnellement un suffixe de customisation _md5 (ex: 123:456_abc123def...)
+     *
+     * @param string $externalId L'identifiant à valider
+     *
+     * @return bool True si le format est valide
+     */
+    private function isValidExternalId(string $externalId): bool
+    {
+        return (bool) preg_match('/^[0-9]+:[0-9]+(_[0-9a-f]{32})?$/i', $externalId);
+    }
 }
