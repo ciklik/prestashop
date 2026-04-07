@@ -9,9 +9,11 @@
 use PrestaShop\Module\Ciklik\Api\Subscription;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
+use PrestaShop\Module\Ciklik\Helpers\SubscriptionHelper;
 use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
+use PrestaShop\Module\Ciklik\Managers\CiklikSubscribable;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -39,7 +41,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
     public function postProcess()
     {
         $action = Tools::getValue('action');
-        $isAjax = $action === 'addUpsell';
+        $isAjax = in_array($action, ['addUpsell', 'updateProductQuantity', 'removeProduct', 'addProduct']);
 
         // Vérification CSRF pour les requêtes POST (sauf AJAX qui gère différemment)
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isAjax && !$this->isTokenValid()) {
@@ -84,6 +86,15 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                 break;
             case 'addUpsell':
                 $this->addUpsell();
+                break;
+            case 'updateProductQuantity':
+                $this->updateProductQuantity();
+                break;
+            case 'removeProduct':
+                $this->removeProduct();
+                break;
+            case 'addProduct':
+                $this->addProduct();
                 break;
         }
     }
@@ -413,6 +424,228 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
     {
         $this->ajaxRender($value, $controller, $method);
         exit;
+    }
+
+    /**
+     * Met à jour la quantité d'un produit dans un abonnement
+     */
+    private function updateProductQuantity()
+    {
+        if (!$this->isTokenValid()) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('Invalid security token. Please try again.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        $uuid = UuidHelper::getFromRequest('uuid');
+        if (null === $uuid) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('Invalid subscription identifier.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        $externalId = Tools::getValue('external_id');
+        $quantity = (int) Tools::getValue('quantity');
+
+        if (empty($externalId) || !preg_match('/^[0-9]+:[0-9]+(_[0-9a-f]{32})?$/i', $externalId)) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('Invalid product.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        if ($quantity < 1 || $quantity > 9999) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('Quantity must be at least 1.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        $result = (new Subscription($this->context->link))->updateProductQuantity($uuid, $externalId, $quantity);
+
+        if (!isset($result['status']) || !$result['status']) {
+            $errorMessage = $this->module->l('Error while updating the product quantity.', 'subscription');
+            if (!empty($result['errors'])) {
+                $firstError = is_array($result['errors'][0]) ? $result['errors'][0][0] : $result['errors'][0];
+                $errorMessage = Tools::htmlentitiesUTF8($firstError);
+            }
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $errorMessage,
+            ]));
+
+            return;
+        }
+
+        $this->ajaxRenderAndExit(json_encode([
+            'success' => true,
+            'message' => $this->module->l('Product quantity updated.', 'subscription'),
+        ]));
+    }
+
+    /**
+     * Supprime un produit d'un abonnement
+     */
+    private function removeProduct()
+    {
+        if (!$this->isTokenValid()) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('Invalid security token. Please try again.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        $uuid = UuidHelper::getFromRequest('uuid');
+        if (null === $uuid) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('Invalid subscription identifier.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        $externalId = Tools::getValue('external_id');
+
+        if (empty($externalId) || !preg_match('/^[0-9]+:[0-9]+(_[0-9a-f]{32})?$/i', $externalId)) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('Invalid product.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        $result = (new Subscription($this->context->link))->removeProduct($uuid, $externalId);
+
+        if (!isset($result['status']) || !$result['status']) {
+            $errorMessage = $this->module->l('Error while removing the product from the subscription.', 'subscription');
+            if (!empty($result['errors'])) {
+                $firstError = is_array($result['errors'][0]) ? $result['errors'][0][0] : $result['errors'][0];
+                $errorMessage = Tools::htmlentitiesUTF8($firstError);
+            }
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $errorMessage,
+            ]));
+
+            return;
+        }
+
+        $this->ajaxRenderAndExit(json_encode([
+            'success' => true,
+            'message' => $this->module->l('The product has been removed from your subscription.', 'subscription'),
+        ]));
+    }
+
+    /**
+     * Ajoute un produit à un abonnement existant via l'API products
+     */
+    private function addProduct()
+    {
+        if (!$this->isTokenValid()) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('Invalid security token. Please try again.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        $uuid = UuidHelper::getFromRequest('uuid');
+        if (null === $uuid) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('Invalid subscription identifier.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        $productId = (int) Tools::getValue('id_product');
+        $productAttributeId = (int) Tools::getValue('id_product_attribute');
+        $quantity = max(1, (int) Tools::getValue('quantity'));
+
+        if ($productId <= 0) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('Invalid product.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        $product = new Product($productId, false, $this->context->language->id);
+        if (!Validate::isLoadedObject($product)) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('Product not found.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        // Vérification que le produit est configuré comme subscribable.
+        // L'API Ciklik ne fait PAS ce check (elle crée le produit automatiquement
+        // s'il n'existe pas), il doit donc être fait côté module dans les 2 modes.
+        $useFrequencyMode = (bool) Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE);
+        $isSubscribable = $useFrequencyMode
+            ? SubscriptionHelper::isSubscriptionEnabled($productId)
+            : CiklikSubscribable::isSubscribable($productId);
+
+        if (!$isSubscribable) {
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $this->module->l('This product is not available for subscription.', 'subscription'),
+            ]));
+
+            return;
+        }
+
+        $externalId = $productId . ':' . $productAttributeId;
+        $productName = $productAttributeId > 0
+            ? (Product::getProductName($productId, $productAttributeId) ?: $product->name)
+            : $product->name;
+
+        $data = [
+            'external_id' => $externalId,
+            'name' => $productName,
+            'quantity' => $quantity,
+            'tax' => (float) $product->getTaxesRate() / 100,
+        ];
+
+        $result = (new Subscription($this->context->link))->addProduct($uuid, $data);
+
+        if (!isset($result['status']) || !$result['status']) {
+            $errorMessage = $this->module->l('Error while adding the product to the subscription.', 'subscription');
+            if (!empty($result['errors'])) {
+                $firstError = is_array($result['errors'][0]) ? $result['errors'][0][0] : $result['errors'][0];
+                $errorMessage = Tools::htmlentitiesUTF8($firstError);
+            }
+            $this->ajaxRenderAndExit(json_encode([
+                'success' => false,
+                'message' => $errorMessage,
+            ]));
+
+            return;
+        }
+
+        $this->ajaxRenderAndExit(json_encode([
+            'success' => true,
+            'message' => $this->module->l('The product has been added to your subscription.', 'subscription'),
+        ]));
     }
 
     /**
