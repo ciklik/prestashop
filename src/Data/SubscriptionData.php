@@ -161,8 +161,12 @@ class SubscriptionData
                 $otherCombinations = CiklikCombination::getOtherCombinations((int) $item['external_id']);
             }
 
+            // Détecte les produits avec customisation (external_id contenant _md5hash)
+            $isCustomization = (bool) preg_match('/_[0-9a-f]{32}$/i', $item['external_id']);
+
             $processedContents[] = array_merge($item, [
                 'other_combinations' => $otherCombinations,
+                'is_customization' => $isCustomization,
             ]);
         }
 
