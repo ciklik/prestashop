@@ -44,6 +44,9 @@
                         {if $enable_change_interval === '1'}
                             {include file="module:ciklik/views/templates/front/actions/changeInterval.tpl" subscription=$subscription }
                         {/if}
+                        {if !empty($subscription->contents) && $subscription->active}
+                            {include file="module:ciklik/views/templates/front/actions/subscriptionProducts.tpl" subscription=$subscription}
+                        {/if}
                         {if !empty($subscription->upsells)}
                             {include file="module:ciklik/views/templates/front/actions/ListUpsellSubscriptionAndDelete.tpl" subscription=$subscription}
                         {/if}
