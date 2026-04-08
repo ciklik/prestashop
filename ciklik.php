@@ -759,10 +759,49 @@ class Ciklik extends PaymentModule
         $priceBase = Configuration::get(self::CONFIG_FREQUENCY_PRICE_BASE);
         if ($priceBase === 'gross') {
             // Mode gross : prix TTC sans réductions existantes
-            $productPrice = Product::getPriceStatic($idProduct, true, null, 6, null, false, false);
+            $productPrice = (float) Product::getPriceStatic($idProduct, true, null, 6, null, false, false);
         } else {
-            // Mode net : prix TTC après réductions existantes
-            $productPrice = isset($params['product']['price']) ? (float) $params['product']['price'] : 0;
+            // Mode net : prix TTC après réductions existantes.
+            // Attention : $params['product']['price'] est une string formatée en PS 1.7+
+            // (ex : "142,44 €"), donc on privilégie price_amount si disponible.
+            if (isset($params['product']['price_amount'])) {
+                $productPrice = (float) $params['product']['price_amount'];
+            } else {
+                $productPrice = (float) Product::getPriceStatic($idProduct, true, null, 6);
+            }
+        }
+
+        // Pré-calculer les prix bruts de toutes les combinaisons du produit.
+        // Utilisé côté JS lors du changement de déclinaison pour afficher le bon
+        // prix sans dépendre du prix principal du DOM (qui inclut toujours les
+        // règles de prix PrestaShop, ce qui casse le mode "gross").
+        $combinationPrices = [0 => $productPrice];
+        $combinationRows = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            'SELECT id_product_attribute FROM ' . _DB_PREFIX_ . 'product_attribute WHERE id_product = ' . (int) $idProduct
+        );
+        if (is_array($combinationRows)) {
+            foreach ($combinationRows as $row) {
+                $idPa = (int) $row['id_product_attribute'];
+                if ($priceBase === 'gross') {
+                    $combinationPrices[$idPa] = (float) Product::getPriceStatic(
+                        $idProduct,
+                        true,
+                        $idPa,
+                        6,
+                        null,
+                        false,
+                        false
+                    );
+                } else {
+                    // Mode net : on laisse PrestaShop appliquer les règles de prix
+                    $combinationPrices[$idPa] = (float) Product::getPriceStatic(
+                        $idProduct,
+                        true,
+                        $idPa,
+                        6
+                    );
+                }
+            }
         }
 
         // Préparer les variables pour le template
@@ -772,7 +811,13 @@ class Ciklik extends PaymentModule
             'has_subscription_mode' => $hasSubscriptionMode,
             'ciklik_subscription_enabled' => false,
             'ciklik_frequencies' => [],
+            'ciklik_product_price' => $productPrice,
             'ciklik_product_price_formatted' => PriceHelper::formatPrice($productPrice),
+            'ciklik_price_mode' => $priceBase === 'gross' ? 'gross' : 'net',
+            // JSON_FORCE_OBJECT garantit une map JS même si les IDs de
+            // combinaisons sont séquentiels (sinon json_encode produirait un
+            // array et prices[idPa] ne pourrait plus fonctionner côté JS).
+            'ciklik_combination_prices_json' => json_encode($combinationPrices, JSON_FORCE_OBJECT),
         ];
 
         // Si le mode fréquence est activé, récupérer les données d'abonnement

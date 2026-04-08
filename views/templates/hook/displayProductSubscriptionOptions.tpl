@@ -8,7 +8,16 @@
   <div class="ciklik-subscription-options"
        data-currency-code="{if isset($currency.iso_code)}{$currency.iso_code}{else}EUR{/if}"
        data-locale="{if isset($language.iso_code)}{$language.iso_code}{else}fr{/if}"
-       data-base-price="{if isset($product.price) && $product.price}{$product.price}{else}0{/if}">
+       data-base-price="{$ciklik_product_price|floatval}"
+       data-price-mode="{if isset($ciklik_price_mode)}{$ciklik_price_mode|escape:'html':'UTF-8'}{else}net{/if}"
+       data-product-id="{$product.id_product|intval}">
+    {* Map des prix bruts par id_product_attribute, utilisée par le JS lors du
+       changement de déclinaison pour ne jamais utiliser le prix du DOM principal
+       (qui inclut les règles de prix PS et casse le mode "gross").
+       Le JSON est sérialisé côté PHP avec JSON_FORCE_OBJECT pour garantir une
+       map JS (et non un array) même quand les IDs de combinaisons sont
+       séquentiels. *}
+    <script type="application/json" class="ciklik-combination-prices">{$ciklik_combination_prices_json nofilter}</script>
     <h3 class="subscription-title">{l s='Purchase type' mod='ciklik'}</h3>
 
     <div class="subscription-frequencies">

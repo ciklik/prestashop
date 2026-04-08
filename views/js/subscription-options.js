@@ -1,16 +1,29 @@
 /**
  * Gestion des options d'abonnement sur la page produit
+ *
+ * Respecte le mode de calcul configuré :
+ *  - "gross" : affiche le prix catalogue brut de chaque combinaison (non affecté
+ *    par les règles de prix PS). Les prix de toutes les combinaisons sont
+ *    pré-calculés côté serveur et sérialisés dans un script JSON adjacent au
+ *    conteneur. Le JS lit ensuite cette map au chargement et à chaque
+ *    changement de déclinaison, sans jamais consulter le prix principal du DOM
+ *    (qui lui contient toujours les règles de prix appliquées).
+ *  - "net"   : lit le prix depuis le DOM principal du produit (comportement
+ *    standard PrestaShop), ce qui reflète automatiquement les règles de prix.
+ *
  * @author Ciklik SAS
  */
 
 (function() {
   'use strict';
-  
-  // Configuration globale
-  let subscriptionOptions = {
+
+  var subscriptionOptions = {
     currencyCode: 'EUR',
     locale: 'fr',
     basePrice: 0,
+    priceMode: 'net',
+    productId: 0,
+    combinationPrices: {},
     initialized: false
   };
 
@@ -19,109 +32,123 @@
    */
   function initSubscriptionOptions(config) {
     subscriptionOptions = Object.assign(subscriptionOptions, config);
-    
+
     if (subscriptionOptions.initialized) {
       return;
     }
-    
     subscriptionOptions.initialized = true;
-    subscriptionOptions.basePrice = getCurrentPrice();
-    
-    // Écouter les changements de combinaison produit (PrestaShop 1.7+)
+
+    // En mode net, on lit le prix depuis le DOM au chargement pour être aligné
+    // avec le prix principal (qui inclut les règles de prix PS).
+    // En mode gross, on garde le data-base-price transmis par le serveur, qui
+    // est le prix brut correct.
+    if (subscriptionOptions.priceMode === 'net') {
+      var domPrice = readPrimaryPriceFromDom();
+      if (domPrice > 0) {
+        subscriptionOptions.basePrice = domPrice;
+      }
+    }
+
+    // Écouter les changements de combinaison produit (PS 1.7+)
     if (typeof window.prestashop !== 'undefined') {
       window.prestashop.on('updatedProduct', handlePrestaShopPriceUpdate);
     }
 
-    // Observer les changements dans le DOM pour les prix
-    setupPriceObserver();
-
-    // Fallback pour les changements d'attributs (anciennes versions)
+    // Fallback pour les changements d'attributs (anciens thèmes)
     setupAttributeListeners();
 
-    // Initialisation après un court délai pour s'assurer que le DOM est prêt
-    setTimeout(function() {
-      updateAllPrices(subscriptionOptions.basePrice);
-    }, 100);
-    
-    console.log('Subscription options initialized with base price:', subscriptionOptions.basePrice);
+    // Premier rendu des prix des options d'abonnement
+    updateAllPrices(subscriptionOptions.basePrice);
   }
 
   /**
-   * Fonction pour obtenir le prix actuel du produit
+   * Lit le prix principal du produit depuis le DOM.
+   * À n'utiliser QU'en mode net (en mode gross ce prix inclut les règles de
+   * prix PS, ce qui donne une valeur incorrecte pour le calcul d'abonnement).
    */
-  function getCurrentPrice() {
-    // Essayer d'abord avec les éléments de prix PrestaShop
-    const priceElements = [
-      '.current-price:not(.frequency-option .current-price)', // Prix principal du produit
+  function readPrimaryPriceFromDom() {
+    var priceElements = [
+      '.current-price:not(.frequency-option .current-price)',
       '.product-price',
       '.price',
       '[data-field="price"]',
       '.product-price-and-shipping .price',
       '#our_price_display'
     ];
-    
-    for (let selector of priceElements) {
-      const element = document.querySelector(selector);
-      if (element) {
-        const priceText = element.textContent || element.innerText || element.getAttribute('content');
-        if (priceText) {
-          // Extraction du prix numérique du texte
-          const priceMatch = priceText.replace(/[^\d,.-]/g, '').replace(',', '.');
-          const price = parseFloat(priceMatch);
-          if (!isNaN(price) && price > 0) {
-            return price;
-          }
-        }
+
+    for (var i = 0; i < priceElements.length; i++) {
+      var element = document.querySelector(priceElements[i]);
+      if (!element) continue;
+
+      var priceText = element.textContent || element.innerText || element.getAttribute('content');
+      if (!priceText) continue;
+
+      // Extraction du prix numérique du texte (gère les virgules FR et points US)
+      var priceMatch = priceText.replace(/[^\d,.-]/g, '').replace(',', '.');
+      var price = parseFloat(priceMatch);
+      if (!isNaN(price) && price > 0) {
+        return price;
       }
     }
-    
-    // Fallback avec le prix par défaut
-    return subscriptionOptions.basePrice || 0;
+
+    return 0;
   }
 
   /**
-   * Met à jour tous les prix des options d'abonnement
+   * Récupère le prix brut d'une combinaison depuis la map pré-calculée serveur.
+   * @param {number} idProductAttribute
+   * @returns {number|null} Le prix ou null si non trouvé
+   */
+  function getCombinationPrice(idProductAttribute) {
+    var id = parseInt(idProductAttribute, 10) || 0;
+    if (subscriptionOptions.combinationPrices.hasOwnProperty(id)) {
+      return parseFloat(subscriptionOptions.combinationPrices[id]);
+    }
+    // Fallback sur le prix sans combinaison
+    if (subscriptionOptions.combinationPrices.hasOwnProperty(0)) {
+      return parseFloat(subscriptionOptions.combinationPrices[0]);
+    }
+    return null;
+  }
+
+  /**
+   * Met à jour tous les prix affichés dans les cartes d'options d'abonnement
    */
   function updateAllPrices(newBasePrice) {
-    if (!newBasePrice || isNaN(newBasePrice)) {
-      newBasePrice = getCurrentPrice();
+    if (!newBasePrice || isNaN(newBasePrice) || newBasePrice <= 0) {
+      return;
     }
-    
+
     subscriptionOptions.basePrice = newBasePrice;
-    console.log('Updating prices with base price:', subscriptionOptions.basePrice);
-    
-    // Mise à jour des prix d'achat unique
-    const singlePurchaseElements = document.querySelectorAll('.frequency-option .current-price');
+
+    // Prix d'achat unique
+    var singlePurchaseElements = document.querySelectorAll('.frequency-option .current-price');
     singlePurchaseElements.forEach(function(element) {
       element.textContent = formatPrice(subscriptionOptions.basePrice);
       element.setAttribute('data-base-price', subscriptionOptions.basePrice);
     });
 
-    // Mise à jour des prix avec réduction
-    const discountCards = document.querySelectorAll('.frequency-option .discount-card');
+    // Prix avec réduction (fréquences)
+    var discountCards = document.querySelectorAll('.frequency-option .discount-card');
     discountCards.forEach(function(card) {
-      const originalPriceElement = card.querySelector('.original-price');
-      const discountedPriceElement = card.querySelector('.discounted-price');
-      
+      var originalPriceElement = card.querySelector('.original-price');
+      var discountedPriceElement = card.querySelector('.discounted-price');
+
       if (originalPriceElement && discountedPriceElement) {
-        // Mise à jour du prix original (barré)
         originalPriceElement.textContent = formatPrice(subscriptionOptions.basePrice);
         originalPriceElement.setAttribute('data-base-price', subscriptionOptions.basePrice);
-        
-        // Calcul et mise à jour du prix avec réduction
-        const discountPercent = parseFloat(discountedPriceElement.getAttribute('data-discount-percent')) || 0;
-        const discountPrice = parseFloat(discountedPriceElement.getAttribute('data-discount-price')) || 0;
-        
-        let discountedPrice;
+
+        var discountPercent = parseFloat(discountedPriceElement.getAttribute('data-discount-percent')) || 0;
+        var discountPrice = parseFloat(discountedPriceElement.getAttribute('data-discount-price')) || 0;
+
+        var discountedPrice;
         if (discountPercent > 0) {
           discountedPrice = subscriptionOptions.basePrice * (1 - discountPercent / 100);
         } else {
           discountedPrice = subscriptionOptions.basePrice - discountPrice;
         }
-        
-        // S'assurer que le prix ne soit pas négatif
         discountedPrice = Math.max(0, discountedPrice);
-        
+
         discountedPriceElement.textContent = formatPrice(discountedPrice);
         discountedPriceElement.setAttribute('data-base-price', subscriptionOptions.basePrice);
       }
@@ -129,7 +156,7 @@
   }
 
   /**
-   * Formate le prix selon les paramètres de localisation
+   * Formate le prix selon la devise et la locale de la boutique
    */
   function formatPrice(price) {
     try {
@@ -145,14 +172,26 @@
   }
 
   /**
-   * Gère les événements de mise à jour des prix PrestaShop
+   * Gère l'événement "updatedProduct" émis par PrestaShop lors d'un changement
+   * de combinaison (sélection d'une déclinaison).
+   *
+   * - Mode gross : lit le prix brut de la nouvelle combinaison depuis la map
+   *   pré-calculée serveur.
+   * - Mode net   : utilise product_prices.price_amount fourni par PS (qui
+   *   reflète les règles de prix en mode net).
    */
   function handlePrestaShopPriceUpdate(event) {
-    console.log('PrestaShop updatedProduct event:', event);
-    if (event && event.product_prices) {
-      let newPrice = 0;
-      
-      // Essayer différentes propriétés de prix
+    if (!event) return;
+
+    var newPrice = 0;
+
+    if (subscriptionOptions.priceMode === 'gross') {
+      var idPa = event.id_product_attribute || (event.product && event.product.id_product_attribute) || 0;
+      var grossPrice = getCombinationPrice(idPa);
+      if (grossPrice !== null && grossPrice > 0) {
+        newPrice = grossPrice;
+      }
+    } else if (event.product_prices) {
       if (event.product_prices.price_amount) {
         newPrice = parseFloat(event.product_prices.price_amount);
       } else if (event.product_prices.price) {
@@ -160,101 +199,83 @@
       } else if (event.product_prices.regular_price) {
         newPrice = parseFloat(event.product_prices.regular_price);
       }
-      
-      if (!isNaN(newPrice) && newPrice > 0) {
-        updateAllPrices(newPrice);
-      } else {
-        // Récupérer le prix depuis le DOM après mise à jour
-        setTimeout(function() {
-          updateAllPrices(getCurrentPrice());
-        }, 100);
-      }
+    }
+
+    if (!isNaN(newPrice) && newPrice > 0) {
+      updateAllPrices(newPrice);
     }
   }
 
   /**
-   * Configure l'observateur de changements de prix dans le DOM
-   */
-  function setupPriceObserver() {
-    const priceObserver = new MutationObserver(function(mutations) {
-      let priceChanged = false;
-      mutations.forEach(function(mutation) {
-        if (mutation.type === 'childList' || mutation.type === 'characterData') {
-          const target = mutation.target;
-          if (target.classList && (
-            target.classList.contains('price') || 
-            target.classList.contains('product-price') ||
-            target.closest('.product-price')
-          )) {
-            priceChanged = true;
-          }
-        }
-      });
-      
-      if (priceChanged) {
-        setTimeout(function() {
-          const newPrice = getCurrentPrice();
-          if (newPrice !== subscriptionOptions.basePrice && newPrice > 0) {
-            updateAllPrices(newPrice);
-          }
-        }, 200);
-      }
-    });
-
-    // Observer les éléments de prix
-    const priceContainer = document.querySelector('.product-prices, .product-price, .price-container, #product-price, .product-detail') || document.body;
-    priceObserver.observe(priceContainer, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-  }
-
-  /**
-   * Configure les écouteurs d'événements pour les attributs produit
+   * Fallback pour les thèmes qui n'émettent pas l'événement updatedProduct :
+   * écoute directement les changements sur les inputs d'attributs.
    */
   function setupAttributeListeners() {
-    const productAttributeSelects = document.querySelectorAll('select[name*="group"], input[name*="group"], input[type="radio"][name*="group"]');
+    var productAttributeSelects = document.querySelectorAll(
+      'select[name*="group"], input[name*="group"], input[type="radio"][name*="group"]'
+    );
     productAttributeSelects.forEach(function(element) {
       element.addEventListener('change', function() {
         setTimeout(function() {
-          const newPrice = getCurrentPrice();
-          if (newPrice > 0) {
-            updateAllPrices(newPrice);
+          if (subscriptionOptions.priceMode === 'net') {
+            var domPrice = readPrimaryPriceFromDom();
+            if (domPrice > 0) {
+              updateAllPrices(domPrice);
+            }
           }
+          // En mode gross, on se repose exclusivement sur l'événement
+          // updatedProduct de PS qui nous donne id_product_attribute.
+          // Si le thème ne l'émet pas, la map combinationPrices ne sera pas
+          // utilisée et le prix restera sur la valeur initiale — mieux que
+          // d'afficher un prix faux.
         }, 500);
       });
     });
   }
 
   /**
-   * Auto-initialisation des options d'abonnement
+   * Parse le JSON des prix par combinaison depuis le <script> adjacent au
+   * conteneur .ciklik-subscription-options
    */
-  function autoInit() {
-    const container = document.querySelector('.ciklik-subscription-options');
-    if (container) {
-      const config = {
-        currencyCode: container.getAttribute('data-currency-code') || 'EUR',
-        locale: container.getAttribute('data-locale') || 'fr',
-        basePrice: parseFloat(container.getAttribute('data-base-price')) || 0
-      };
-      
-      initSubscriptionOptions(config);
+  function parseCombinationPrices(container) {
+    var script = container.querySelector('script.ciklik-combination-prices');
+    if (!script) return {};
+    try {
+      return JSON.parse(script.textContent || script.innerText || '{}') || {};
+    } catch (e) {
+      return {};
     }
   }
 
-  // Auto-initialisation au chargement du DOM
+  /**
+   * Auto-initialisation
+   */
+  function autoInit() {
+    var container = document.querySelector('.ciklik-subscription-options');
+    if (!container) return;
+
+    var config = {
+      currencyCode: container.getAttribute('data-currency-code') || 'EUR',
+      locale: container.getAttribute('data-locale') || 'fr',
+      basePrice: parseFloat(container.getAttribute('data-base-price')) || 0,
+      priceMode: container.getAttribute('data-price-mode') || 'net',
+      productId: parseInt(container.getAttribute('data-product-id'), 10) || 0,
+      combinationPrices: parseCombinationPrices(container)
+    };
+
+    initSubscriptionOptions(config);
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', autoInit);
   } else {
     autoInit();
   }
 
-  // Expose les fonctions publiques
+  // API publique
   window.CiklikSubscriptionOptions = {
     init: initSubscriptionOptions,
     updatePrices: updateAllPrices,
-    getCurrentPrice: getCurrentPrice
+    getBasePrice: function() { return subscriptionOptions.basePrice; }
   };
-
-})(); 
+})();
