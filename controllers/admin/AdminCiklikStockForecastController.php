@@ -49,7 +49,9 @@ class AdminCiklikStockForecastController extends ModuleAdminController
                 return $string;
             }
 
-            return $this->module->l($string, 'AdminCiklikStockForecastController', $addslashes, $htmlentities);
+            // Attention : Module::l() a pour signature l($string, $specific, $locale).
+            // Passer $addslashes/$htmlentities ici provoque "The locale is invalid" en PS 8+.
+            return $this->module->l($string, 'AdminCiklikStockForecastController');
         } catch (Exception $e) {
             return $string;
         }

@@ -35,7 +35,9 @@ class AdminCiklikSubscriptionsOrdersController extends ModuleAdminController
                 return $string;
             }
 
-            return $this->module->l($string, 'AdminCiklikSubscriptionsOrdersController', $addslashes, $htmlentities);
+            // Attention : Module::l() a pour signature l($string, $specific, $locale).
+            // Passer $addslashes/$htmlentities ici provoque "The locale is invalid" en PS 8+.
+            return $this->module->l($string, 'AdminCiklikSubscriptionsOrdersController');
         } catch (Exception $e) {
             return $string;
         }
