@@ -165,7 +165,6 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_23429abf2e53f20c485
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_57297718fdb439175177cf6b196172d1'] = 'Status zamówienia';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ff9f3aa1cfa53dfcb72d2cf91c5ab2e1'] = 'Status zamówień zaakceptowanych przez Ciklik';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_47cf6a93bcb7265e256072590bc468b5'] = 'Deleguj wyświetlanie opcji';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_022bdd39bf561be0dc30ed1219df839c'] = 'Opcje subskrypcji są wyświetlane za pomocą pola wyboru';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_cdb8080fd4d9a522f1bd058913033ca4'] = 'Włącz zobowiązanie';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_80500cfe0ac86ee3e47684456f5b8b40'] = 'Ta opcja wyłącza możliwość rezygnacji z subskrypcji podczas okresu zobowiązania';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_2f5d9ecee2686f0c3d3795bd4c297086'] = 'Cykl zobowiązania';
@@ -190,7 +189,6 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_f95f7c91225a00ada1c
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef39a6612ef9f6df04ae7c3ef7de991e'] = 'Domyślny status wątków wiadomości klienta tworzonych dla zamówień Ciklik';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4946d28ddbcea32b55b0b75182f0e055'] = 'Użyj trybu częstotliwości';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a88ed40ae0590ad78c3ac3c7587c9062'] = 'Oferuj subskrypcje bez używania kombinacji produktów';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_b17e723da6db93b6384bef7851e79303'] = 'Użyj personalizacji subskrypcji';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9b91e16a322557991689aae4206a1669'] = 'Sufiks nazwy produktu';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c5cafc973a510a661a19cb6100458eb5'] = 'Wartości kombinacji dodawane do nazwy wysyłanej do Ciklik';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9030e39f00132d583da4122532e509e9'] = 'Monthly';

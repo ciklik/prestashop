@@ -165,7 +165,6 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_23429abf2e53f20c485
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_57297718fdb439175177cf6b196172d1'] = 'Estado del pedido';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ff9f3aa1cfa53dfcb72d2cf91c5ab2e1'] = 'Estado de los pedidos aceptados a través de Ciklik';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_47cf6a93bcb7265e256072590bc468b5'] = 'Delegar la visualización de opciones';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_022bdd39bf561be0dc30ed1219df839c'] = 'Las opciones de suscripción se muestran mediante una casilla de verificación';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_cdb8080fd4d9a522f1bd058913033ca4'] = 'Activar compromiso';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_80500cfe0ac86ee3e47684456f5b8b40'] = 'Esta opción desactiva la cancelación de suscripción durante el período de compromiso';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_2f5d9ecee2686f0c3d3795bd4c297086'] = 'Ciclo de compromiso';
@@ -190,7 +189,6 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_f95f7c91225a00ada1c
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef39a6612ef9f6df04ae7c3ef7de991e'] = 'Estado predeterminado de los hilos de mensaje de cliente creados para los pedidos de Ciklik';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4946d28ddbcea32b55b0b75182f0e055'] = 'Usar modo de frecuencias';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a88ed40ae0590ad78c3ac3c7587c9062'] = 'Ofrecer suscripciones sin utilizar combinaciones de productos';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_b17e723da6db93b6384bef7851e79303'] = 'Usar personalización de suscripciones';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9b91e16a322557991689aae4206a1669'] = 'Sufijo del nombre del producto';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c5cafc973a510a661a19cb6100458eb5'] = 'Valores de combinaciones añadidos al nombre enviado a Ciklik';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9030e39f00132d583da4122532e509e9'] = 'Monthly';

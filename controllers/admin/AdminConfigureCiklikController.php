@@ -508,8 +508,8 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     ],
                     Ciklik::CONFIG_USE_FREQUENCY_MODE => [
                         'type' => 'bool',
-                        'title' => $this->l('Use subscription customization'),
-                        'desc' => $this->l('Subscription options are displayed via a checkbox'),
+                        'title' => $this->l('Use frequency mode'),
+                        'desc' => $this->l('Offer subscriptions without using product combinations'),
                         'validation' => 'isBool',
                         'cast' => 'intval',
                         'required' => false,

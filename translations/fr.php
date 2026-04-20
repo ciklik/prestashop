@@ -165,7 +165,6 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_23429abf2e53f20c485
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_57297718fdb439175177cf6b196172d1'] = 'Statut des commandes';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ff9f3aa1cfa53dfcb72d2cf91c5ab2e1'] = 'Statut des commandes acceptées via Ciklik';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_47cf6a93bcb7265e256072590bc468b5'] = 'Déléguer l\'affichage des options';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_022bdd39bf561be0dc30ed1219df839c'] = 'Les options d\'abonnement sont affichées via une case à cocher';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_cdb8080fd4d9a522f1bd058913033ca4'] = 'Activer l\'engagement';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_80500cfe0ac86ee3e47684456f5b8b40'] = 'Cette option permet de désactiver le désabonnement pendant le cycle d\'engagement';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_2f5d9ecee2686f0c3d3795bd4c297086'] = 'Cycle d\'engagement';
@@ -190,7 +189,6 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_f95f7c91225a00ada1c
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef39a6612ef9f6df04ae7c3ef7de991e'] = 'Statut par défaut des threads de message client créés pour les commandes Ciklik';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4946d28ddbcea32b55b0b75182f0e055'] = 'Utiliser le mode fréquences';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a88ed40ae0590ad78c3ac3c7587c9062'] = 'Permet de proposer les abonnements sans utiliser les déclinaisons de produits';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_b17e723da6db93b6384bef7851e79303'] = 'Utiliser la personnalisation des abonnements';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9b91e16a322557991689aae4206a1669'] = 'Suffixe de nom de produit';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c5cafc973a510a661a19cb6100458eb5'] = 'Valeurs de déclinaisons ajoutées au nom transmis à Ciklik';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9030e39f00132d583da4122532e509e9'] = 'Mensuel';

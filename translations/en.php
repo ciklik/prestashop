@@ -165,7 +165,6 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_23429abf2e53f20c485
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_57297718fdb439175177cf6b196172d1'] = 'Order status';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ff9f3aa1cfa53dfcb72d2cf91c5ab2e1'] = 'Status for orders accepted through Ciklik';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_47cf6a93bcb7265e256072590bc468b5'] = 'Delegate options display';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_022bdd39bf561be0dc30ed1219df839c'] = 'Subscription options are displayed via a checkbox';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_cdb8080fd4d9a522f1bd058913033ca4'] = 'Enable commitment';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_80500cfe0ac86ee3e47684456f5b8b40'] = 'This option disables unsubscription during the commitment period';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_2f5d9ecee2686f0c3d3795bd4c297086'] = 'Commitment cycle';
@@ -190,7 +189,6 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_f95f7c91225a00ada1c
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef39a6612ef9f6df04ae7c3ef7de991e'] = 'Default status for customer message threads created for Ciklik orders';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4946d28ddbcea32b55b0b75182f0e055'] = 'Use frequency mode';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a88ed40ae0590ad78c3ac3c7587c9062'] = 'Offer subscriptions without using product combinations';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_b17e723da6db93b6384bef7851e79303'] = 'Use subscription customization';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9b91e16a322557991689aae4206a1669'] = 'Product name suffix';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_c5cafc973a510a661a19cb6100458eb5'] = 'Combination values added to the name sent to Ciklik';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9030e39f00132d583da4122532e509e9'] = 'Monthly';
