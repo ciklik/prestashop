@@ -602,6 +602,22 @@ class AdminConfigureCiklikController extends ModuleAdminController
         if (method_exists('Tab', 'resetStaticCache')) {
             Tab::resetStaticCache();
         }
+
+        // Signaler à la plateforme Ciklik que le module supporte le fingerprint JSON
+        // Uniquement lors de la soumission du formulaire (pas au chargement de la page)
+        if (Tools::isSubmit('submitOptionsconfiguration')) {
+            $token = Configuration::get(Ciklik::CONFIG_API_TOKEN);
+            if (!empty($token)) {
+                try {
+                    (new Shop($this->context->link))->metadata([
+                        'supports_json_fingerprint' => '1',
+                        'module_version' => Ciklik::VERSION,
+                    ]);
+                } catch (Exception $e) {
+                    // Ne pas bloquer la sauvegarde si l'appel échoue
+                }
+            }
+        }
     }
 
     public static function getCiklikPaidOrderStates($id_lang)
@@ -650,6 +666,8 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         [
                             'prestashop_endpoint' => Tools::getShopDomainSsl(true),
                             'ciklik_encrypted_prestashop_token' => $webservice->key,
+                            'supports_json_fingerprint' => '1',
+                            'module_version' => Ciklik::VERSION,
                         ],
                         [
                             'headers' => [

@@ -121,22 +121,20 @@ class CartFingerprintData
     }
 
     /**
-     * Extrait les données du fingerprint sérialisé
-     * Utilise allowed_classes => false pour empêcher l'instanciation d'objets (sécurité)
+     * Extrait les données du fingerprint JSON
      *
-     * @param string $fingerprint Données sérialisées
+     * @param string $fingerprint Données encodées en JSON
      *
      * @return CartFingerprintData
      *
-     * @throws \InvalidArgumentException Si le fingerprint est invalide
+     * @throws \InvalidArgumentException Si le fingerprint est invalide ou corrompu
      */
     public static function extractDatas(string $fingerprint): CartFingerprintData
     {
-        // Désérialisation sécurisée : interdire l'instanciation d'objets
-        $data = \Tools::unSerialize($fingerprint);
+        $data = json_decode($fingerprint, true);
 
         if (!is_array($data)) {
-            throw new \InvalidArgumentException('Invalid fingerprint format');
+            throw new \InvalidArgumentException('Invalid fingerprint format: JSON expected');
         }
 
         // Validation des clés requises
@@ -160,10 +158,21 @@ class CartFingerprintData
         );
     }
 
+    /**
+     * Encode les données du fingerprint en JSON
+     *
+     * @return string Données encodées en JSON
+     *
+     * @throws \RuntimeException Si l'encodage JSON échoue
+     */
     public function encodeDatas(): string
     {
-        $method = 'serialize';
+        $encoded = json_encode(get_object_vars($this));
 
-        return $method(get_object_vars($this));
+        if ($encoded === false) {
+            throw new \RuntimeException('Échec de l\'encodage JSON du fingerprint : ' . json_last_error_msg());
+        }
+
+        return $encoded;
     }
 }

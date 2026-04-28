@@ -51,7 +51,12 @@ class DisplayOrderSubscriptionInfoHookController
             && ($ciklikSubscriptionData = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne($orderData->subscription_uuid))
             && isset($ciklikSubscriptionData['body']['external_fingerprint'])
         ) {
-            $subscription = SubscriptionData::create($ciklikSubscriptionData['body']);
+            try {
+                $subscription = SubscriptionData::create($ciklikSubscriptionData['body']);
+            } catch (\InvalidArgumentException $e) {
+                // Fingerprint dans un ancien format (serialize) non encore migré côté app
+                $subscription = null;
+            }
         }
 
         // Récupérer les informations d'abonnement de la commande

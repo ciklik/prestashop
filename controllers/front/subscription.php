@@ -207,7 +207,15 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         $sub = (new Subscription($this->context->link))->getOne($uuid);
 
-        $sub = SubscriptionData::create($sub['body']);
+        try {
+            $sub = SubscriptionData::create($sub['body']);
+        } catch (\InvalidArgumentException $e) {
+            $this->errors[] = $this->module->l('Unable to read subscription data. Please try again later.', 'subscription');
+            $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
+            return;
+        }
+
         $sub->external_fingerprint->id_address_delivery = (int) Tools::getValue('changeAddressForm');
 
         $result = (new Subscription($this->context->link))->update(
@@ -258,7 +266,15 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         // Récupérer l'abonnement actuel
         $subscriptionApi = new Subscription($this->context->link);
         $currentSubscription = $subscriptionApi->getOne($subscriptionUuid);
-        $subscriptionData = SubscriptionData::create($currentSubscription['body']);
+
+        try {
+            $subscriptionData = SubscriptionData::create($currentSubscription['body']);
+        } catch (\InvalidArgumentException $e) {
+            $this->errors[] = $this->module->l('Unable to read subscription data. Please try again later.', 'subscription');
+            $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+
+            return;
+        }
 
         if ($useFrequencyMode === '1') {
             $frequencyId = (int) Tools::getValue('product_combination');

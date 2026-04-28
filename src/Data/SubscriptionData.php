@@ -230,7 +230,12 @@ class SubscriptionData
 
         foreach ($data as $item) {
             if ($item['external_fingerprint']) {
-                $collection[] = self::create($item);
+                try {
+                    $collection[] = self::create($item);
+                } catch (\InvalidArgumentException $e) {
+                    // Fingerprint dans un ancien format (serialize), ignorer cet abonnement
+                    continue;
+                }
             }
         }
 

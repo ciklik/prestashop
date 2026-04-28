@@ -57,7 +57,11 @@ class CartGateway extends AbstractGateway implements EntityGateway
             (new Response())->setBody(['error' => 'Missing parameter : fingerprint'])->sendBadRequest();
         }
 
-        $cartFingerprintData = CartFingerprintData::extractDatas($cartFingerprint);
+        try {
+            $cartFingerprintData = CartFingerprintData::extractDatas($cartFingerprint);
+        } catch (\InvalidArgumentException $e) {
+            (new Response())->setBody(['error' => 'Invalid fingerprint: ' . $e->getMessage()])->sendBadRequest();
+        }
 
         $customer = new \Customer($cartFingerprintData->id_customer);
 
