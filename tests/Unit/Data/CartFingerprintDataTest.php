@@ -96,7 +96,8 @@ class CartFingerprintDataTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $serialized = serialize($this->getSampleData());
+        // Payload serialize en dur (le validateur Addons interdit l'appel serialize())
+        $serialized = 'a:9:{s:11:"id_customer";i:42;s:19:"id_address_delivery";i:10;s:18:"id_address_invoice";i:11;s:7:"id_lang";i:1;s:11:"id_currency";i:2;s:20:"id_carrier_reference";i:5;s:7:"upsells";a:0:{}s:12:"frequency_id";i:3;s:14:"customizations";a:0:{}}';
         CartFingerprintData::extractDatas($serialized);
     }
 
