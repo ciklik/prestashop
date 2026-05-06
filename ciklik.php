@@ -39,7 +39,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    public const VERSION = '1.19.1';
+    public const VERSION = '1.19.2';
     public const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     public const CONFIG_MODE = 'CIKLIK_MODE';
     public const CONFIG_HOST = 'CIKLIK_HOST';
@@ -80,13 +80,13 @@ class Ciklik extends PaymentModule
     {
         $this->name = 'ciklik';
         $this->tab = 'payments_gateways';
-        $this->version = '1.19.1';
+        $this->version = '1.19.2';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
         $this->ps_versions_compliancy = [
             'min' => '1.7.7',
-            'max' => '9.0.2',
+            'max' => '9.1.1',
         ];
         $this->controllers = [
             'account',
