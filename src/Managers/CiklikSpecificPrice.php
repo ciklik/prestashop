@@ -20,8 +20,6 @@ class CiklikSpecificPrice
      * @param int $idProductAttribute ID de l'attribut produit
      * @param \Cart $cart Panier
      * @param array $frequency Données de la fréquence avec discount_percent et discount_price
-     * @param int|null $idCustomer ID du client (null pour les invités)
-     * @param int|null $idGuest ID de l'invité (null pour les clients connectés)
      *
      * @return bool True si le prix spécifique a été créé avec succès
      */
@@ -293,7 +291,6 @@ class CiklikSpecificPrice
      *
      * @param int $idCart ID du panier
      * @param int $idCustomer ID du nouveau client
-     * @param int $idGuest ID de l'ancien invité
      *
      * @return bool True si le transfert a été effectué avec succès
      */

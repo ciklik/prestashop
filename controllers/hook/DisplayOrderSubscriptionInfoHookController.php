@@ -59,6 +59,7 @@ class DisplayOrderSubscriptionInfoHookController
         }
 
         // Récupérer les informations d'abonnement de la commande
+        $subscriptionInfos = [];
         $subscriptionData = CartSubscriptionData::fromOrder($order);
 
         // Si on est sur le mode declinason, cette option n'est pas disponible

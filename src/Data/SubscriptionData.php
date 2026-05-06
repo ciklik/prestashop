@@ -51,7 +51,7 @@ class SubscriptionData
     public $end_date;
 
     /**
-     * @var string
+     * @var CartFingerprintData
      */
     public $external_fingerprint;
 

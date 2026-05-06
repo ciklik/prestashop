@@ -102,7 +102,7 @@ class CiklikFrequency
      *
      * @return int|bool ID de la fréquence créée ou false en cas d'erreur
      *
-     * @throws InvalidArgumentException Si les données sont invalides
+     * @throws \InvalidArgumentException Si les données sont invalides
      */
     public static function saveFrequency(array $frequency)
     {

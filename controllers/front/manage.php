@@ -59,6 +59,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
     private function handleDeactivate()
     {
         $uuid = $this->getValidatedUuid();
+        $response = null;
 
         try {
             $response = (new Subscription($this->context->link))->update($uuid, [
@@ -91,6 +92,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
     private function handleActivate()
     {
         $uuid = $this->getValidatedUuid();
+        $response = null;
 
         try {
             $response = (new Subscription($this->context->link))->update($uuid, [
@@ -123,6 +125,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
     private function handleChangeNextBilling()
     {
         $uuid = $this->getValidatedUuid();
+        $response = null;
         $nextBilling = Tools::getValue('next_billing');
 
         // Validation du format YYYY-MM-DD

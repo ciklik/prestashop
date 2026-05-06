@@ -52,6 +52,11 @@ class CiklikApiClient
 
     protected $throwGuzzleExceptions = true;
 
+    /**
+     * @var bool
+     */
+    protected $catchExceptions = false;
+
     public function __construct(\Link $link, ?Client $client = null)
     {
         $this->setLink($link);

@@ -95,6 +95,7 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
     private function getTransactionData(Order $order): TransactionData
     {
         $transaction_id = $this->retrieveTransactionId($order);
+        $transactionData = null;
 
         try {
             $transactionData = (new Transaction($this->context->link))->getOne($transaction_id);
@@ -137,6 +138,8 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
 
     private function doRefund(TransactionData $transactionData, $amount): TransactionData
     {
+        $refundResult = null;
+
         try {
             $refundResult = (new Transaction($this->context->link))->refund($transactionData->transaction_id, $amount);
         } catch (Exception $e) {

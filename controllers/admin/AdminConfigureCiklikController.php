@@ -659,7 +659,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
                 if ($shopData instanceof ShopData) {
                     Configuration::updateGlobalValue(Ciklik::CONFIG_HOST, $shopData->host);
 
-                    $webservice = new WebserviceKey(Configuration::get(Ciklik::CONFIG_WEBSERVICE_ID));
+                    $webservice = new WebserviceKey((int) Configuration::get(Ciklik::CONFIG_WEBSERVICE_ID));
 
                     $ciklikShopApi->metadata(
                         [

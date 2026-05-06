@@ -207,7 +207,7 @@ class Installer
      */
     private function uninstallWebservice(): bool
     {
-        $webservice = new \WebserviceKey(\Configuration::get(\Ciklik::CONFIG_WEBSERVICE_ID));
+        $webservice = new \WebserviceKey((int) \Configuration::get(\Ciklik::CONFIG_WEBSERVICE_ID));
 
         return (bool) $webservice->delete()
             && (bool) \Configuration::updateValue(\Ciklik::CONFIG_WEBSERVICE_ID, '0');

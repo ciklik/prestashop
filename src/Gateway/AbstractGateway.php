@@ -22,7 +22,7 @@ abstract class AbstractGateway implements EntityGateway
 
     public function __construct(\Ciklik $module)
     {
-        $webservice = new \WebserviceKey(\Configuration::get(\Ciklik::CONFIG_WEBSERVICE_ID));
+        $webservice = new \WebserviceKey((int) \Configuration::get(\Ciklik::CONFIG_WEBSERVICE_ID));
 
         $expectedAuth = 'Basic ' . base64_encode($webservice->key . ':');
         $providedAuth = array_key_exists('HTTP_AUTHORIZATION', $_SERVER) ? $_SERVER['HTTP_AUTHORIZATION'] : '';

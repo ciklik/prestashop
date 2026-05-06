@@ -181,6 +181,9 @@ class CartGateway extends AbstractGateway implements EntityGateway
 
         foreach ($variants as $variant) {
             $parts = explode(':', $variant);
+            $id_product = null;
+            $id_variant = null;
+            $quantity = null;
 
             // Format: id_product_attribute:quantity
             if (count($parts) === 2) {

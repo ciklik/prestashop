@@ -93,7 +93,7 @@ class Response
     {
         header($this->status);
 
-        if (!is_null($this->body)) {
+        if ($this->body !== null) {
             echo $this->body;
         }
 

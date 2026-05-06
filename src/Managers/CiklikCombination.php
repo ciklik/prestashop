@@ -124,7 +124,7 @@ class CiklikCombination
      * Récupère les combinaisons correspondantes pour une nouvelle fréquence
      *
      * @param array $new_combination Détails de la nouvelle combinaison avec la fréquence souhaitée
-     * @param array $current_external_ids Tableau des IDs de combinaisons actuelles à faire correspondre
+     * @param int $current_external_id ID de la combinaison actuelle
      *
      * @return array|null Tableau des IDs de combinaisons correspondantes ou null si aucune correspondance trouvée
      */
