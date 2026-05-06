@@ -1,8 +1,8 @@
 <?php
-
 /**
- * Manager pour gérer les actions spécifiques des modules de livraison lors de l'ajout au panier (rebill).
- * Compatible PrestaShop 1.7.7 à 8.2
+ * @author    Metrogeek SAS <support@ciklik.co>
+ * @copyright Since 2017 Metrogeek SAS
+ * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
 
 namespace PrestaShop\Module\Ciklik\Managers;
