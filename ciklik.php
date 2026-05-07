@@ -156,12 +156,12 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * Module configuration page
+     * Page de configuration du module
      */
     public function getContent()
     {
         if (self::isCiklikAddonsBuild()) {
-            // Load dependencies manager
+            // Chargement du gestionnaire de dépendances
             $mboInstaller = new Prestashop\ModuleLibMboInstaller\DependencyBuilder($this);
 
             if (!$mboInstaller->areDependenciesMet()) {
@@ -176,9 +176,9 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * This hook called after a new Attribute is created
+     * Hook appelé après la création d'un attribut
      *
-     * Only for 8.0+
+     * Uniquement pour PS 8.0+
      *
      * @param array $params
      */
@@ -195,7 +195,7 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * This hook called after an Attribute is deleted
+     * Hook appelé après la suppression d'un attribut
      *
      * @param array $params
      */
@@ -205,7 +205,7 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * This hook called after a new Shop is created
+     * Hook appelé après la création d'une nouvelle boutique
      *
      * @param array $params
      */
@@ -265,8 +265,8 @@ class Ciklik extends PaymentModule
     }
 
     /*
-    * Hook for 8.0+
-    */
+     * Hook pour PS 8.0+
+     */
     public function hookActionAfterUpdateProductFormHandler(array $params): void
     {
         $idProduct = (int) $params['form_data']['id'];
@@ -313,7 +313,7 @@ class Ciklik extends PaymentModule
     }
 
     /*
-     * Hook for 1.7.7+
+     * Hook pour PS 1.7.7+
      */
     public function hookActionObjectProductUpdateAfter(array $params): void
     {
@@ -357,7 +357,7 @@ class Ciklik extends PaymentModule
     /**
      * @param array $params
      *
-     * @return array Should always return an array
+     * @return array Doit toujours retourner un tableau
      */
     public function hookPaymentOptions(array $params)
     {
@@ -411,9 +411,9 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * This hook is used to display additional information on BO Order View, under Payment block
+     * Affiche les informations d'abonnement et de remboursement sur la page commande BO
      *
-     * @since PrestaShop 1.7.7 This hook replace displayAdminOrderLeft on migrated BO Order View
+     * @since PrestaShop 1.7.7 Remplace displayAdminOrderLeft sur la page commande migrée
      *
      * @param array $params
      *
@@ -451,7 +451,7 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * This hook is used to display information in customer account
+     * Affiche le lien "Mes abonnements" dans le compte client
      *
      * @param array $params
      *
@@ -470,7 +470,7 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * This hook is used to display additional information on order confirmation page
+     * Affiche les informations de transaction sur la page de confirmation de commande
      *
      * @param array $params
      *
@@ -506,7 +506,7 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * This hook is used to display additional information on FO (Guest Tracking and Account Orders)
+     * Affiche les informations de transaction sur le détail de commande (suivi invité et compte client)
      *
      * @param array $params
      *
@@ -542,7 +542,7 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * This hook is used to display additional information on bottom of order confirmation page
+     * Affiche les informations d'abonnement sur la page de retour paiement
      *
      * @param array $params
      *
@@ -591,7 +591,7 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * This hook is used to display additional information on Invoice PDF
+     * Affiche les informations d'abonnement sur la facture PDF
      *
      * @param array $params
      *
@@ -952,7 +952,7 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * Check if currency is allowed in Payment Preferences
+     * Vérifie si la devise est autorisée dans les préférences de paiement
      *
      * @param Cart $cart
      *
@@ -1300,5 +1300,16 @@ class Ciklik extends PaymentModule
                 ]
             );
         }
+    }
+
+    /**
+     * Hook custom émis par le module avant le rebill (CartGateway::post).
+     * Le module l'enregistre pour le rendre disponible aux modules tiers,
+     * mais ne le consomme pas lui-même.
+     *
+     * @param array $params
+     */
+    public function hookActionCiklikCartBeforeRebill(array $params)
+    {
     }
 }
