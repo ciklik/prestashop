@@ -770,6 +770,46 @@ class Ciklik extends PaymentModule
 
     public function hookDisplayProductActions(array $params)
     {
+        return $this->renderProductSubscriptionOptions($params);
+    }
+
+    /**
+     * Repli pour les versions < 1.7.6 (hook displayProductActions absent).
+     *
+     * displayProductPriceBlock est appelé plusieurs fois par page, et aussi sur les
+     * vignettes de listing et de produits associés. On ne rend qu'une seule fois, sur
+     * le prix principal de la fiche produit : le type "after_price" n'est émis que par
+     * product-prices.tpl (jamais par les miniatures), et on confirme le contexte fiche.
+     *
+     * @param array $params
+     *
+     * @return string
+     */
+    public function hookDisplayProductPriceBlock(array $params)
+    {
+        if (!isset($params['type']) || 'after_price' !== $params['type']) {
+            return '';
+        }
+
+        if (!($this->context->controller instanceof ProductController)) {
+            return '';
+        }
+
+        return $this->renderProductSubscriptionOptions($params);
+    }
+
+    /**
+     * Rendu des options d'abonnement / upsell sur la fiche produit.
+     *
+     * Logique partagée entre displayProductActions (>= 1.7.6) et le repli
+     * displayProductPriceBlock (< 1.7.6).
+     *
+     * @param array $params
+     *
+     * @return string
+     */
+    private function renderProductSubscriptionOptions(array $params)
+    {
         $idProduct = (int) $params['product']['id_product'];
 
         // Vérifier si au moins une des fonctionnalités est activée

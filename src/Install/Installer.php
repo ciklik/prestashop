@@ -268,9 +268,12 @@ class Installer
             $hooks[] = 'displayAdminOrder';
         }
 
-        // Sélecteur de fréquence sur la fiche produit front (>= 1.7.6)
+        // Sélecteur de fréquence sur la fiche produit front : hook dédié (>= 1.7.6)
+        // sinon repli sur displayProductPriceBlock (présent dès 1.7.0)
         if (PsVersionCapabilities::hasProductActionsHook()) {
             $hooks[] = 'displayProductActions';
+        } else {
+            $hooks[] = 'displayProductPriceBlock';
         }
 
         // Sauvegarde des fréquences produit via le form handler (>= 1.7.8)
