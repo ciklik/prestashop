@@ -38,7 +38,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.20.2';
+    const VERSION = '1.20.3';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
