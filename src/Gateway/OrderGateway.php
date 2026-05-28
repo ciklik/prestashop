@@ -39,34 +39,11 @@ class OrderGateway extends AbstractGateway implements EntityGateway
 
         $orderData = (new \PrestaShop\Module\Ciklik\Api\Order($context->link))->getOne((int) \Tools::getValue('ciklik_order_id'));
 
+        // Garde d'idempotence : la commande existe déjà (retry côté Ciklik)
         if ($cart->orderExists()) {
-            $sql = 'SELECT id_order FROM ' . _DB_PREFIX_ . 'orders WHERE id_cart = ' . (int) $cart->id;
-            $orderId = \Db::getInstance()->getValue($sql);
-
-            $this->addDataToOrder(
-                (int) $orderId,
-                [
-                    'ciklik_order_id' => $orderData->ciklik_order_id,
-                    'order_type' => \Tools::getValue('order_type'),
-                    'subscription_uuid' => \Tools::getValue('ciklik_subscription_uuid'),
-                ]
-            );
-
-            $order = new \Order((int) $orderId);
-
-            if (\Tools::getValue('order_type') === 'subscription_creation' && \Configuration::get(\Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT)) {
-                CustomerHelper::assignCustomerGroup((int) $cart->id_customer);
-            }
-
-            // Récupérer les customizations détaillées de la commande existante
-            $customizationData = CiklikCustomization::getDetailedCustomizationDataFromOrder($order);
-
-            (new Response())->setBody([
-                'ps_order_id' => (int) $orderId,
-                'ps_customer_id' => (int) $cart->id_customer,
-                'ps_id_address_delivery' => (int) $order->id_address_delivery,
-                'customization_data' => CiklikCustomization::adaptForApiResponse($customizationData),
-            ])->sendCreated();
+            $orderId = $this->getOrderIdByCart($cart);
+            $this->applyPostCreationSteps($orderId, $cart, $orderData);
+            $this->sendOrderResponse($orderId, $cart);
         }
 
         if (!$orderData instanceof OrderData) {
@@ -82,51 +59,159 @@ class OrderGateway extends AbstractGateway implements EntityGateway
             $orderValidationData->id_order_state = (int) \Configuration::get(\Ciklik::CONFIG_CREATION_ORDER_STATE);
         }
 
-        $this->module->validateOrder(
-            $orderValidationData->id_cart,
-            $orderValidationData->id_order_state,
-            $orderValidationData->amount_paid,
-            $orderValidationData->payment_method,
-            $orderValidationData->message,
-            $orderValidationData->extra_vars,
-            $orderValidationData->currency_special,
-            $orderValidationData->dont_touch_amount,
-            $orderValidationData->secure_key
-        );
+        $startTime = microtime(true);
 
-        // Lier les items avec fréquences du panier à la commande
-        if (\Configuration::get('CIKLIK_FREQUENCY_MODE')) {
-            CiklikItemFrequency::updateOrderIdFromCart($cart->id, $this->module->currentOrder);
+        try {
+            $this->module->validateOrder(
+                $orderValidationData->id_cart,
+                $orderValidationData->id_order_state,
+                $orderValidationData->amount_paid,
+                $orderValidationData->payment_method,
+                $orderValidationData->message,
+                $orderValidationData->extra_vars,
+                $orderValidationData->currency_special,
+                $orderValidationData->dont_touch_amount,
+                $orderValidationData->secure_key
+            );
+
+            $orderId = (int) $this->module->currentOrder;
+            $this->applyPostCreationSteps($orderId, $cart, $orderData);
+            DeliveryModuleManager::updateOrderId($cart->id, $orderId);
+        } catch (\Throwable $e) {
+            self::logValidateOrderFailure($e, $cart->id);
+            self::logSlowValidateOrder(microtime(true) - $startTime, $cart->id);
+
+            // La commande a pu être créée en BDD avant le crash (hook tiers, etc.)
+            if ($cart->orderExists()) {
+                $orderId = $this->getOrderIdByCart($cart);
+                $this->applyPostCreationSteps($orderId, $cart, $orderData);
+                $this->sendOrderResponse($orderId, $cart);
+            }
+
+            // Commande non créée du tout
+            (new Response())->setBody([
+                'error' => 'validateOrder failed: ' . $e->getMessage(),
+            ])->sendBadRequest();
         }
 
-        // Lien client Ciklik et Prestashop
+        self::logSlowValidateOrder(microtime(true) - $startTime, $cart->id);
+        $this->sendOrderResponse($orderId, $cart);
+    }
+
+    /**
+     * Applique les étapes post-création de commande :
+     * lien fréquences, lien client Ciklik, thread SAV, groupe client
+     *
+     * @param int $orderId ID de la commande PS
+     * @param \Cart $cart Panier source
+     * @param OrderData $orderData Données commande Ciklik
+     */
+    private function applyPostCreationSteps($orderId, \Cart $cart, OrderData $orderData)
+    {
+        // Lier les items avec fréquences du panier à la commande
+        if (\Configuration::get('CIKLIK_FREQUENCY_MODE')) {
+            CiklikItemFrequency::updateOrderIdFromCart($cart->id, $orderId);
+        }
+
+        // Lien client Ciklik et PrestaShop
         CiklikCustomer::save((int) $cart->id_customer, $orderData->ciklik_user_uuid);
 
         $this->addDataToOrder(
-            (int) $this->module->currentOrder,
-            [
-                'ciklik_order_id' => $orderData->ciklik_order_id,
-                'order_type' => \Tools::getValue('order_type'),
-                'subscription_uuid' => \Tools::getValue('ciklik_subscription_uuid'),
-            ]
+            (int) $orderId,
+            $this->buildThreadData()
         );
 
-        $order = new \Order((int) $this->module->currentOrder);
-
-        if (\Tools::getValue('order_type') === 'subscription_creation' && \Configuration::get(\Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT)) {
+        if (\Tools::getValue('order_type') === 'subscription_creation'
+            && \Configuration::get(\Ciklik::CONFIG_ENABLE_CUSTOMER_GROUP_ASSIGNMENT)) {
             CustomerHelper::assignCustomerGroup((int) $cart->id_customer);
         }
+    }
 
-        // Récupérer les customizations détaillées de la nouvelle commande
+    /**
+     * Construit les données du thread SAV Ciklik
+     *
+     * @return array
+     */
+    private function buildThreadData()
+    {
+        return [
+            'ciklik_order_id' => \Tools::getValue('ciklik_order_id'),
+            'order_type' => \Tools::getValue('order_type'),
+            'subscription_uuid' => \Tools::getValue('ciklik_subscription_uuid'),
+        ];
+    }
+
+    /**
+     * Envoie la réponse 201 avec les données de la commande
+     *
+     * @param int $orderId ID de la commande PS
+     * @param \Cart $cart Panier source
+     */
+    private function sendOrderResponse($orderId, \Cart $cart)
+    {
+        $order = new \Order((int) $orderId);
         $customizationData = CiklikCustomization::getDetailedCustomizationDataFromOrder($order);
 
-        DeliveryModuleManager::updateOrderId($cart->id, $this->module->currentOrder);
-
         (new Response())->setBody([
-            'ps_order_id' => (int) $this->module->currentOrder,
+            'ps_order_id' => (int) $orderId,
             'ps_customer_id' => (int) $cart->id_customer,
             'ps_id_address_delivery' => (int) $order->id_address_delivery,
             'customization_data' => CiklikCustomization::adaptForApiResponse($customizationData),
         ])->sendCreated();
+    }
+
+    /**
+     * Récupère l'ID de commande depuis un panier
+     *
+     * @param \Cart $cart
+     *
+     * @return int
+     */
+    private function getOrderIdByCart(\Cart $cart)
+    {
+        return (int) \Db::getInstance()->getValue(
+            'SELECT id_order FROM ' . _DB_PREFIX_ . 'orders WHERE id_cart = ' . (int) $cart->id
+        );
+    }
+
+    /**
+     * Log l'échec de validateOrder avec les informations de contexte
+     * (public pour testabilité uniquement)
+     *
+     * @param \Throwable $e Exception capturée
+     * @param int $cartId ID du panier
+     */
+    public static function logValidateOrderFailure(\Throwable $e, $cartId)
+    {
+        \PrestaShopLogger::addLog(
+            'Ciklik OrderGateway - validateOrder failed: ' . $e->getMessage(),
+            3,
+            null,
+            'Cart',
+            (int) $cartId,
+            true
+        );
+    }
+
+    /**
+     * Log un warning si validateOrder a pris plus de 10 secondes
+     * (public pour testabilité uniquement)
+     *
+     * @param float $elapsed Temps écoulé en secondes
+     * @param int $cartId ID du panier
+     * @param float $threshold Seuil en secondes (défaut: 10)
+     */
+    public static function logSlowValidateOrder($elapsed, $cartId, $threshold = 10.0)
+    {
+        if ($elapsed > $threshold) {
+            \PrestaShopLogger::addLog(
+                'Ciklik OrderGateway - validateOrder slow: ' . round($elapsed, 2) . 's for cart ' . $cartId,
+                2,
+                null,
+                'Cart',
+                (int) $cartId,
+                true
+            );
+        }
     }
 }
