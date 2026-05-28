@@ -11,6 +11,7 @@ namespace PrestaShop\Module\Ciklik\Install;
 
 use Configuration;
 use Module;
+use PrestaShop\Module\Ciklik\Helpers\PsVersionCapabilities;
 use PrestaShop\Module\Ciklik\Managers\RelatedEntitiesManager;
 use PrestaShop\Module\Ciklik\Sql\SqlQueries;
 use Tab;
@@ -222,71 +223,69 @@ class Installer
      */
     private function registerHooks(\Module $module): bool
     {
-        $prestashopVersion = _PS_VERSION_;
+        return (bool) $module->registerHook($this->getHooksToRegister());
+    }
 
-        if (version_compare($prestashopVersion, '8.0.0', '<')) {
-            // Hooks pour presta 1.7.7
-            $hooks = [
-                'actionAfterUpdateProductFormHandler',
-                'actionAttributeDelete',
-                'actionAttributeSave',
-                'actionGetProductPropertiesBefore',
-                'actionObjectShopAddAfter',
-                // 'actionPresentPaymentOptions',
-                'actionProductDelete',
-                'displayAdminOrderMainBottom',
-                'displayAttributeForm',
-                'displayCustomerAccount',
-                'displayOrderConfirmation',
-                'displayOrderDetail',
-                'displayPaymentReturn',
-                'displayPDFInvoice',
-                'moduleRoutes',
-                'paymentOptions',
-                'actionObjectProductUpdateAfter',
-                'actionObjectProductAddAfter',
-                // après le mode frequenty
-                'actionFrontControllerSetMedia',
-                'displayAdminProductsExtra',
-                'displayProductActions',
-                'actionCartUpdateQuantityBefore',
-                'displayShoppingCart',
-                'actionAuthentication',
-                'actionProductUpdate',
-                'actionCiklikCartBeforeRebill',
-            ];
-        } else {
-            // Hooks pour presta 8+
-            $hooks = [
-                'actionAfterUpdateProductFormHandler',
-                'actionAttributeDelete',
-                'actionAttributeSave',
-                'actionGetProductPropertiesBefore',
-                'actionObjectShopAddAfter',
-                'actionPresentPaymentOptions',
-                'actionProductDelete',
-                'displayAdminOrderMainBottom',
-                'displayAttributeForm',
-                'displayCustomerAccount',
-                'displayOrderConfirmation',
-                'displayOrderDetail',
-                'displayPaymentReturn',
-                'displayPDFInvoice',
-                'moduleRoutes',
-                'paymentOptions',
-                // après le mode frequenty
-                'actionFrontControllerSetMedia',
-                'displayAdminProductsExtra',
-                'displayProductActions',
-                'actionCartUpdateQuantityBefore',
-                'displayShoppingCart',
-                'actionAuthentication',
-                'actionProductUpdate',
-                'actionCiklikCartBeforeRebill',
-            ];
+    /**
+     * Construit la liste des hooks à enregistrer selon les capacités de la version PrestaShop.
+     *
+     * Une base commune à toutes les versions supportées, puis des ajouts conditionnels
+     * pilotés par {@see PsVersionCapabilities}. La sélection des hooks de repli (versions
+     * < 1.7.7) est ajoutée par les phases dédiées.
+     *
+     * @return array
+     */
+    private function getHooksToRegister(): array
+    {
+        // Hooks communs, disponibles sur toute la plage supportée
+        $hooks = [
+            'actionAttributeDelete',
+            'actionAttributeSave',
+            'actionGetProductPropertiesBefore',
+            'actionObjectShopAddAfter',
+            'actionProductDelete',
+            'displayAttributeForm',
+            'displayCustomerAccount',
+            'displayOrderConfirmation',
+            'displayOrderDetail',
+            'displayPaymentReturn',
+            'displayPDFInvoice',
+            'moduleRoutes',
+            'paymentOptions',
+            'actionFrontControllerSetMedia',
+            'displayAdminProductsExtra',
+            'actionCartUpdateQuantityBefore',
+            'displayShoppingCart',
+            'actionAuthentication',
+            'actionProductUpdate',
+            'actionCiklikCartBeforeRebill',
+        ];
+
+        // Page commande BO : hook migré (>= 1.7.7) sinon hook legacy
+        if (PsVersionCapabilities::hasMigratedOrderPage()) {
+            $hooks[] = 'displayAdminOrderMainBottom';
         }
 
-        return (bool) $module->registerHook($hooks);
+        // Sélecteur de fréquence sur la fiche produit front (>= 1.7.6)
+        if (PsVersionCapabilities::hasProductActionsHook()) {
+            $hooks[] = 'displayProductActions';
+        }
+
+        // Sauvegarde des fréquences produit via le form handler (>= 1.7.8)
+        if (PsVersionCapabilities::hasProductFormHandlerHook()) {
+            $hooks[] = 'actionAfterUpdateProductFormHandler';
+        }
+
+        if (PsVersionCapabilities::hasPresentPaymentOptions()) {
+            // PS 8+ : filtrage des options de paiement
+            $hooks[] = 'actionPresentPaymentOptions';
+        } else {
+            // PS 1.7.x : synchronisation des subscribables (mode attributs) via ObjectModel
+            $hooks[] = 'actionObjectProductUpdateAfter';
+            $hooks[] = 'actionObjectProductAddAfter';
+        }
+
+        return $hooks;
     }
 
     /**
