@@ -38,6 +38,11 @@ jobs:
           unzip app.zip -d output/ciklik
           rm app.zip
           cd output/ciklik
+          # Build de distribution : on retire les require-dev (cs-fixer, php-dev-tools, header-stamp)
+          # pour que la résolution n'échoue pas sur les lanes PHP basses (7.0/7.1), où ces outils
+          # exigent PHP 7.2+. Les dépendances de prod restent résolues selon la version PHP courante
+          # (ex. Guzzle 6 en PHP 7.0).
+          composer config --unset require-dev
           composer install --no-dev --optimize-autoloader --classmap-authoritative
           cd ../
           zip -r ciklik-${{ matrix.addons }}-${{ matrix.php }}.zip ./
