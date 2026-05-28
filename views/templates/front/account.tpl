@@ -118,11 +118,11 @@
                     <td class="text-sm-center order-actions">
                         {if $enable_engagement === '1'}
                             {if PrestaShop\Module\Ciklik\Helpers\IntervalHelper::addIntervalToDate(
-                                $subscription->created_at->toImmutable(),
+                                $subscription->created_at,
                                 $engagement_interval,
                                 $engagement_interval_count
                                 )
-                            ->isPast()}
+                            ->getTimestamp() < $smarty.now}
                                     {if $subscription->active}
                                         <form action="{$subcription_base_link|escape:'html':'UTF-8'}/{$subscription->uuid|escape:'html':'UTF-8'}/stop" method="POST" style="display:inline;">
                                             <input type="hidden" name="token" value="{$token|escape:'html':'UTF-8'}">
@@ -138,7 +138,7 @@
                                 <small>
                                     {l s='Cancellable from:' mod='ciklik'} <br>
                                     {PrestaShop\Module\Ciklik\Helpers\IntervalHelper::addIntervalToDate(
-                                            $subscription->created_at->toImmutable(),
+                                            $subscription->created_at,
                                             $engagement_interval,
                                             $engagement_interval_count
                                         )->format('d/m')}

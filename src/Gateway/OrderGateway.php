@@ -88,9 +88,9 @@ class OrderGateway extends AbstractGateway implements EntityGateway
                 $this->sendOrderResponse($orderId, $cart);
             }
 
-            // Commande non créée du tout
+            // Commande non créée du tout : détail complet dans les logs, message générique au client
             (new Response())->setBody([
-                'error' => 'validateOrder failed: ' . $e->getMessage(),
+                'error' => 'Order validation failed',
             ])->sendBadRequest();
         }
 
