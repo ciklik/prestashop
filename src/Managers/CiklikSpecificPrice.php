@@ -236,10 +236,10 @@ class CiklikSpecificPrice
      */
     public static function remove(
         int $idProduct,
-        ?int $idProductAttribute = null,
-        ?int $idCart = null,
-        ?int $idCustomer = null,
-        ?int $idGuest = null
+        $idProductAttribute = null,
+        $idCart = null,
+        $idCustomer = null,
+        $idGuest = null
     ): bool {
         $query = new \DbQuery();
         $query->select('id_specific_price');
@@ -349,7 +349,7 @@ class CiklikSpecificPrice
         int $idProduct,
         int $idProductAttribute,
         int $idCart,
-        ?int $idCustomer = null
+        $idCustomer = null
     ): bool {
         $query = new \DbQuery();
         $query->select('COUNT(*)');

@@ -7,7 +7,6 @@
 
 namespace PrestaShop\Module\Ciklik\Data;
 
-use Carbon\CarbonImmutable;
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 
@@ -108,8 +107,8 @@ class SubscriptionData
             $data['display_interval'],
             SubscriptionDeliveryAddressData::create($fingerprint->id_address_delivery),
             new \DateTimeImmutable($data['next_billing']),
-            CarbonImmutable::parse($data['created_at']),
-            CarbonImmutable::parse($data['end_date']),
+            new \DateTimeImmutable($data['created_at']),
+            new \DateTimeImmutable($data['end_date']),
             $fingerprint,
             self::processContents($data['content']),
             isset($fingerprint->upsells) ? self::processUpsells($fingerprint->upsells) : []

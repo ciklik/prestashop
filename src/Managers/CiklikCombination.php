@@ -210,7 +210,7 @@ class CiklikCombination
      *                    Plus tous les IDs de groupes d'attributs en clés avec leurs IDs d'attributs en valeurs
      *                    Retourne null si la combinaison n'est pas trouvée
      */
-    public static function getCombinationDetails(int $id_product_attribute): ?array
+    public static function getCombinationDetails(int $id_product_attribute)
     {
         // Get basic combination info
         $query = new \DbQuery();
@@ -407,7 +407,7 @@ class CiklikCombination
      *
      * @return object Instance de Attribute ou ProductAttribute selon la version
      */
-    private static function getAttributeInstance(int $attributeId, int $languageId): object
+    private static function getAttributeInstance(int $attributeId, int $languageId)
     {
         // Vérifie si la version de PrestaShop est >= 8.0.0
         if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {

@@ -21,7 +21,7 @@ class UuidHelper
     /**
      * Pattern regex pour la validation d'un UUID v4
      */
-    public const UUID_V4_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i';
+    const UUID_V4_PATTERN ='/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i';
 
     /**
      * Vérifie si une chaîne est un UUID v4 valide
@@ -42,7 +42,7 @@ class UuidHelper
      *
      * @return string|null L'UUID nettoyé ou null si invalide
      */
-    public static function sanitize($uuid): ?string
+    public static function sanitize($uuid)
     {
         if (!is_string($uuid) && !is_numeric($uuid)) {
             return null;
@@ -61,7 +61,7 @@ class UuidHelper
      *
      * @return string|null L'UUID validé ou null
      */
-    public static function getFromRequest(string $key): ?string
+    public static function getFromRequest(string $key)
     {
         $value = \Tools::getValue($key);
 

@@ -15,7 +15,7 @@ if (!defined('_PS_VERSION_')) {
 
 class CiklikSubscribableVariant
 {
-    public static function pushToCiklik(int $id_product, array $combinations = []): void
+    public static function pushToCiklik(int $id_product, array $combinations = [])
     {
         if (count($combinations)) {
             $variants = [];

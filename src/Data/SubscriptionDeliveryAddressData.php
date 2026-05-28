@@ -38,7 +38,7 @@ class SubscriptionDeliveryAddressData
         string $first_name,
         string $last_name,
         string $address,
-        ?string $address1,
+        $address1,
         string $postcode,
         string $city,
         string $country

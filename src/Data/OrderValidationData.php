@@ -51,7 +51,7 @@ class OrderValidationData
         int $id_order_state,
         float $amount_paid,
         string $payment_method,
-        ?string $message,
+        $message,
         array $extra_vars,
         int $currency_special,
         bool $dont_touch_amount,

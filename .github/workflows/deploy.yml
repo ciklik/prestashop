@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: [7.2, 7.3, 7.4, 8.0, 8.1, 8.2, 8.3, 8.4]
+        php: [7.0, 7.1, 7.2, 7.3, 7.4, 8.0, 8.1, 8.2, 8.3, 8.4]
         addons: ['with-addon', 'raw']
     steps:
       - name: Checkout
@@ -21,6 +21,8 @@ jobs:
           php-version: ${{ matrix.php }}
       - name: Output PHP Version
         run: php --version
+      - name: Lint PHP (vérifie la compatibilité de syntaxe avec la version cible)
+        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 -P4 php -l
       - name: Update Account Class for marketplace management
         if: ${{ matrix.addons == 'with-addon' }}
         run: mv -f src/Addons/Addons.php src/Addons/Account.php

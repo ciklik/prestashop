@@ -17,12 +17,12 @@ class AdminCiklikStockForecastController extends ModuleAdminController
     /**
      * Nombre maximal de pages API à parcourir
      */
-    public const MAX_API_PAGES = 100;
+    const MAX_API_PAGES = 100;
 
     /**
      * Seuil de stock bas (pour affichage "Low")
      */
-    public const LOW_STOCK_THRESHOLD = 5;
+    const LOW_STOCK_THRESHOLD = 5;
 
     /**
      * Instance du module Ciklik

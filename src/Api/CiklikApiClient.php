@@ -57,7 +57,7 @@ class CiklikApiClient
      */
     protected $catchExceptions = false;
 
-    public function __construct(\Link $link, ?Client $client = null)
+    public function __construct(\Link $link, $client = null)
     {
         $this->setLink($link);
 
@@ -358,7 +358,7 @@ class CiklikApiClient
      *
      * @return string|null Le segment nettoyé ou null si invalide
      */
-    protected function validateRouteSegment(string $segment, string $type = 'uuid'): ?string
+    protected function validateRouteSegment(string $segment, string $type = 'uuid')
     {
         switch ($type) {
             case 'uuid':
@@ -408,7 +408,7 @@ class CiklikApiClient
         string $segment,
         string $type = 'uuid',
         string $errorMessage = 'Invalid identifier format'
-    ): ?array {
+    ) {
         $validatedSegment = $this->validateRouteSegment($segment, $type);
 
         if (null === $validatedSegment) {

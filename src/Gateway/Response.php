@@ -84,12 +84,12 @@ class Response
     /**
      * @param string $status
      */
-    public function setStatus(string $status): void
+    public function setStatus(string $status)
     {
         $this->status = $status;
     }
 
-    public function send(): void
+    public function send()
     {
         header($this->status);
 

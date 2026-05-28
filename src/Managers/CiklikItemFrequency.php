@@ -30,8 +30,8 @@ class CiklikItemFrequency
         int $frequencyId,
         int $productId,
         int $productAttributeId,
-        ?int $customerId = null,
-        ?int $guestId = null
+        $customerId = null,
+        $guestId = null
     ): bool {
         // Supprime d'abord les anciennes entrées pour ce produit dans le panier
         self::deleteByCartAndProduct($cartId, $productId);

@@ -33,7 +33,7 @@ class PaymentMethodData
     private function __construct(int $id,
         array $name,
         string $class_key,
-        ?array $description)
+        $description)
     {
         $this->id = $id;
         $this->name = $name;

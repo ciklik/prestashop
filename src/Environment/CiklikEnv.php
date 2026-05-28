@@ -24,7 +24,7 @@ class CiklikEnv
      *
      * @var array
      */
-    public const FILE_ENV_LIST = [
+    const FILE_ENV_LIST = [
         'test' => '.env.test',
         'prod' => '.env',
     ];
@@ -190,7 +190,7 @@ class CiklikEnv
      *
      * @return string|null L'origine ou null si l'URL est invalide
      */
-    private static function extractOriginFromUrl(string $url): ?string
+    private static function extractOriginFromUrl(string $url)
     {
         $parsed = parse_url($url);
 

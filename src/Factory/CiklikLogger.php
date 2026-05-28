@@ -16,7 +16,7 @@ if (!defined('_PS_VERSION_')) {
 
 class CiklikLogger
 {
-    public const MAX_FILES = 15;
+    const MAX_FILES = 15;
 
     public static function create()
     {

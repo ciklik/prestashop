@@ -16,7 +16,7 @@ class Subscribable extends CiklikApiClient
     /**
      * Clés autorisées pour les données produit envoyées à l'API
      */
-    private const ALLOWED_PRODUCT_KEYS = [
+    const ALLOWED_PRODUCT_KEYS = [
         'name',
         'short_description',
         'description',
@@ -33,7 +33,7 @@ class Subscribable extends CiklikApiClient
     /**
      * Clés autorisées pour les données de fréquence
      */
-    private const ALLOWED_FREQUENCY_KEYS = [
+    const ALLOWED_FREQUENCY_KEYS = [
         'interval',
         'interval_count',
     ];

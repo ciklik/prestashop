@@ -13,7 +13,7 @@ if (!defined('_PS_VERSION_')) {
 
 class OrderData
 {
-    public const STATUS_COMPLETED = 'completed';
+    const STATUS_COMPLETED = 'completed';
     /**
      * @var int
      */
@@ -55,8 +55,8 @@ class OrderData
     private function __construct(int $ciklik_order_id,
         string $ciklik_user_uuid,
         string $status,
-        ?string $paid_transaction_id,
-        ?string $paid_class_key,
+        $paid_transaction_id,
+        $paid_class_key,
         \DateTimeImmutable $created_at,
         $subscription_uuid,
         $total_paid,

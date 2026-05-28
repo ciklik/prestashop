@@ -147,10 +147,10 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         }
 
         try {
-            $date = Carbon\Carbon::parse($nextBilling);
+            $date = new DateTimeImmutable($nextBilling);
 
             // Vérifier que la date est dans le futur
-            if ($date->isPast()) {
+            if ($date < new DateTimeImmutable()) {
                 $this->errors[] = $this->module->l('The date must be in the future.', 'subscription');
                 $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
 
@@ -173,7 +173,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         $result = (new Subscription($this->context->link))->update(
             $uuid,
-            ['next_billing' => $date->toDateString()]
+            ['next_billing' => $date->format('Y-m-d')]
         );
 
         if (!empty($result['errors'])) {

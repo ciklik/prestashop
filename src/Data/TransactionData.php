@@ -56,8 +56,8 @@ class TransactionData
         bool $paid,
         bool $refunded,
         float $amount_refunded,
-        ?string $failure_message,
-        ?string $failure_code,
+        $failure_message,
+        $failure_code,
         \DateTimeImmutable $created_at)
     {
         $this->transaction_id = $transaction_id;

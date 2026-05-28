@@ -31,8 +31,8 @@ if (!defined('_PS_VERSION_')) {
  */
 class ProductPriceResolver
 {
-    public const MODE_GROSS = 'gross';
-    public const MODE_NET = 'net';
+    const MODE_GROSS = 'gross';
+    const MODE_NET = 'net';
 
     /**
      * Normalise une valeur de mode en une des constantes MODE_*.
