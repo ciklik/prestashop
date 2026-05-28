@@ -411,7 +411,7 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * Affiche les informations d'abonnement et de remboursement sur la page commande BO
+     * Affiche les informations d'abonnement et de remboursement sur la page commande BO migrée.
      *
      * @since PrestaShop 1.7.7 Remplace displayAdminOrderLeft sur la page commande migrée
      *
@@ -420,6 +420,32 @@ class Ciklik extends PaymentModule
      * @return string
      */
     public function hookDisplayAdminOrderMainBottom(array $params)
+    {
+        return $this->renderAdminOrderBlocks($params);
+    }
+
+    /**
+     * Repli pour les versions < 1.7.7 (page commande BO non migrée).
+     * Le hook legacy displayAdminOrder fournit le même $params['id_order'].
+     *
+     * @param array $params
+     *
+     * @return string
+     */
+    public function hookDisplayAdminOrder(array $params)
+    {
+        return $this->renderAdminOrderBlocks($params);
+    }
+
+    /**
+     * Rendu des blocs abonnement + remboursement de la page commande BO.
+     * Partagé entre la page migrée (1.7.7+) et la page legacy (< 1.7.7).
+     *
+     * @param array $params
+     *
+     * @return string
+     */
+    private function renderAdminOrderBlocks(array $params)
     {
         if (empty($params['id_order'])) {
             return '';

@@ -264,6 +264,8 @@ class Installer
         // Page commande BO : hook migré (>= 1.7.7) sinon hook legacy
         if (PsVersionCapabilities::hasMigratedOrderPage()) {
             $hooks[] = 'displayAdminOrderMainBottom';
+        } else {
+            $hooks[] = 'displayAdminOrder';
         }
 
         // Sélecteur de fréquence sur la fiche produit front (>= 1.7.6)
