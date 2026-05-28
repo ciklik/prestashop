@@ -21,8 +21,8 @@ jobs:
           php-version: ${{ matrix.php }}
       - name: Output PHP Version
         run: php --version
-      - name: Lint PHP (vérifie la compatibilité de syntaxe avec la version cible)
-        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 -P4 php -l
+      - name: Lint PHP (vérifie la compatibilité de syntaxe du code livré avec la version cible)
+        run: find . -name '*.php' -not -path './vendor/*' -not -path './tests/*' -not -name '.php-cs-fixer.dist.php' -print0 | xargs -0 -r -n1 -P4 php -l
       - name: Update Account Class for marketplace management
         if: ${{ matrix.addons == 'with-addon' }}
         run: mv -f src/Addons/Addons.php src/Addons/Account.php

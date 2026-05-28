@@ -94,7 +94,7 @@ class CreationOrderStateTest extends TestCase
         $this->assertEquals(
             self::STANDARD_ORDER_STATE,
             $data->id_order_state,
-            'Le statut ne doit pas changer quand le toggle est désactivé',
+            'Le statut ne doit pas changer quand le toggle est désactivé'
         );
     }
 
@@ -121,7 +121,7 @@ class CreationOrderStateTest extends TestCase
         $this->assertEquals(
             self::CREATION_ORDER_STATE,
             $data->id_order_state,
-            'Le statut de création doit être appliqué quand la feature est activée',
+            'Le statut de création doit être appliqué quand la feature est activée'
         );
     }
 
@@ -143,7 +143,7 @@ class CreationOrderStateTest extends TestCase
         $this->assertEquals(
             self::STANDARD_ORDER_STATE,
             $data->id_order_state,
-            'Le statut ne doit pas changer si le statut de création vaut 0',
+            'Le statut ne doit pas changer si le statut de création vaut 0'
         );
     }
 
@@ -172,7 +172,7 @@ class CreationOrderStateTest extends TestCase
         $this->assertEquals(
             self::STANDARD_ORDER_STATE,
             $data->id_order_state,
-            'Un rebill doit toujours conserver le statut standard',
+            'Un rebill doit toujours conserver le statut standard'
         );
     }
 
@@ -197,7 +197,7 @@ class CreationOrderStateTest extends TestCase
         $this->assertEquals(
             self::CREATION_ORDER_STATE,
             $data->id_order_state,
-            'Une subscription_creation doit recevoir le statut de création',
+            'Une subscription_creation doit recevoir le statut de création'
         );
     }
 
@@ -244,7 +244,7 @@ class CreationOrderStateTest extends TestCase
         $this->assertEquals(
             $customStandardState,
             $data->id_order_state,
-            'Le statut standard doit provenir de CONFIG_ORDER_STATE',
+            'Le statut standard doit provenir de CONFIG_ORDER_STATE'
         );
     }
 
@@ -267,7 +267,7 @@ class CreationOrderStateTest extends TestCase
         $this->assertEquals(
             self::STANDARD_ORDER_STATE,
             $data->id_order_state,
-            'Le statut ne doit pas changer si CONFIG_CREATION_ORDER_STATE n\'est pas défini',
+            'Le statut ne doit pas changer si CONFIG_CREATION_ORDER_STATE n\'est pas défini'
         );
     }
 }
