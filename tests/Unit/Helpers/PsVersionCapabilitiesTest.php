@@ -53,6 +53,13 @@ class PsVersionCapabilitiesTest extends TestCase
         $this->assertTrue(PsVersionCapabilities::hasPresentPaymentOptions('9.0.0'));
     }
 
+    public function testRawSummaryDetailsRequires177()
+    {
+        $this->assertFalse(PsVersionCapabilities::hasRawSummaryDetails('1.7.6.9'));
+        $this->assertTrue(PsVersionCapabilities::hasRawSummaryDetails('1.7.7.0'));
+        $this->assertTrue(PsVersionCapabilities::hasRawSummaryDetails('8.0.0'));
+    }
+
     public function testOldestSupportedTargetIsLegacyEverywhere()
     {
         // PrestaShop 1.7.0 : aucune des capacités modernes

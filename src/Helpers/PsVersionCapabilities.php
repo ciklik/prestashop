@@ -78,6 +78,19 @@ class PsVersionCapabilities
     }
 
     /**
+     * Méthode `Cart::getRawSummaryDetails(int $id_lang, bool $refresh)` introduite en 1.7.7.0.
+     * En deçà, utiliser `Cart::getSummaryDetails($id_lang, $refresh)` (présente depuis 1.7.0).
+     *
+     * @param string|null $psVersion
+     *
+     * @return bool
+     */
+    public static function hasRawSummaryDetails($psVersion = null)
+    {
+        return version_compare(self::resolve($psVersion), '1.7.7.0', '>=');
+    }
+
+    /**
      * Retourne la version à comparer (argument explicite ou `_PS_VERSION_`).
      *
      * @param string|null $psVersion

@@ -13,6 +13,7 @@ use Ciklik;
 use Configuration;
 use Context;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
+use PrestaShop\Module\Ciklik\Helpers\PsVersionCapabilities;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomization;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
@@ -344,7 +345,11 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $context->customer = $customer;
         $context->cart = $cart;
 
-        $summary = $cart->getRawSummaryDetails((int) \Configuration::get('PS_LANG_DEFAULT'));
+        // getRawSummaryDetails n'existe qu'à partir de PS 1.7.7 ; repli sur getSummaryDetails sinon.
+        $idLang = (int) \Configuration::get('PS_LANG_DEFAULT');
+        $summary = PsVersionCapabilities::hasRawSummaryDetails()
+            ? $cart->getRawSummaryDetails($idLang)
+            : $cart->getSummaryDetails($idLang, false);
 
         $ciklik_frequency = \Tools::getValue('ciklik_frequency', null);
 
