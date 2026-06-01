@@ -4,6 +4,8 @@
  * @copyright Since 2017 Metrogeek SAS
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
+use PrestaShop\Module\Ciklik\Helpers\PriceHelper;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -65,12 +67,12 @@ class DisplayRefundsHookController
             'order' => $orderData,
             'refund' => [
                 'refunded' => $transactionData->amount_refunded
-                    ? $this->context->currentLocale->formatPrice($transactionData->amount_refunded, $currency->iso_code)
+                    ? PriceHelper::formatPrice($transactionData->amount_refunded, $currency)
                     : 0,
                 'available' => $maxRefundAmount > 0,
                 'max' => sprintf(
                     $this->module->l('Amount (Max. %s)'),
-                    $this->context->currentLocale->formatPrice($maxRefundAmount, $currency->iso_code)
+                    PriceHelper::formatPrice($maxRefundAmount, $currency)
                 ),
             ],
             'actionUrl' => $this->context->link->getModuleLink('ciklik', 'refund'),

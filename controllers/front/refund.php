@@ -7,6 +7,7 @@
 
 use PrestaShop\Module\Ciklik\Api\Transaction;
 use PrestaShop\Module\Ciklik\Data\TransactionData;
+use PrestaShop\Module\Ciklik\Helpers\PriceHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikRefund;
 use PrestaShop\Module\Ciklik\Managers\CiklikTransaction;
 
@@ -68,12 +69,12 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
             'message' => $this->module->l('Refund completed', 'refund'),
             'refund' => [
                 'refunded' => $refundedTransactionData->amount_refunded
-                    ? $this->context->currentLocale->formatPrice($refundedTransactionData->amount_refunded, $currency->iso_code)
+                    ? PriceHelper::formatPrice($refundedTransactionData->amount_refunded, $currency)
                     : 0,
                 'available' => $newMaxRefundAmount > 0,
                 'max' => sprintf(
                     $this->module->l('Amount (max. %s)', 'refund'),
-                    $this->context->currentLocale->formatPrice($newMaxRefundAmount, $currency->iso_code)
+                    PriceHelper::formatPrice($newMaxRefundAmount, $currency)
                 ),
             ],
         ]));
@@ -177,7 +178,13 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
 
     protected function renderAndExit($value = null, $controller = null, $method = null)
     {
-        $this->ajaxRender($value, $controller, $method);
+        // Controller::ajaxRender existe à partir de PS 1.7.5.0 ; repli manuel en deçà.
+        if (method_exists($this, 'ajaxRender')) {
+            $this->ajaxRender($value, $controller, $method);
+        } else {
+            header('Content-Type: application/json; charset=utf-8');
+            echo $value;
+        }
         exit;
     }
 }

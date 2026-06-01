@@ -208,7 +208,13 @@ class CiklikManageModuleFrontController extends ModuleFrontController
 
     protected function renderAndExit($value = null, $controller = null, $method = null)
     {
-        $this->ajaxRender($value, $controller, $method);
+        // Controller::ajaxRender existe à partir de PS 1.7.5.0 ; repli manuel en deçà.
+        if (method_exists($this, 'ajaxRender')) {
+            $this->ajaxRender($value, $controller, $method);
+        } else {
+            header('Content-Type: application/json; charset=utf-8');
+            echo $value;
+        }
         exit;
     }
 }
