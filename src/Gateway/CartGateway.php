@@ -345,11 +345,31 @@ class CartGateway extends AbstractGateway implements EntityGateway
         $context->customer = $customer;
         $context->cart = $cart;
 
-        // getRawSummaryDetails n'existe qu'à partir de PS 1.7.7 ; repli sur getSummaryDetails sinon.
+        // getRawSummaryDetails n'existe qu'à partir de PS 1.7.7. En deçà, on reconstruit le
+        // sous-ensemble "raw" effectivement utilisé par cartResponse() — getSummaryDetails
+        // n'est PAS un substitut équivalent : il applique alterSummaryForDisplay (fusion
+        // des règles "free shipping" automatiques, déplacement des produits cadeaux dans
+        // une clé gift_products non lue ici, retrait des règles à valeur nulle), ce qui
+        // décalerait les items/totaux envoyés à Ciklik.
         $idLang = (int) \Configuration::get('PS_LANG_DEFAULT');
-        $summary = PsVersionCapabilities::hasRawSummaryDetails()
-            ? $cart->getRawSummaryDetails($idLang)
-            : $cart->getSummaryDetails($idLang, false);
+        if (PsVersionCapabilities::hasRawSummaryDetails()) {
+            $summary = $cart->getRawSummaryDetails($idLang);
+        } else {
+            $summary = [
+                'products' => array_values($cart->getProducts(false)),
+                'discounts' => array_values($cart->getCartRules()),
+                'total_shipping' => $cart->getTotalShippingCost(),
+                'total_shipping_tax_exc' => $cart->getTotalShippingCost(null, false),
+                'total_price' => $cart->getOrderTotal(true),
+                'carrier' => new \Carrier($cart->id_carrier, $idLang),
+            ];
+            // Préserve la compatibilité avec les modules tiers branchés sur ce hook
+            // (identique à ce que fait getRawSummaryDetails en 1.7.7+).
+            $hook = \Hook::exec('actionCartSummary', $summary, null, true);
+            if (is_array($hook)) {
+                $summary = array_merge($summary, (array) array_shift($hook));
+            }
+        }
 
         $ciklik_frequency = \Tools::getValue('ciklik_frequency', null);
 
