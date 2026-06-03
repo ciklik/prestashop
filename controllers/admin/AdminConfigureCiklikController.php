@@ -281,10 +281,10 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     Ciklik::CONFIG_FREQUENCY_PRICE_BASE => [
                         'type' => 'radio',
                         'title' => $this->l('Frequency discount calculation base'),
-                        'desc' => $this->l('Gross: the discount applies on the gross catalog price. Net: the discount applies on the price after existing price rules (promotions, discounts).'),
+                        'desc' => $this->l('Defines the base on which the subscription discount is computed. The "One-time purchase" price displayed on the product page always matches the cart total, regardless of this setting.'),
                         'choices' => [
-                            'gross' => $this->l('Gross catalog price (default behavior)'),
-                            'net' => $this->l('Price after existing price rules'),
+                            'gross' => $this->l('Gross catalog price — subscription discount does not stack with existing PrestaShop price rules'),
+                            'net' => $this->l('Net price after existing price rules — subscription discount stacks with existing promotions'),
                         ],
                         'required' => false,
                         'cast' => 'strval',
@@ -516,10 +516,10 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     Ciklik::CONFIG_FREQUENCY_PRICE_BASE => [
                         'type' => 'radio',
                         'title' => $this->l('Frequency discount calculation base'),
-                        'desc' => $this->l('Gross: the discount applies on the gross catalog price. Net: the discount applies on the price after existing price rules (promotions, discounts).'),
+                        'desc' => $this->l('Defines the base on which the subscription discount is computed. The "One-time purchase" price displayed on the product page always matches the cart total, regardless of this setting.'),
                         'choices' => [
-                            'gross' => $this->l('Gross catalog price (default behavior)'),
-                            'net' => $this->l('Price after existing price rules'),
+                            'gross' => $this->l('Gross catalog price — subscription discount does not stack with existing PrestaShop price rules'),
+                            'net' => $this->l('Net price after existing price rules — subscription discount stacks with existing promotions'),
                         ],
                         'required' => false,
                         'cast' => 'strval',

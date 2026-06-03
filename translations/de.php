@@ -177,9 +177,9 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a32cbfb7346ffb2086e
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fcf52e666ca349888702b953dcbea480'] = 'Wählen Sie die Kundengruppe aus, die bei Erfüllung der Bedingungen zugewiesen wird';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef888fa22d20e751849760694b91c441'] = 'Upselling aktivieren';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_77491e837951edcb77b5f5ec34729619'] = 'Berechnungsgrundlage für Frequenzrabatte';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_1db409ca9c1c4269e31cccbabbb6f94a'] = 'Brutto: Der Rabatt wird auf den Brutto-Katalogpreis angewendet. Netto: Der Rabatt wird auf den Preis nach bestehenden Preisregeln (Aktionen, Rabatte) angewendet.';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4334f9565ada6c201a118a511304a459'] = 'Brutto-Katalogpreis (Standardverhalten)';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_85e8f1c54d86f2a5974a07735e8e5b3b'] = 'Preis nach bestehenden Preisregeln';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_470966b850b541cee9218a61caf713f5'] = 'Definiert die Basis, auf der der Abonnementrabatt berechnet wird. Der auf der Produktseite angezeigte Preis „Einmalkauf" entspricht immer der Warenkorbsumme, unabhängig von dieser Einstellung.';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_751393ce07514df6fe8c1b1b3c9f99e6'] = 'Brutto-Katalogpreis — der Abonnementrabatt wird nicht mit bestehenden PrestaShop-Preisregeln kombiniert';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_99e21ea66eb534b6329d4867577ed87b'] = 'Nettopreis nach bestehenden Preisregeln — der Abonnementrabatt wird mit bestehenden Aktionen kombiniert';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_dbd315147b1b8f441be2a372e60ad7ac'] = 'Auf Standardkombination zurückfallen wenn gelöscht';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fe09d5a86d2ac5d6f79f7697b2e5a45a'] = 'Wenn eine angeforderte Kombination gelöscht wurde, automatisch die Standardkombination des Produkts verwenden';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3fac615347e3dc2795545814a0d8253f'] = 'Kundennachrichten-Thread für Bestellungen erstellen';

@@ -177,9 +177,9 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a32cbfb7346ffb2086e
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fcf52e666ca349888702b953dcbea480'] = 'Seleccione el grupo de clientes a asignar cuando se cumplan las condiciones';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef888fa22d20e751849760694b91c441'] = 'Activar upsell';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_77491e837951edcb77b5f5ec34729619'] = 'Base de cálculo de descuentos por frecuencia';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_1db409ca9c1c4269e31cccbabbb6f94a'] = 'Bruto: el descuento se aplica sobre el precio bruto del catálogo. Neto: el descuento se aplica sobre el precio después de las reglas de precios existentes (promociones, descuentos).';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4334f9565ada6c201a118a511304a459'] = 'Precio bruto del catálogo (comportamiento predeterminado)';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_85e8f1c54d86f2a5974a07735e8e5b3b'] = 'Precio después de las reglas de precios existentes';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_470966b850b541cee9218a61caf713f5'] = 'Define la base sobre la que se calcula el descuento de suscripción. El precio «Compra única» mostrado en la página del producto siempre coincide con el total del carrito, independientemente de este ajuste.';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_751393ce07514df6fe8c1b1b3c9f99e6'] = 'Precio bruto del catálogo — el descuento de suscripción no se acumula con las reglas de precios de PrestaShop existentes';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_99e21ea66eb534b6329d4867577ed87b'] = 'Precio neto después de las reglas de precios existentes — el descuento de suscripción se acumula con las promociones existentes';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_dbd315147b1b8f441be2a372e60ad7ac'] = 'Volver a la combinación predeterminada si se elimina';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fe09d5a86d2ac5d6f79f7697b2e5a45a'] = 'Si una combinación solicitada ha sido eliminada, utilizar automáticamente la combinación predeterminada del producto';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3fac615347e3dc2795545814a0d8253f'] = 'Crear hilo de mensaje de cliente para pedidos';

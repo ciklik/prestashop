@@ -38,7 +38,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.20.5';
+    const VERSION = '1.20.6';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -82,7 +82,7 @@ class Ciklik extends PaymentModule
         // Doit rester un littéral : le validateur PrestaShop Addons lit ce champ
         // par regex et refuse toute expression non-littérale (self::VERSION, etc.).
         // À garder synchronisé avec la constante VERSION ci-dessus.
-        $this->version = '1.20.5';
+        $this->version = '1.20.6';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -827,30 +827,37 @@ class Ciklik extends PaymentModule
             return '';
         }
 
-        // Prix du produit selon le mode de calcul
+        // L'option CONFIG_FREQUENCY_PRICE_BASE contrôle UNIQUEMENT la base de calcul de la
+        // réduction d'abonnement (sur quel prix le -% / -montant est appliqué). Le prix
+        // « Achat unique » affiché reste toujours celui du panier (avec les règles de prix PS).
         $priceMode = ProductPriceResolver::normalizeMode(
             Configuration::get(self::CONFIG_FREQUENCY_PRICE_BASE)
         );
 
-        if ($priceMode === ProductPriceResolver::MODE_GROSS) {
-            // Mode gross : prix TTC sans réductions existantes
-            $productPrice = (float) Product::getPriceStatic($idProduct, true, null, 6, null, false, false);
+        // Prix « Achat unique » affiché : toujours le prix panier (net, avec règles de prix PS).
+        // Attention : $params['product']['price'] est une string formatée en PS 1.7+
+        // (ex : "142,44 €"), donc on privilégie price_amount si disponible.
+        if (isset($params['product']['price_amount'])) {
+            $displayPrice = (float) $params['product']['price_amount'];
         } else {
-            // Mode net : prix TTC après réductions existantes.
-            // Attention : $params['product']['price'] est une string formatée en PS 1.7+
-            // (ex : "142,44 €"), donc on privilégie price_amount si disponible.
-            if (isset($params['product']['price_amount'])) {
-                $productPrice = (float) $params['product']['price_amount'];
-            } else {
-                $productPrice = (float) Product::getPriceStatic($idProduct, true, null, 6);
-            }
+            $displayPrice = (float) Product::getPriceStatic($idProduct, true, null, 6);
         }
 
-        // Pré-calculer les prix de toutes les combinaisons du produit selon
-        // le mode actif. Utilisé côté JS lors du changement de déclinaison
-        // pour afficher le bon prix sans dépendre du prix principal du DOM
-        // (qui inclut toujours les règles de prix PS, ce qui casse le mode
-        // "gross").
+        // Base de calcul de la réduction d'abonnement :
+        //  - gross : prix catalogue brut (sans appliquer les règles de prix PS) → la
+        //    réduction abonnement n'est pas cumulée avec une éventuelle promo en cours.
+        //  - net   : prix après règles de prix PS (identique au prix d'affichage), ce qui
+        //    cumule la réduction abonnement avec les promos existantes.
+        if ($priceMode === ProductPriceResolver::MODE_GROSS) {
+            $subscriptionBasePrice = (float) Product::getPriceStatic($idProduct, true, null, 6, null, false, false);
+        } else {
+            $subscriptionBasePrice = $displayPrice;
+        }
+
+        // Pré-calculer la base de réduction abonnement pour toutes les combinaisons du
+        // produit, selon le mode actif. Utilisée côté JS lors du changement de déclinaison
+        // pour recalculer le prix d'abonnement sans dépendre du prix principal du DOM (qui
+        // inclut toujours les règles de prix PS et casse donc le mode « gross »).
         $combinationRows = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT id_product_attribute FROM ' . _DB_PREFIX_ . 'product_attribute WHERE id_product = ' . (int) $idProduct
         );
@@ -859,7 +866,7 @@ class Ciklik extends PaymentModule
             : [];
 
         $combinationPrices = ProductPriceResolver::buildCombinationPricesMap(
-            $productPrice,
+            $subscriptionBasePrice,
             $combinationIds,
             function ($idPa) use ($idProduct, $priceMode) {
                 if ($priceMode === ProductPriceResolver::MODE_GROSS) {
@@ -877,8 +884,12 @@ class Ciklik extends PaymentModule
             'has_subscription_mode' => $hasSubscriptionMode,
             'ciklik_subscription_enabled' => false,
             'ciklik_frequencies' => [],
-            'ciklik_product_price' => $productPrice,
-            'ciklik_product_price_formatted' => PriceHelper::formatPrice($productPrice),
+            // « Achat unique » : toujours le prix panier.
+            'ciklik_product_price' => $displayPrice,
+            'ciklik_product_price_formatted' => PriceHelper::formatPrice($displayPrice),
+            // Base de calcul de la réduction abonnement (gross ou net selon la conf) ;
+            // sert également de prix « barré » à côté du prix d'abonnement.
+            'ciklik_subscription_base_price' => $subscriptionBasePrice,
             'ciklik_price_mode' => $priceMode,
             'ciklik_combination_prices_json' => ProductPriceResolver::encodeCombinationPricesJson($combinationPrices),
         ];
@@ -887,24 +898,23 @@ class Ciklik extends PaymentModule
         if ($hasSubscriptionMode) {
             $frequencies = CiklikFrequency::getFrequenciesForProduct($idProduct);
 
-            // Pré-formater les prix pour chaque fréquence (compatibilité PS9)
+            // Pré-formater les prix pour chaque fréquence (compatibilité PS9).
+            // Toutes les fréquences se calculent sur $subscriptionBasePrice.
             foreach ($frequencies as &$frequency) {
                 $discountPercent = (float) ($frequency['discount_percent'] ?? 0);
                 $discountPrice = (float) ($frequency['discount_price'] ?? 0);
 
-                // Calculer le prix avec réduction
                 if ($discountPercent > 0) {
-                    $discountedPrice = $productPrice * (1 - ($discountPercent / 100));
+                    $discountedPrice = $subscriptionBasePrice * (1 - ($discountPercent / 100));
                 } elseif ($discountPrice > 0) {
-                    $discountedPrice = max(0, $productPrice - $discountPrice);
+                    $discountedPrice = max(0, $subscriptionBasePrice - $discountPrice);
                 } else {
-                    $discountedPrice = $productPrice;
+                    $discountedPrice = $subscriptionBasePrice;
                 }
 
-                // Ajouter les prix formatés
                 $frequency['formatted_discount_price'] = PriceHelper::formatPrice($discountPrice);
                 $frequency['formatted_discounted_price'] = PriceHelper::formatPrice($discountedPrice);
-                $frequency['formatted_original_price'] = PriceHelper::formatPrice($productPrice);
+                $frequency['formatted_original_price'] = PriceHelper::formatPrice($subscriptionBasePrice);
             }
             unset($frequency);
 

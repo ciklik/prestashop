@@ -8,7 +8,8 @@
   <div class="ciklik-subscription-options"
        data-currency-code="{if isset($currency.iso_code)}{$currency.iso_code}{else}EUR{/if}"
        data-locale="{if isset($language.iso_code)}{$language.iso_code}{else}fr{/if}"
-       data-base-price="{$ciklik_product_price|floatval}"
+       data-display-base-price="{$ciklik_product_price|floatval}"
+       data-subscription-base-price="{$ciklik_subscription_base_price|floatval}"
        data-price-mode="{if isset($ciklik_price_mode)}{$ciklik_price_mode|escape:'html':'UTF-8'}{else}net{/if}"
        data-product-id="{$product.id_product|intval}">
     {* Map des prix bruts par id_product_attribute, utilisée par le JS lors du

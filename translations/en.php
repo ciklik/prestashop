@@ -177,9 +177,9 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a32cbfb7346ffb2086e
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fcf52e666ca349888702b953dcbea480'] = 'Select the customer group to assign when conditions are met';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_ef888fa22d20e751849760694b91c441'] = 'Enable upsell';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_77491e837951edcb77b5f5ec34729619'] = 'Frequency discount calculation base';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_1db409ca9c1c4269e31cccbabbb6f94a'] = 'Gross: the discount applies on the gross catalog price. Net: the discount applies on the price after existing price rules (promotions, discounts).';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_4334f9565ada6c201a118a511304a459'] = 'Gross catalog price (default behavior)';
-$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_85e8f1c54d86f2a5974a07735e8e5b3b'] = 'Price after existing price rules';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_470966b850b541cee9218a61caf713f5'] = 'Defines the base on which the subscription discount is computed. The "One-time purchase" price displayed on the product page always matches the cart total, regardless of this setting.';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_751393ce07514df6fe8c1b1b3c9f99e6'] = 'Gross catalog price — subscription discount does not stack with existing PrestaShop price rules';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_99e21ea66eb534b6329d4867577ed87b'] = 'Net price after existing price rules — subscription discount stacks with existing promotions';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_dbd315147b1b8f441be2a372e60ad7ac'] = 'Fall back to default combination if deleted';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fe09d5a86d2ac5d6f79f7697b2e5a45a'] = 'If a requested combination has been deleted, automatically use the product default combination';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3fac615347e3dc2795545814a0d8253f'] = 'Create customer message thread for orders';

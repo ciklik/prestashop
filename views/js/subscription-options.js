@@ -7,17 +7,17 @@
 /**
  * Gestion des options d'abonnement sur la page produit
  *
- * Respecte le mode de calcul configuré :
- *  - "gross" : affiche le prix catalogue brut de chaque combinaison (non affecté
- *    par les règles de prix PS). Les prix de toutes les combinaisons sont
- *    pré-calculés côté serveur et sérialisés dans un script JSON adjacent au
- *    conteneur. Le JS lit ensuite cette map au chargement et à chaque
- *    changement de déclinaison, sans jamais consulter le prix principal du DOM
- *    (qui lui contient toujours les règles de prix appliquées).
- *  - "net"   : lit le prix depuis le DOM principal du produit (comportement
- *    standard PrestaShop), ce qui reflète automatiquement les règles de prix.
- *
- * @author Ciklik SAS
+ * Deux prix distincts sont pilotés côté JS :
+ *  - displayPrice : prix « Achat unique » affiché — toujours le prix panier
+ *    (avec les règles de prix PrestaShop appliquées). Mis à jour depuis
+ *    product_prices.price_amount sur l'événement updatedProduct, ou depuis le
+ *    DOM principal en fallback.
+ *  - subscriptionBasePrice : base de calcul de la réduction d'abonnement —
+ *    soit gross (catalogue brut, sans règles de prix PS), soit net (= prix
+ *    panier), selon l'option « Frequency discount calculation base ». En mode
+ *    gross, la valeur de chaque combinaison est lue dans la map pré-calculée
+ *    serveur (le DOM principal contient toujours le prix net, donc inutilisable
+ *    comme source en gross).
  */
 
 (function() {
@@ -26,7 +26,8 @@
   var subscriptionOptions = {
     currencyCode: 'EUR',
     locale: 'fr',
-    basePrice: 0,
+    displayPrice: 0,
+    subscriptionBasePrice: 0,
     priceMode: 'net',
     productId: 0,
     combinationPrices: {},
@@ -44,14 +45,16 @@
     }
     subscriptionOptions.initialized = true;
 
-    // En mode net, on lit le prix depuis le DOM au chargement pour être aligné
-    // avec le prix principal (qui inclut les règles de prix PS).
-    // En mode gross, on garde le data-base-price transmis par le serveur, qui
-    // est le prix brut correct.
+    // En mode net, on aligne le prix d'affichage sur le DOM principal au chargement
+    // (au cas où des modules tiers l'auraient modifié après le rendu serveur).
+    // La base d'abonnement reste identique au prix d'affichage en mode net.
+    // En mode gross, on garde les valeurs serveur — la map combinationPrices est la
+    // seule source fiable pour la base d'abonnement.
     if (subscriptionOptions.priceMode === 'net') {
       var domPrice = readPrimaryPriceFromDom();
       if (domPrice > 0) {
-        subscriptionOptions.basePrice = domPrice;
+        subscriptionOptions.displayPrice = domPrice;
+        subscriptionOptions.subscriptionBasePrice = domPrice;
       }
     }
 
@@ -63,14 +66,12 @@
     // Fallback pour les changements d'attributs (anciens thèmes)
     setupAttributeListeners();
 
-    // Premier rendu des prix des options d'abonnement
-    updateAllPrices(subscriptionOptions.basePrice);
+    // Premier rendu
+    updateAllPrices(subscriptionOptions.displayPrice, subscriptionOptions.subscriptionBasePrice);
   }
 
   /**
-   * Lit le prix principal du produit depuis le DOM.
-   * À n'utiliser QU'en mode net (en mode gross ce prix inclut les règles de
-   * prix PS, ce qui donne une valeur incorrecte pour le calcul d'abonnement).
+   * Lit le prix principal du produit depuis le DOM (prix panier, toujours net).
    */
   function readPrimaryPriceFromDom() {
     var priceElements = [
@@ -101,7 +102,7 @@
   }
 
   /**
-   * Récupère le prix brut d'une combinaison depuis la map pré-calculée serveur.
+   * Récupère la base de calcul abonnement d'une combinaison depuis la map serveur.
    * @param {number} idProductAttribute
    * @returns {number|null} Le prix ou null si non trouvé
    */
@@ -110,7 +111,6 @@
     if (subscriptionOptions.combinationPrices.hasOwnProperty(id)) {
       return parseFloat(subscriptionOptions.combinationPrices[id]);
     }
-    // Fallback sur le prix sans combinaison
     if (subscriptionOptions.combinationPrices.hasOwnProperty(0)) {
       return parseFloat(subscriptionOptions.combinationPrices[0]);
     }
@@ -118,45 +118,53 @@
   }
 
   /**
-   * Met à jour tous les prix affichés dans les cartes d'options d'abonnement
+   * Met à jour tous les prix affichés.
+   *
+   * @param {number} newDisplay  Prix « Achat unique » (panier).
+   * @param {number} newSubBase  Base de calcul abonnement (gross ou net).
+   *                             Si non fourni, prend la valeur de newDisplay.
    */
-  function updateAllPrices(newBasePrice) {
-    if (!newBasePrice || isNaN(newBasePrice) || newBasePrice <= 0) {
+  function updateAllPrices(newDisplay, newSubBase) {
+    if (!newDisplay || isNaN(newDisplay) || newDisplay <= 0) {
       return;
     }
+    if (typeof newSubBase === 'undefined' || !newSubBase || isNaN(newSubBase) || newSubBase <= 0) {
+      newSubBase = newDisplay;
+    }
 
-    subscriptionOptions.basePrice = newBasePrice;
+    subscriptionOptions.displayPrice = newDisplay;
+    subscriptionOptions.subscriptionBasePrice = newSubBase;
 
-    // Prix d'achat unique
+    // « Achat unique » : prix panier.
     var singlePurchaseElements = document.querySelectorAll('.frequency-option .current-price');
     singlePurchaseElements.forEach(function(element) {
-      element.textContent = formatPrice(subscriptionOptions.basePrice);
-      element.setAttribute('data-base-price', subscriptionOptions.basePrice);
+      element.textContent = formatPrice(newDisplay);
+      element.setAttribute('data-base-price', newDisplay);
     });
 
-    // Prix avec réduction (fréquences)
+    // Options d'abonnement avec réduction : base = newSubBase.
     var discountCards = document.querySelectorAll('.frequency-option .discount-card');
     discountCards.forEach(function(card) {
       var originalPriceElement = card.querySelector('.original-price');
       var discountedPriceElement = card.querySelector('.discounted-price');
 
       if (originalPriceElement && discountedPriceElement) {
-        originalPriceElement.textContent = formatPrice(subscriptionOptions.basePrice);
-        originalPriceElement.setAttribute('data-base-price', subscriptionOptions.basePrice);
+        originalPriceElement.textContent = formatPrice(newSubBase);
+        originalPriceElement.setAttribute('data-base-price', newSubBase);
 
         var discountPercent = parseFloat(discountedPriceElement.getAttribute('data-discount-percent')) || 0;
         var discountPrice = parseFloat(discountedPriceElement.getAttribute('data-discount-price')) || 0;
 
         var discountedPrice;
         if (discountPercent > 0) {
-          discountedPrice = subscriptionOptions.basePrice * (1 - discountPercent / 100);
+          discountedPrice = newSubBase * (1 - discountPercent / 100);
         } else {
-          discountedPrice = subscriptionOptions.basePrice - discountPrice;
+          discountedPrice = newSubBase - discountPrice;
         }
         discountedPrice = Math.max(0, discountedPrice);
 
         discountedPriceElement.textContent = formatPrice(discountedPrice);
-        discountedPriceElement.setAttribute('data-base-price', subscriptionOptions.basePrice);
+        discountedPriceElement.setAttribute('data-base-price', newSubBase);
       }
     });
   }
@@ -178,43 +186,49 @@
   }
 
   /**
-   * Gère l'événement "updatedProduct" émis par PrestaShop lors d'un changement
-   * de combinaison (sélection d'une déclinaison).
+   * Gère l'événement « updatedProduct » émis par PrestaShop lors d'un changement
+   * de combinaison.
    *
-   * - Mode gross : lit le prix brut de la nouvelle combinaison depuis la map
-   *   pré-calculée serveur.
-   * - Mode net   : utilise product_prices.price_amount fourni par PS (qui
-   *   reflète les règles de prix en mode net).
+   * - displayPrice (achat unique) : toujours product_prices.price_amount fourni
+   *   par PS, qui reflète les règles de prix.
+   * - subscriptionBasePrice : depuis la map serveur en mode gross (le DOM
+   *   contient toujours le net), sinon = displayPrice.
    */
   function handlePrestaShopPriceUpdate(event) {
     if (!event) return;
 
-    var newPrice = 0;
-
-    if (subscriptionOptions.priceMode === 'gross') {
-      var idPa = event.id_product_attribute || (event.product && event.product.id_product_attribute) || 0;
-      var grossPrice = getCombinationPrice(idPa);
-      if (grossPrice !== null && grossPrice > 0) {
-        newPrice = grossPrice;
-      }
-    } else if (event.product_prices) {
+    var newDisplay = 0;
+    if (event.product_prices) {
       if (event.product_prices.price_amount) {
-        newPrice = parseFloat(event.product_prices.price_amount);
+        newDisplay = parseFloat(event.product_prices.price_amount);
       } else if (event.product_prices.price) {
-        newPrice = parseFloat(event.product_prices.price);
+        newDisplay = parseFloat(event.product_prices.price);
       } else if (event.product_prices.regular_price) {
-        newPrice = parseFloat(event.product_prices.regular_price);
+        newDisplay = parseFloat(event.product_prices.regular_price);
       }
     }
 
-    if (!isNaN(newPrice) && newPrice > 0) {
-      updateAllPrices(newPrice);
+    var newSubBase;
+    if (subscriptionOptions.priceMode === 'gross') {
+      var idPa = event.id_product_attribute || (event.product && event.product.id_product_attribute) || 0;
+      var grossPrice = getCombinationPrice(idPa);
+      newSubBase = (grossPrice !== null && grossPrice > 0) ? grossPrice : newDisplay;
+    } else {
+      newSubBase = newDisplay;
+    }
+
+    if (!isNaN(newDisplay) && newDisplay > 0) {
+      updateAllPrices(newDisplay, newSubBase);
     }
   }
 
   /**
    * Fallback pour les thèmes qui n'émettent pas l'événement updatedProduct :
    * écoute directement les changements sur les inputs d'attributs.
+   *
+   * En mode gross, on s'appuie exclusivement sur updatedProduct (qui donne
+   * id_product_attribute). Sans cet événement, la base d'abonnement reste sur
+   * sa valeur initiale — préférable à un prix faux.
    */
   function setupAttributeListeners() {
     var productAttributeSelects = document.querySelectorAll(
@@ -226,22 +240,17 @@
           if (subscriptionOptions.priceMode === 'net') {
             var domPrice = readPrimaryPriceFromDom();
             if (domPrice > 0) {
-              updateAllPrices(domPrice);
+              updateAllPrices(domPrice, domPrice);
             }
           }
-          // En mode gross, on se repose exclusivement sur l'événement
-          // updatedProduct de PS qui nous donne id_product_attribute.
-          // Si le thème ne l'émet pas, la map combinationPrices ne sera pas
-          // utilisée et le prix restera sur la valeur initiale — mieux que
-          // d'afficher un prix faux.
         }, 500);
       });
     });
   }
 
   /**
-   * Parse le JSON des prix par combinaison depuis le <script> adjacent au
-   * conteneur .ciklik-subscription-options
+   * Parse le JSON des bases d'abonnement par combinaison depuis le <script>
+   * adjacent au conteneur .ciklik-subscription-options
    */
   function parseCombinationPrices(container) {
     var script = container.querySelector('script.ciklik-combination-prices');
@@ -260,10 +269,14 @@
     var container = document.querySelector('.ciklik-subscription-options');
     if (!container) return;
 
+    var displayBase = parseFloat(container.getAttribute('data-display-base-price')) || 0;
+    var subBase = parseFloat(container.getAttribute('data-subscription-base-price')) || displayBase;
+
     var config = {
       currencyCode: container.getAttribute('data-currency-code') || 'EUR',
       locale: container.getAttribute('data-locale') || 'fr',
-      basePrice: parseFloat(container.getAttribute('data-base-price')) || 0,
+      displayPrice: displayBase,
+      subscriptionBasePrice: subBase,
       priceMode: container.getAttribute('data-price-mode') || 'net',
       productId: parseInt(container.getAttribute('data-product-id'), 10) || 0,
       combinationPrices: parseCombinationPrices(container)
@@ -278,10 +291,16 @@
     autoInit();
   }
 
-  // API publique
+  // API publique. updatePrices accepte un ou deux arguments (rétrocompat :
+  // un seul argument force display = subscription base).
   window.CiklikSubscriptionOptions = {
     init: initSubscriptionOptions,
-    updatePrices: updateAllPrices,
-    getBasePrice: function() { return subscriptionOptions.basePrice; }
+    updatePrices: function(newDisplay, newSubBase) {
+      return updateAllPrices(newDisplay, newSubBase);
+    },
+    getDisplayPrice: function() { return subscriptionOptions.displayPrice; },
+    getSubscriptionBasePrice: function() { return subscriptionOptions.subscriptionBasePrice; },
+    // Conservé pour compatibilité — retourne le prix d'affichage.
+    getBasePrice: function() { return subscriptionOptions.displayPrice; }
   };
 })();
