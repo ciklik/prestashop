@@ -1244,13 +1244,26 @@ class Ciklik extends PaymentModule
         $idProductAttribute = (int) $params['id_product_attribute'];
         $cart = $params['cart'];
 
-        // Récupère la fréquence sélectionnée
+        // Distinguer présence vs absence du champ ciklik_frequency dans le POST :
+        //  - absent : modification de quantité depuis la page panier (pas d'accès au
+        //    sélecteur Ciklik). On préserve la fréquence existante sauf si la ligne est
+        //    retirée du panier (quantité finale ≤ 0). Sans cette garde, un +1/-1 depuis
+        //    le panier supprimait silencieusement l'abonnement du client.
+        //  - présent, valeur "0" : choix explicite « Achat unique » depuis la fiche → nettoyage.
+        //  - présent, valeur > 0 : nouvelle fréquence à sauvegarder (logique en-dessous).
+        if (!Tools::getIsset('ciklik_frequency')) {
+            if ($this->computeFinalCartQuantity($cart, $idProduct, $idProductAttribute, $params) <= 0) {
+                CiklikItemFrequency::deleteByCartAndProduct($cart->id, $idProduct);
+                CiklikSpecificPrice::remove($idProduct, $idProductAttribute, $cart->id);
+            }
+
+            return;
+        }
+
         $selectedFrequency = Tools::getValue('ciklik_frequency');
 
-        // Si aucune fréquence n'est sélectionnée pour un produit en abonnement, on supprime les données de fréquence
         if (!$selectedFrequency) {
             CiklikItemFrequency::deleteByCartAndProduct($cart->id, $idProduct);
-            // Supprimer aussi les prix spécifiques existants
             CiklikSpecificPrice::remove($idProduct, $idProductAttribute, $cart->id);
 
             return;
@@ -1293,6 +1306,43 @@ class Ciklik extends PaymentModule
                 );
             }
         }
+    }
+
+    /**
+     * Calcule la quantité finale d'une ligne panier après l'opération courante.
+     * Le hook actionCartUpdateQuantityBefore reçoit un delta ou un absolu selon
+     * l'opérateur ; on rejoue la même logique sur la quantité actuelle de la ligne
+     * pour savoir si elle sera retirée du panier.
+     *
+     * @param Cart $cart
+     * @param int $idProduct
+     * @param int $idProductAttribute
+     * @param array $params Paramètres du hook (operator, quantity)
+     *
+     * @return int Quantité finale prévue pour la ligne (peut être <= 0 si retrait)
+     */
+    private function computeFinalCartQuantity(Cart $cart, $idProduct, $idProductAttribute, array $params)
+    {
+        $currentQty = 0;
+        foreach ($cart->getProducts() as $cartProduct) {
+            if ((int) $cartProduct['id_product'] === (int) $idProduct
+                && (int) $cartProduct['id_product_attribute'] === (int) $idProductAttribute) {
+                $currentQty = (int) $cartProduct['cart_quantity'];
+                break;
+            }
+        }
+
+        $operator = isset($params['operator']) ? $params['operator'] : 'up';
+        $qtyArg = (int) $params['quantity'];
+
+        if ($operator === 'up') {
+            return $currentQty + $qtyArg;
+        }
+        if ($operator === 'down') {
+            return $currentQty - $qtyArg;
+        }
+
+        return $qtyArg;
     }
 
     public function hookDisplayShoppingCart($params)
