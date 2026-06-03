@@ -87,10 +87,7 @@ class Ciklik extends PaymentModule
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
         $this->ps_versions_compliancy = [
-            // La variante "raw" descend à 1.7.0 (replis de hooks par version) ;
-            // la variante "with-addon" garde un plancher conservateur tant que
-            // l'écosystème PS Accounts n'est pas validé sur très vieux PrestaShop.
-            'min' => self::isCiklikAddonsBuild() ? '1.7.6.0' : '1.7.0.0',
+            'min' => '1.7.0.0',
             'max' => '9.1.1',
         ];
         $this->controllers = [
