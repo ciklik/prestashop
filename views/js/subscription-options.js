@@ -66,6 +66,10 @@
     // Fallback pour les changements d'attributs (anciens thèmes)
     setupAttributeListeners();
 
+    // Écouter les changements sur les radios « Achat unique » / « Abonnement … »
+    // pour propager la sélection au prix principal du thème.
+    setupRadioListeners();
+
     // Premier rendu
     updateAllPrices(subscriptionOptions.displayPrice, subscriptionOptions.subscriptionBasePrice);
   }
@@ -246,6 +250,80 @@
         }, 500);
       });
     });
+  }
+
+  /**
+   * Écoute les changements de sélection sur les radios « Achat unique » /
+   * « Abonnement … » et propage le prix de l'option sélectionnée :
+   *  - (a) en best-effort, écriture du prix dans les sélecteurs « prix principal »
+   *    standards du thème (mêmes sélecteurs que readPrimaryPriceFromDom),
+   *  - (b) émission d'un événement DOM `ciklik:option-selected` qu'un thème
+   *    custom peut écouter pour appliquer sa propre logique de mise à jour.
+   */
+  function setupRadioListeners() {
+    var radios = document.querySelectorAll('input[name="ciklik_frequency"]');
+    radios.forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        if (radio.checked) {
+          handleOptionSelected(radio);
+        }
+      });
+    });
+  }
+
+  function handleOptionSelected(radio) {
+    var card = radio.closest('.frequency-card');
+    if (!card) return;
+
+    // Pour une carte avec réduction, le prix à montrer est .discounted-price ;
+    // sinon (achat unique ou fréquence sans réduction), c'est .current-price.
+    var priceElement = card.querySelector('.discounted-price') || card.querySelector('.current-price');
+    if (!priceElement) return;
+
+    var formattedPrice = (priceElement.textContent || '').trim();
+    if (!formattedPrice) return;
+
+    // (a) best-effort : on écrit dans les sélecteurs prix principal du thème.
+    writePrimaryPriceToDom(formattedPrice);
+
+    // (b) événement custom pour les thèmes qui veulent piloter leur propre rendu.
+    if (typeof window.CustomEvent === 'function') {
+      var detail = {
+        frequencyId: parseInt(radio.value, 10) || 0,
+        formattedPrice: formattedPrice,
+        radio: radio,
+        card: card
+      };
+      document.dispatchEvent(new CustomEvent('ciklik:option-selected', { detail: detail, bubbles: true }));
+    }
+  }
+
+  /**
+   * Écrit le prix formaté dans les sélecteurs « prix principal » connus du thème.
+   * Best-effort : on saute les éléments à structure HTML complexe (children) pour
+   * ne pas casser leur markup. Les thèmes custom doivent utiliser l'événement
+   * `ciklik:option-selected` pour piloter eux-mêmes le rendu.
+   */
+  function writePrimaryPriceToDom(formattedPrice) {
+    var priceSelectors = [
+      '.current-price:not(.frequency-option .current-price)',
+      '.product-price-and-shipping .price',
+      '.product-prices .product-price',
+      '.product-price',
+      '[data-field="price"]',
+      '#our_price_display'
+    ];
+
+    for (var i = 0; i < priceSelectors.length; i++) {
+      var elements = document.querySelectorAll(priceSelectors[i]);
+      elements.forEach(function(el) {
+        // Ne pas écrire dans notre propre bloc (boucle).
+        if (el.closest('.ciklik-subscription-options')) return;
+        // Ne pas écraser un markup complexe (préservation du HTML thème).
+        if (el.children.length > 0) return;
+        el.textContent = formattedPrice;
+      });
+    }
   }
 
   /**
