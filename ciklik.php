@@ -38,7 +38,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.20.7';
+    const VERSION = '1.21.0';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -74,6 +74,14 @@ class Ciklik extends PaymentModule
     private $logger;
     private $container;
     private $hooks;
+    /**
+     * Cache par requête HTTP des infos « subscribable » + « fréquence panier »
+     * utilisées par hookDisplayCartExtraProductInfo. Une seule requête BDD par
+     * panier, indépendamment du nombre de lignes affichées.
+     *
+     * @var array<int, array{subscribable: array<int, true>, frequencies: array<int, array>}>
+     */
+    private $cartExtraInfoCache = [];
 
     public function __construct()
     {
@@ -82,7 +90,7 @@ class Ciklik extends PaymentModule
         // Doit rester un littéral : le validateur PrestaShop Addons lit ce champ
         // par regex et refuse toute expression non-littérale (self::VERSION, etc.).
         // À garder synchronisé avec la constante VERSION ci-dessus.
-        $this->version = '1.20.7';
+        $this->version = '1.21.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -1376,6 +1384,142 @@ class Ciklik extends PaymentModule
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/displayShoppingCart.tpl');
+    }
+
+    /**
+     * Hook displayCartExtraProductInfo (PrestaShop 8.2+)
+     *
+     * Affiche le type d'achat et, le cas échéant, la fréquence sur la ligne
+     * produit du récap panier. N'agit qu'en mode fréquence et seulement pour
+     * les produits réellement subscribables (ayant au moins une fréquence
+     * rattachée via ciklik_product_frequency).
+     *
+     * Le hook est appelé une fois par ligne panier : les lookups BDD sont
+     * mutualisés par panier via {@see Ciklik::loadCartExtraInfoCache()} pour
+     * éviter un N+1 sur les paniers volumineux.
+     *
+     * @param array $params Doit contenir 'product' (objet présenté par le panier)
+     *
+     * @return string HTML rendu ou chaîne vide si non applicable
+     */
+    public function hookDisplayCartExtraProductInfo(array $params)
+    {
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            return '';
+        }
+
+        if (empty($params['product'])) {
+            return '';
+        }
+
+        $product = $params['product'];
+        $idProduct = (int) (is_array($product) ? ($product['id_product'] ?? 0) : ($product->id_product ?? 0));
+        // Conservé pour exposition au template (utile aux thèmes qui surchargent le rendu)
+        $idProductAttribute = (int) (is_array($product)
+            ? ($product['id_product_attribute'] ?? 0)
+            : ($product->id_product_attribute ?? 0));
+
+        if ($idProduct <= 0) {
+            return '';
+        }
+
+        $cart = $this->context->cart;
+        if (!$cart || !$cart->id) {
+            return '';
+        }
+
+        $cache = $this->loadCartExtraInfoCache((int) $cart->id);
+
+        // N'affiche rien sur les produits non subscribables : pas d'option d'abonnement disponible
+        if (!isset($cache['subscribable'][$idProduct])) {
+            return '';
+        }
+
+        $purchaseType = 'one_off';
+        $frequencyName = null;
+
+        if (isset($cache['frequencies'][$idProduct])) {
+            $purchaseType = 'subscription';
+            if (!empty($cache['frequencies'][$idProduct]['name'])) {
+                $frequencyName = $cache['frequencies'][$idProduct]['name'];
+            }
+        }
+
+        $this->context->smarty->assign([
+            'purchase_type' => $purchaseType,
+            'frequency_name' => $frequencyName,
+            'id_product' => $idProduct,
+            'id_product_attribute' => $idProductAttribute,
+            // Donnée brute exposée volontairement pour permettre aux surcharges
+            // de template (thème) d'accéder à des champs additionnels
+            'product' => $product,
+        ]);
+
+        return $this->display(__FILE__, 'views/templates/hook/displayCartExtraProductInfo.tpl');
+    }
+
+    /**
+     * Charge en mémoire les infos nécessaires au rendu de displayCartExtraProductInfo
+     * pour un panier donné, en deux requêtes maximum par panier.
+     *
+     * @param int $cartId
+     *
+     * @return array{subscribable: array<int, true>, frequencies: array<int, array>}
+     */
+    private function loadCartExtraInfoCache(int $cartId): array
+    {
+        if (isset($this->cartExtraInfoCache[$cartId])) {
+            return $this->cartExtraInfoCache[$cartId];
+        }
+
+        $cache = [
+            'subscribable' => [],
+            'frequencies' => [],
+        ];
+
+        // Récupère les IDs produits du panier en cours (déjà chargés en mémoire par PS).
+        // Cast explicite : Cart->id revient en string sur les ObjectModel chargés en BDD,
+        // une comparaison stricte === contre un int casserait le match.
+        $productIds = [];
+        $cart = $this->context->cart;
+        if ($cart && (int) $cart->id === $cartId) {
+            foreach ($cart->getProducts() as $cartProduct) {
+                $productIds[(int) $cartProduct['id_product']] = true;
+            }
+        }
+
+        if (empty($productIds)) {
+            $this->cartExtraInfoCache[$cartId] = $cache;
+
+            return $cache;
+        }
+
+        $idsList = implode(',', array_keys($productIds));
+
+        // Une seule requête pour la liste des produits subscribables présents
+        $subscribableQuery = new DbQuery();
+        $subscribableQuery->select('DISTINCT id_product');
+        $subscribableQuery->from('ciklik_product_frequency');
+        $subscribableQuery->where('id_product IN (' . $idsList . ')');
+        $subscribableRows = Db::getInstance()->executeS($subscribableQuery);
+        foreach ((array) $subscribableRows as $row) {
+            $cache['subscribable'][(int) $row['id_product']] = true;
+        }
+
+        // Une seule requête pour les fréquences réellement sélectionnées dans ce panier
+        $frequencyQuery = new DbQuery();
+        $frequencyQuery->select('cif.product_id, cf.id_frequency, cf.name');
+        $frequencyQuery->from('ciklik_items_frequency', 'cif');
+        $frequencyQuery->leftJoin('ciklik_frequency', 'cf', 'cf.id_frequency = cif.frequency_id');
+        $frequencyQuery->where('cif.cart_id = ' . (int) $cartId);
+        $frequencyRows = Db::getInstance()->executeS($frequencyQuery);
+        foreach ((array) $frequencyRows as $row) {
+            $cache['frequencies'][(int) $row['product_id']] = $row;
+        }
+
+        $this->cartExtraInfoCache[$cartId] = $cache;
+
+        return $cache;
     }
 
     public function hookActionAuthentication($params)

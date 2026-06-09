@@ -256,6 +256,7 @@ class Installer
             'displayAdminProductsExtra',
             'actionCartUpdateQuantityBefore',
             'displayShoppingCart',
+            'displayCartExtraProductInfo',
             'actionAuthentication',
             'actionProductUpdate',
             'actionCiklikCartBeforeRebill',

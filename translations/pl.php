@@ -428,3 +428,7 @@ $_MODULE['<{ciklik}prestashop>subscription_f1c7bd352c955a66df76e33dab37570b'] = 
 $_MODULE['<{ciklik}prestashop>subscription_e4000a1cbe889f868f82b1b177936841'] = 'Produkt nie znaleziony.';
 $_MODULE['<{ciklik}prestashop>subscription_bad3aacd729d65861141caf099d6fa38'] = 'Produkt został dodany do subskrypcji.';
 $_MODULE['<{ciklik}prestashop>subscription_fae2c57b7d857b7bf0ab6c748c3983e4'] = 'Ten produkt nie jest dostępny w ramach subskrypcji.';
+$_MODULE['<{ciklik}prestashop>displaycartextraproductinfo_6a7068fd190fb4caa59a6ebf9f323aec'] = 'Typ zakupu:';
+$_MODULE['<{ciklik}prestashop>displaycartextraproductinfo_787ad0b7a17de4ad6b1711bbf8d79fcb'] = 'Subskrypcja';
+$_MODULE['<{ciklik}prestashop>displaycartextraproductinfo_543ffc111d45d9c3a0cba2026eec14ef'] = 'Zakup jednorazowy';
+$_MODULE['<{ciklik}prestashop>displaycartextraproductinfo_e130919e23bb4fd2f80d56b31e8b1d7d'] = 'Częstotliwość:';
