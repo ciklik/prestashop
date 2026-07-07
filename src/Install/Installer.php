@@ -95,7 +95,12 @@ class Installer
             && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_FREQUENCY_PRICE_BASE, 'gross')
             && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_ENABLE_CREATION_ORDER_STATE, '0')
             && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_CREATION_ORDER_STATE, '0')
-            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_ENABLE_SKIP_NEXT_DELIVERY, '0');
+            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_ENABLE_SKIP_NEXT_DELIVERY, '0')
+            // Récap panier : footer + alertes activés par défaut ; messages laissés
+            // vides (le template retombe sur des textes traduisibles par défaut).
+            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_CART_FOOTER_ENABLED, '1')
+            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_CART_ALERT_MIXED_ENABLED, '1')
+            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_CART_ALERT_FREQ_ENABLED, '1');
     }
 
     /**
@@ -130,6 +135,12 @@ class Installer
             \Ciklik::CONFIG_DELEGATE_OPTIONS_DISPLAY,
             \Ciklik::CONFIG_ENABLE_CREATION_ORDER_STATE,
             \Ciklik::CONFIG_CREATION_ORDER_STATE,
+            \Ciklik::CONFIG_CART_FOOTER_ENABLED,
+            \Ciklik::CONFIG_CART_FOOTER_MESSAGE,
+            \Ciklik::CONFIG_CART_ALERT_MIXED_ENABLED,
+            \Ciklik::CONFIG_CART_ALERT_MIXED_MESSAGE,
+            \Ciklik::CONFIG_CART_ALERT_FREQ_ENABLED,
+            \Ciklik::CONFIG_CART_ALERT_FREQ_MESSAGE,
         ];
 
         foreach ($keys as $key) {
@@ -258,6 +269,7 @@ class Installer
             'displayAdminProductsExtra',
             'actionCartUpdateQuantityBefore',
             'displayShoppingCart',
+            'displayShoppingCartFooter',
             'displayCartExtraProductInfo',
             'actionAuthentication',
             'actionProductUpdate',

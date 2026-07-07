@@ -69,6 +69,13 @@ class Ciklik extends PaymentModule
     const CONFIG_ENABLE_ORDER_THREAD = 'CIKLIK_ENABLE_ORDER_THREAD';
     const CONFIG_ORDER_THREAD_STATUS = 'CIKLIK_ORDER_THREAD_STATUS';
     const CONFIG_FREQUENCY_PRICE_BASE = 'CIKLIK_FREQUENCY_PRICE_BASE';
+    // Récap panier (hook displayShoppingCartFooter) — mode fréquence uniquement
+    const CONFIG_CART_FOOTER_ENABLED = 'CIKLIK_CART_FOOTER_ENABLED';
+    const CONFIG_CART_FOOTER_MESSAGE = 'CIKLIK_CART_FOOTER_MESSAGE';
+    const CONFIG_CART_ALERT_MIXED_ENABLED = 'CIKLIK_CART_ALERT_MIXED_ENABLED';
+    const CONFIG_CART_ALERT_MIXED_MESSAGE = 'CIKLIK_CART_ALERT_MIXED_MESSAGE';
+    const CONFIG_CART_ALERT_FREQ_ENABLED = 'CIKLIK_CART_ALERT_FREQ_ENABLED';
+    const CONFIG_CART_ALERT_FREQ_MESSAGE = 'CIKLIK_CART_ALERT_FREQ_MESSAGE';
     /**
      * @var Monolog\Logger
      */
@@ -1396,6 +1403,73 @@ class Ciklik extends PaymentModule
         ]);
 
         return $this->display(__FILE__, 'views/templates/hook/displayShoppingCart.tpl');
+    }
+
+    /**
+     * Hook displayShoppingCartFooter (mode fréquence uniquement).
+     *
+     * Affiche, sous le récap panier, une mention légale de récurrence et, en
+     * option, deux avertissements : panier mixte (abonnement + achat unique) et
+     * fréquences d'abonnement différentes. Tous les textes et les activations
+     * sont configurables en back-office (voir AdminConfigureCiklikController).
+     *
+     * @param array $params
+     *
+     * @return string HTML rendu ou chaîne vide si non applicable
+     */
+    public function hookDisplayShoppingCartFooter($params)
+    {
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)
+            || !Configuration::get(self::CONFIG_CART_FOOTER_ENABLED)) {
+            return '';
+        }
+
+        $cart = $this->context->cart;
+        $idLang = (int) $this->context->language->id;
+
+        // Fréquence enregistrée pour chaque produit du panier
+        $query = new DbQuery();
+        $query->select('cif.product_id, cf.name');
+        $query->from('ciklik_items_frequency', 'cif');
+        $query->innerJoin('ciklik_frequency', 'cf', 'cf.id_frequency = cif.frequency_id');
+        $query->where('cif.cart_id = ' . (int) $cart->id);
+        $results = Db::getInstance()->executeS($query);
+
+        $subscriptionProductIds = [];
+        $frequencyNames = [];
+        if ($results) {
+            foreach ($results as $row) {
+                $subscriptionProductIds[(int) $row['product_id']] = true;
+                $frequencyNames[$row['name']] = true;
+            }
+        }
+
+        // Aucun abonnement au panier : rien à afficher
+        if (empty($subscriptionProductIds)) {
+            return '';
+        }
+
+        // Panier mixte : au moins un produit sans abonnement
+        $hasNoSubscription = false;
+        foreach ($cart->getProducts() as $product) {
+            if (!isset($subscriptionProductIds[(int) $product['id_product']])) {
+                $hasNoSubscription = true;
+                break;
+            }
+        }
+
+        $alertMixed = (bool) Configuration::get(self::CONFIG_CART_ALERT_MIXED_ENABLED) && $hasNoSubscription;
+        $alertFrequencies = (bool) Configuration::get(self::CONFIG_CART_ALERT_FREQ_ENABLED) && count($frequencyNames) > 1;
+
+        $this->context->smarty->assign([
+            'ciklik_footer_message' => Configuration::get(self::CONFIG_CART_FOOTER_MESSAGE, $idLang),
+            'ciklik_alert_mixed' => $alertMixed,
+            'ciklik_alert_mixed_message' => Configuration::get(self::CONFIG_CART_ALERT_MIXED_MESSAGE, $idLang),
+            'ciklik_alert_frequencies' => $alertFrequencies,
+            'ciklik_alert_frequencies_message' => Configuration::get(self::CONFIG_CART_ALERT_FREQ_MESSAGE, $idLang),
+        ]);
+
+        return $this->display(__FILE__, 'views/templates/hook/displayShoppingCartFooter.tpl');
     }
 
     /**

@@ -94,6 +94,79 @@ class AdminConfigureCiklikController extends ModuleAdminController
         } else {
             $this->fields_options = $this->get18Fields($attributes_groups, $product_suffixes_values, $product_suffixes_choices);
         }
+
+        // Bloc « Récap panier » (hook displayShoppingCartFooter), commun PS 1.7 / 8 / 9
+        $this->fields_options['ciklik_cart_footer'] = $this->getCartFooterOptionsBlock();
+    }
+
+    /**
+     * Options du récap panier (mention légale + avertissements) rendues sous le
+     * panier via le hook displayShoppingCartFooter, en mode fréquence.
+     *
+     * @return array
+     */
+    public function getCartFooterOptionsBlock()
+    {
+        return [
+            'title' => $this->l('Cart footer (frequency mode)'),
+            'icon' => 'icon-shopping-cart',
+            'fields' => [
+                Ciklik::CONFIG_CART_FOOTER_ENABLED => [
+                    'type' => 'bool',
+                    'title' => $this->l('Show cart footer'),
+                    'desc' => $this->l('Displays a recurring-payment legal notice below the cart summary. Frequency mode only.'),
+                    'validation' => 'isBool',
+                    'cast' => 'intval',
+                    'required' => false,
+                ],
+                Ciklik::CONFIG_CART_FOOTER_MESSAGE => [
+                    'type' => 'textarea',
+                    'lang' => true,
+                    'cols' => 60,
+                    'rows' => 4,
+                    'title' => $this->l('Legal notice'),
+                    'desc' => $this->l('Leave empty to use the default translated text. Basic HTML is allowed (e.g. a link to your terms).'),
+                    'cast' => 'strval',
+                ],
+                Ciklik::CONFIG_CART_ALERT_MIXED_ENABLED => [
+                    'type' => 'bool',
+                    'title' => $this->l('Warn on mixed cart'),
+                    'desc' => $this->l('Shows a warning when the cart mixes subscription items and one-time purchases.'),
+                    'validation' => 'isBool',
+                    'cast' => 'intval',
+                    'required' => false,
+                ],
+                Ciklik::CONFIG_CART_ALERT_MIXED_MESSAGE => [
+                    'type' => 'textarea',
+                    'lang' => true,
+                    'cols' => 60,
+                    'rows' => 4,
+                    'title' => $this->l('Mixed cart warning text'),
+                    'desc' => $this->l('Leave empty to use the default translated text.'),
+                    'cast' => 'strval',
+                ],
+                Ciklik::CONFIG_CART_ALERT_FREQ_ENABLED => [
+                    'type' => 'bool',
+                    'title' => $this->l('Warn on different frequencies'),
+                    'desc' => $this->l('Shows a warning when the cart contains subscriptions with different frequencies.'),
+                    'validation' => 'isBool',
+                    'cast' => 'intval',
+                    'required' => false,
+                ],
+                Ciklik::CONFIG_CART_ALERT_FREQ_MESSAGE => [
+                    'type' => 'textarea',
+                    'lang' => true,
+                    'cols' => 60,
+                    'rows' => 4,
+                    'title' => $this->l('Different frequencies warning text'),
+                    'desc' => $this->l('Leave empty to use the default translated text.'),
+                    'cast' => 'strval',
+                ],
+            ],
+            'submit' => [
+                'title' => $this->l('Save'),
+            ],
+        ];
     }
 
     public function get17Fields($attributes_groups)
