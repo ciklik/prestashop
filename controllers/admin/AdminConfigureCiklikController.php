@@ -95,8 +95,12 @@ class AdminConfigureCiklikController extends ModuleAdminController
             $this->fields_options = $this->get18Fields($attributes_groups, $product_suffixes_values, $product_suffixes_choices);
         }
 
-        // Bloc « Récap panier » (hook displayShoppingCartFooter), commun PS 1.7 / 8 / 9
-        $this->fields_options['ciklik_cart_footer'] = $this->getCartFooterOptionsBlock();
+        // Bloc « Récap panier » (hook displayShoppingCartFooter), commun PS 1.7 / 8 / 9.
+        // Masqué hors mode fréquence : le hook ne rend rien dans ce cas (même
+        // logique de visibilité que l'onglet AdminCiklikFrequencies).
+        if (Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
+            $this->fields_options['ciklik_cart_footer'] = $this->getCartFooterOptionsBlock();
+        }
     }
 
     /**
@@ -126,6 +130,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     'rows' => 4,
                     'title' => $this->l('Legal notice'),
                     'desc' => $this->l('Leave empty to use the default translated text. Basic HTML is allowed (e.g. a link to your terms).'),
+                    'validation' => 'isCleanHtml',
                     'cast' => 'strval',
                 ],
                 Ciklik::CONFIG_CART_ALERT_MIXED_ENABLED => [
@@ -143,6 +148,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     'rows' => 4,
                     'title' => $this->l('Mixed cart warning text'),
                     'desc' => $this->l('Leave empty to use the default translated text.'),
+                    'validation' => 'isCleanHtml',
                     'cast' => 'strval',
                 ],
                 Ciklik::CONFIG_CART_ALERT_FREQ_ENABLED => [
@@ -160,6 +166,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
                     'rows' => 4,
                     'title' => $this->l('Different frequencies warning text'),
                     'desc' => $this->l('Leave empty to use the default translated text.'),
+                    'validation' => 'isCleanHtml',
                     'cast' => 'strval',
                 ],
             ],
