@@ -13,9 +13,10 @@ if (!defined('_PS_VERSION_')) {
  * valeurs par défaut pour les installations existantes.
  *
  * Le footer et les deux avertissements (panier mixte, fréquences différentes)
- * sont activés par défaut ; les messages sont laissés vides — le template
- * retombe alors sur des textes traduisibles par défaut. Activations et textes
- * sont personnalisables en back-office (mode fréquence uniquement).
+ * sont désactivés par défaut : l'activation est un choix volontaire du
+ * marchand en back-office. Les messages sont laissés vides — le template
+ * retombe alors sur des textes traduisibles par défaut (mode fréquence
+ * uniquement).
  */
 function upgrade_module_1_23_0($module)
 {
@@ -27,7 +28,7 @@ function upgrade_module_1_23_0($module)
         Ciklik::CONFIG_CART_ALERT_FREQ_ENABLED,
     ] as $key) {
         if (Configuration::get($key) === false) {
-            Configuration::updateGlobalValue($key, '1');
+            Configuration::updateGlobalValue($key, '0');
         }
     }
 
