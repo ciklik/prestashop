@@ -22,7 +22,7 @@ class SqlQueries
      */
     public static function installQueries(): array
     {
-        return [
+        return array_merge([
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'ciklik_subscribables` (
                 `id_subscribable` int(11) unsigned NOT NULL auto_increment,
                 `id_product` int(11) unsigned NOT NULL,
@@ -47,6 +47,33 @@ class SqlQueries
                 PRIMARY KEY(`id_ciklik_customer`),
                 UNIQUE KEY `id_customer` (`id_customer`)
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;',
+        ], self::installDeliveryOverrideQueries());
+    }
+
+    /**
+     * Table des overrides de point relais (source de vérité posée par le
+     * marchand en BO). Les drivers de DeliveryModuleManager la consultent
+     * avant le clonage historique lors du rebill.
+     *
+     * Méthode dédiée : consommée aussi par upgrade-1.23.0.php pour les
+     * installations existantes.
+     *
+     * @return array
+     */
+    public static function installDeliveryOverrideQueries(): array
+    {
+        return [
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'ciklik_delivery_override` (
+                `id_override` int(11) unsigned NOT NULL AUTO_INCREMENT,
+                `id_customer` int(11) unsigned NOT NULL,
+                `carrier_module` varchar(64) NOT NULL,
+                `relay_id` varchar(64) NOT NULL,
+                `payload` text,
+                `date_add` datetime NOT NULL,
+                `date_upd` datetime NOT NULL,
+                PRIMARY KEY (`id_override`),
+                UNIQUE KEY `customer_carrier` (`id_customer`, `carrier_module`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;',
         ];
     }
 
@@ -61,6 +88,7 @@ class SqlQueries
             'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_subscribables`',
             'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_frequencies`',
             'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_customers`',
+            'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_delivery_override`',
         ];
     }
 

@@ -172,6 +172,22 @@ class Ciklik extends PaymentModule
             return false;
         }
 
+        // Crée la table d'override de point relais si absente (CREATE ... IF NOT
+        // EXISTS, idempotent). Garantit sa présence même pour les builds dont la
+        // version ne déclenche pas upgrade-1.23.0.php.
+        foreach (\PrestaShop\Module\Ciklik\Sql\SqlQueries::installDeliveryOverrideQueries() as $query) {
+            if (!\Db::getInstance()->execute($query)) {
+                \PrestaShopLogger::addLog(
+                    'Ciklik upgradeModule - échec création table ciklik_delivery_override',
+                    3,
+                    null,
+                    'Ciklik',
+                    null,
+                    true
+                );
+            }
+        }
+
         // Appeler la mise à jour parente pour gérer les fichiers d'upgrade
         return parent::upgradeModule($version);
     }
