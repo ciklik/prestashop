@@ -256,6 +256,10 @@
     </div>
 </div>
 
+{if $ciklik_relay_supported}
+    {include file='module:ciklik/views/templates/admin/relay_override.tpl'}
+{/if}
+
 {if $subscription}
 <script type="text/javascript">
 $(function () {

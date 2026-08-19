@@ -7,7 +7,9 @@
 
 use PrestaShop\Module\Ciklik\Api\Subscription;
 use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
+use PrestaShop\Module\Ciklik\Managers\CiklikDeliveryOverride;
 use PrestaShop\Module\Ciklik\Managers\CiklikRefund;
+use PrestaShop\Module\Ciklik\Managers\CiklikRelaySearch;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -15,10 +17,46 @@ if (!defined('_PS_VERSION_')) {
 
 class CiklikManageModuleFrontController extends ModuleFrontController
 {
+    /**
+     * Champs de payload relais acceptés : longueur max et méthode Validate
+     * éventuelle. Les champs sans validateur (formats propriétaires des
+     * transporteurs) sont seulement nettoyés et bornés. Les valeurs finissent
+     * sur des étiquettes et dans les flux transporteurs : pas de balises, pas
+     * de caractères de contrôle ni de retours-ligne.
+     */
+    const RELAY_PAYLOAD_RULES = [
+        'name' => ['max' => 64, 'validate' => 'isGenericName'],
+        'name2' => ['max' => 64, 'validate' => 'isGenericName'],
+        'address1' => ['max' => 128, 'validate' => 'isAddress'],
+        'address2' => ['max' => 128, 'validate' => 'isAddress'],
+        'zipcode' => ['max' => 12, 'validate' => 'isPostCode'],
+        'city' => ['max' => 64, 'validate' => 'isCityName'],
+        'country_iso' => ['max' => 2, 'validate' => null],
+        'phone' => ['max' => 32, 'validate' => 'isPhoneNumber'],
+        'product_code' => ['max' => 16, 'validate' => 'isGenericName'],
+        'network' => ['max' => 16, 'validate' => 'isGenericName'],
+        'parcel_shop_working_day' => ['max' => 255, 'validate' => null],
+    ];
+
+    /** @var Employee|null Employé BO authentifié (posé par postProcess) */
+    private $employee;
+
     public function postProcess()
     {
-        // Vérification de l'accès admin (même logique que le refund)
-        if (!CiklikRefund::canRun()) {
+        // Actions mutantes ou coûteuses : POST uniquement. Évite aussi la
+        // fuite du token dans les journaux serveur / referers via des URLs GET.
+        $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper((string) $_SERVER['REQUEST_METHOD']) : '';
+        if ('POST' !== $method) {
+            $this->ajaxFailAndDie(
+                $this->module->l('Invalid request method', 'manage'),
+                405
+            );
+        }
+
+        // Vérification de l'accès admin (même logique que le refund), en
+        // conservant l'employé pour les contrôles de profil et l'audit
+        $this->employee = CiklikRefund::getAuthenticatedEmployee();
+        if (null === $this->employee) {
             $this->ajaxFailAndDie(
                 $this->module->l('Access denied', 'manage')
             );
@@ -45,6 +83,15 @@ class CiklikManageModuleFrontController extends ModuleFrontController
                 break;
             case 'changeNextBilling':
                 $this->handleChangeNextBilling();
+                break;
+            case 'saveRelayOverride':
+                $this->handleSaveRelayOverride();
+                break;
+            case 'resetRelayOverride':
+                $this->handleResetRelayOverride();
+                break;
+            case 'searchRelays':
+                $this->handleSearchRelays();
                 break;
             default:
                 $this->ajaxFailAndDie(
@@ -172,6 +219,196 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             'subscription' => [
                 'next_billing' => $nextBilling,
             ],
+        ]));
+    }
+
+    /**
+     * Enregistre l'override de point relais du client pour un transporteur.
+     * Il sera appliqué par les drivers de DeliveryModuleManager aux prochains
+     * rebills, sans toucher aux commandes passées.
+     */
+    private function handleSaveRelayOverride()
+    {
+        $this->assertEmployeeCanManageRelays();
+
+        $idCustomer = (int) Tools::getValue('id_customer');
+        $carrierModule = strtolower((string) Tools::getValue('carrier_module'));
+        $relayId = trim((string) Tools::getValue('relay_id'));
+
+        if ($idCustomer <= 0
+            || !in_array($carrierModule, CiklikDeliveryOverride::SUPPORTED_MODULES, true)
+            || !preg_match('/^[a-zA-Z0-9_-]+$/', $relayId)) {
+            $this->ajaxFailAndDie(
+                $this->module->l('Invalid pickup point data', 'manage'),
+                400
+            );
+        }
+
+        $payload = [];
+        foreach (self::RELAY_PAYLOAD_RULES as $field => $rules) {
+            $value = Tools::getValue('relay_' . $field);
+            if (false === $value) {
+                continue;
+            }
+
+            // Nettoyage : balises, caractères de contrôle, retours-ligne
+            $value = preg_replace('/[\x00-\x1F\x7F]/u', ' ', strip_tags((string) $value));
+            $value = is_string($value) ? trim($value) : '';
+            if ('' === $value) {
+                continue;
+            }
+
+            if (Tools::strlen($value) > $rules['max']
+                || ($rules['validate'] && !call_user_func(['Validate', $rules['validate']], $value))) {
+                $this->ajaxFailAndDie(
+                    $this->module->l('Invalid pickup point data', 'manage'),
+                    400
+                );
+            }
+
+            $payload[$field] = $value;
+        }
+
+        // Le code pays doit rester un ISO alpha-2 exploitable par les drivers
+        if (isset($payload['country_iso']) && !preg_match('/^[a-zA-Z]{2}$/', $payload['country_iso'])) {
+            unset($payload['country_iso']);
+        }
+
+        if (!CiklikDeliveryOverride::save($idCustomer, $carrierModule, $relayId, $payload)) {
+            $this->ajaxFailAndDie(
+                $this->module->l('Unable to save the pickup point', 'manage')
+            );
+        }
+
+        $this->logRelayAudit('save', $idCustomer, $carrierModule, $relayId);
+
+        $this->ajaxRenderAndExit(json_encode([
+            'success' => true,
+            'message' => $this->module->l('Pickup point saved. It will be used for the next payments.', 'manage'),
+        ]));
+    }
+
+    /**
+     * Supprime l'override : retour au comportement automatique (relais de la
+     * dernière commande payée) au prochain rebill.
+     */
+    private function handleResetRelayOverride()
+    {
+        $this->assertEmployeeCanManageRelays();
+
+        $idCustomer = (int) Tools::getValue('id_customer');
+        $carrierModule = strtolower((string) Tools::getValue('carrier_module'));
+
+        if ($idCustomer <= 0
+            || !in_array($carrierModule, CiklikDeliveryOverride::SUPPORTED_MODULES, true)) {
+            $this->ajaxFailAndDie(
+                $this->module->l('Invalid pickup point data', 'manage'),
+                400
+            );
+        }
+
+        CiklikDeliveryOverride::delete($idCustomer, $carrierModule);
+
+        $this->logRelayAudit('reset', $idCustomer, $carrierModule, '');
+
+        $this->ajaxRenderAndExit(json_encode([
+            'success' => true,
+            'message' => $this->module->l('Pickup point reset to automatic mode.', 'manage'),
+        ]));
+    }
+
+    /**
+     * Vérifie que l'employé authentifié a le droit de modifier les commandes :
+     * super admin, ou droit d'édition sur l'onglet AdminOrders. Le simple fait
+     * d'être connecté au BO (canRun) ne suffit pas pour rediriger des colis.
+     */
+    private function assertEmployeeCanManageRelays()
+    {
+        if ($this->employee && $this->employee->isSuperAdmin()) {
+            return;
+        }
+
+        $idTab = (int) Tab::getIdFromClassName('AdminOrders');
+        $access = ($this->employee && $idTab)
+            ? Profile::getProfileAccess((int) $this->employee->id_profile, $idTab)
+            : null;
+
+        if (empty($access['edit'])) {
+            $this->ajaxFailAndDie(
+                $this->module->l('Access denied', 'manage'),
+                403
+            );
+        }
+    }
+
+    /**
+     * Journal d'audit des changements de point relais : qui (employé), pour
+     * quel client, quel transporteur, quel relais.
+     *
+     * @param string $operation save|reset
+     * @param int $idCustomer
+     * @param string $carrierModule
+     * @param string $relayId
+     */
+    private function logRelayAudit($operation, $idCustomer, $carrierModule, $relayId)
+    {
+        PrestaShopLogger::addLog(
+            'Ciklik relay override ' . $operation
+                . ' - customer ' . (int) $idCustomer
+                . ' - carrier ' . $carrierModule
+                . ('' !== $relayId ? ' - relay ' . $relayId : ''),
+            1,
+            null,
+            'CiklikDeliveryOverride',
+            (int) $idCustomer,
+            true,
+            $this->employee ? (int) $this->employee->id : null
+        );
+    }
+
+    /**
+     * Recherche de points relais via l'API du transporteur (proxy serveur,
+     * credentials du module transporteur voisin). Résultats normalisés pour
+     * l'UI générique liste + carte.
+     */
+    private function handleSearchRelays()
+    {
+        $this->assertEmployeeCanManageRelays();
+
+        // Les credentials transporteur sont lus via Configuration::get, résolue
+        // sur la boutique de contexte. La recherche tourne côté front (ce
+        // contrôleur) : on force la boutique de la commande consultée en BO pour
+        // que les bons credentials soient utilisés en multiboutique.
+        $idShop = (int) Tools::getValue('id_shop');
+        if ($idShop > 0 && Shop::isFeatureActive()) {
+            Shop::setContext(Shop::CONTEXT_SHOP, $idShop);
+        }
+
+        $carrierModule = strtolower((string) Tools::getValue('carrier_module'));
+
+        if (!in_array($carrierModule, CiklikDeliveryOverride::SUPPORTED_MODULES, true)
+            || !CiklikRelaySearch::supportsSearch($carrierModule)) {
+            $this->ajaxFailAndDie(
+                $this->module->l('Search is not available for this carrier', 'manage'),
+                400
+            );
+        }
+
+        try {
+            $results = CiklikRelaySearch::searchRelays($carrierModule, [
+                'zipcode' => (string) Tools::getValue('zipcode'),
+                'city' => (string) Tools::getValue('city'),
+                'country_iso' => (string) Tools::getValue('country_iso'),
+            ]);
+        } catch (Exception $e) {
+            $this->ajaxFailAndDie(
+                $this->module->l('Pickup point search failed. Please try again or use manual entry.', 'manage')
+            );
+        }
+
+        $this->ajaxRenderAndExit(json_encode([
+            'success' => true,
+            'results' => $results,
         ]));
     }
 
