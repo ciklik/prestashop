@@ -28,6 +28,7 @@ use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikRefund;
 use PrestaShop\Module\Ciklik\Managers\CiklikSpecificPrice;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscribable;
+use PrestaShop\PrestaShop\Core\Checkout\TermsAndConditions;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
 if (!defined('_PS_VERSION_')) {
@@ -76,6 +77,7 @@ class Ciklik extends PaymentModule
     const CONFIG_CART_ALERT_MIXED_MESSAGE = 'CIKLIK_CART_ALERT_MIXED_MESSAGE';
     const CONFIG_CART_ALERT_FREQ_ENABLED = 'CIKLIK_CART_ALERT_FREQ_ENABLED';
     const CONFIG_CART_ALERT_FREQ_MESSAGE = 'CIKLIK_CART_ALERT_FREQ_MESSAGE';
+    const CONFIG_ENABLE_SUBSCRIPTION_CONSENT = 'CIKLIK_ENABLE_SUBSCRIPTION_CONSENT';
     /**
      * @var Monolog\Logger
      */
@@ -371,6 +373,40 @@ class Ciklik extends PaymentModule
                 }
             }
         }
+    }
+
+    /**
+     * Ajoute une case à cocher de consentement à l'abonnement à l'étape paiement
+     * lorsque le panier contient au moins un produit en abonnement.
+     *
+     * Le JS du thème (checkout.js) maintient le bouton « Commander » désactivé tant
+     * que toutes les cases de #conditions-to-approve ne sont pas cochées : le
+     * consentement est donc bloquant sans code additionnel côté thème.
+     *
+     * @param array $params
+     *
+     * @return TermsAndConditions|null
+     */
+    public function hookTermsAndConditions(array $params)
+    {
+        if (!Configuration::get(self::CONFIG_ENABLE_SUBSCRIPTION_CONSENT)) {
+            return null;
+        }
+
+        $cart = $this->context->cart;
+
+        if (!Validate::isLoadedObject($cart) || !CiklikSubscribable::cartHasSubscribable($cart)) {
+            return null;
+        }
+
+        $termsAndConditions = new TermsAndConditions();
+        $termsAndConditions
+            ->setText($this->l('I confirm that this order contains a subscription that will be renewed automatically'))
+            // Ne jamais réutiliser l'identifiant « terms-and-conditions » :
+            // ConditionsToApproveFinder déduplique par identifiant et la case CGV native serait remplacée.
+            ->setIdentifier('ciklik-subscription-consent');
+
+        return $termsAndConditions;
     }
 
     /**

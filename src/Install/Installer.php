@@ -101,7 +101,10 @@ class Installer
             // sur des textes traduisibles par défaut).
             && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_CART_FOOTER_ENABLED, '0')
             && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_CART_ALERT_MIXED_ENABLED, '0')
-            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_CART_ALERT_FREQ_ENABLED, '0');
+            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_CART_ALERT_FREQ_ENABLED, '0')
+            // Consentement à l'abonnement au paiement : désactivé par défaut,
+            // l'activation reste un choix volontaire du marchand en back-office.
+            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_ENABLE_SUBSCRIPTION_CONSENT, '0');
     }
 
     /**
@@ -142,6 +145,7 @@ class Installer
             \Ciklik::CONFIG_CART_ALERT_MIXED_MESSAGE,
             \Ciklik::CONFIG_CART_ALERT_FREQ_ENABLED,
             \Ciklik::CONFIG_CART_ALERT_FREQ_MESSAGE,
+            \Ciklik::CONFIG_ENABLE_SUBSCRIPTION_CONSENT,
         ];
 
         foreach ($keys as $key) {
@@ -275,6 +279,7 @@ class Installer
             'actionAuthentication',
             'actionProductUpdate',
             'actionCiklikCartBeforeRebill',
+            'termsAndConditions',
         ];
 
         // Page commande BO : hook migré (>= 1.7.7) sinon hook legacy
