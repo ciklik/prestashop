@@ -309,6 +309,7 @@ $_MODULE['<{ciklik}prestashop>ciklik_84cdc76cabf41bd7c961f6ab12f117d8'] = 'an';
 $_MODULE['<{ciklik}prestashop>ciklik_75aeb98e5241592ad6a6c2c4c78a16ef'] = 'ans';
 $_MODULE['<{ciklik}prestashop>ciklik_6fc473c3b5128bcdb9a23d270155ddd1'] = 'Tous les %s';
 $_MODULE['<{ciklik}prestashop>ciklik_3204d99329835a7ddb1240cdd5503bde'] = 'Tous les %d %s';
+$_MODULE['<{ciklik}prestashop>ciklik_63647e43c1410cb00be657af693601e4'] = 'Je confirme que cette commande contient un abonnement qui sera renouvelé automatiquement';
 
 // AdminConfigureCiklikController - missing entries
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a02758d758e8bec77a33d7f392eb3f8a'] = 'Aucune devise n\'a été définie pour ce module.';
@@ -452,3 +453,5 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a78ab9721da8f5fdfab
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3e59665923bee6d7aba7bb480b4cb5d3'] = 'Avertir en cas de fréquences différentes';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_caa090964291fa55e94132cc1b9067bf'] = 'Affiche un avertissement lorsque le panier contient des abonnements avec des fréquences différentes.';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_d7ea4e854eb2b7a22df112470671faaa'] = 'Texte d\'avertissement fréquences différentes';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fc1b2aaa6156d1ab4cbda2b34e5bc2b8'] = 'Exiger le consentement à l\'abonnement lors de la commande';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_363be34fc836ed8784daf532d33534df'] = 'Ajoute une case à cocher obligatoire à l\'étape paiement lorsque le panier contient un abonnement. Le client doit reconnaître explicitement le renouvellement automatique avant de valider sa commande.';
