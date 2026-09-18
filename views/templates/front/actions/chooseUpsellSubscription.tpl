@@ -5,15 +5,13 @@
  *}
 
  <!-- Modal -->
-<div class="modal fade" id="upsellModal{$product->id_product|escape:'html':'UTF-8'}" tabindex="-1" role="dialog" aria-labelledby="upsellModalLabel" aria-hidden="true">
+<div class="modal fade" id="upsellModal{$product->id_product|escape:'html':'UTF-8'}" tabindex="-1" role="dialog" aria-labelledby="upsellModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
 
             <div class="modal-header">
                 <h5 class="modal-title" id="upsellModalLabel">{l s='Add product to an existing subscription' mod='ciklik'}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                {include file="module:ciklik/views/templates/front/_partials/modal-close.tpl"}
             </div>
             <div class="modal-body">
             <form id="upsellForm" method="POST" action="{$product.subcription_base_link|escape:'html':'UTF-8'}/" name="upsellForm">
@@ -43,7 +41,7 @@
                     
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{l s='Cancel' mod='ciklik'}</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">{l s='Cancel' mod='ciklik'}</button>
                     <button type="button" class="btn btn-primary" id="submitUpsell">{l s='Add to subscription' mod='ciklik'}</button>
                 </div>
                 </form>
@@ -125,8 +123,12 @@ document.getElementById('submitUpsell').addEventListener('click', function() {
                 if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
                     var bsModal = bootstrap.Modal.getInstance(modal);
                     if (bsModal) bsModal.hide();
-                } else if (typeof $ !== 'undefined' && $.fn.modal) {
+                } else if (typeof $ !== 'undefined' && $.fn && $.fn.modal) {
                     $(modal).modal('hide');
+                } else {
+                    // Thème sans jQuery ni Bootstrap global (Hummingbird) : on déclenche le bouton de fermeture
+                    var closeButton = modal.querySelector('[data-bs-dismiss="modal"], [data-dismiss="modal"]');
+                    if (closeButton) closeButton.click();
                 }
             }, 2000);
         } else {

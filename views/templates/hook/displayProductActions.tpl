@@ -10,7 +10,7 @@
   {* Section Upsell si activée *}
   {if $has_upsell}
     <div class="upsell-container" id="upsell-container-{$product->id_product}" style="margin-bottom: 0.5rem;display:inline-flex;padding-left: 0.5rem; margin-left: 0.5rem;">
-      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#upsellModal{$product->id_product}">
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#upsellModal{$product->id_product|intval}" data-bs-toggle="modal" data-bs-target="#upsellModal{$product->id_product|intval}">
         {l s='Add to subscription' mod='ciklik'}
       </button>
     </div>

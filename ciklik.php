@@ -497,6 +497,7 @@ class Ciklik extends PaymentModule
      */
     public function hookDisplayCustomerAccount(array $params)
     {
+        $this->assignThemeVariables();
         $this->context->smarty->assign([
             'transactionsLink' => $this->context->link->getModuleLink(
                 $this->name,
@@ -782,6 +783,7 @@ class Ciklik extends PaymentModule
 
     public function hookDisplayProductActions(array $params)
     {
+        $this->assignThemeVariables();
         return $this->renderProductSubscriptionOptions($params);
     }
 
@@ -1559,8 +1561,32 @@ class Ciklik extends PaymentModule
         );
     }
 
+    /**
+     * Thèmes construits sur Bootstrap 5 (Hummingbird et dérivés) : attributs data-bs-*, bouton btn-close.
+     * Les gabarits du module reçoivent `ciklik_bs5` et adaptent leur balisage, sans changer la logique.
+     */
+    public function isBootstrap5Theme(): bool
+    {
+        $theme = $this->context->shop->theme ?? null;
+        if ($theme === null) {
+            return false;
+        }
+        $name = strtolower((string) $theme->getName());
+
+        return $name === 'hummingbird' || strpos($name, 'hummingbird') === 0;
+    }
+
+    /** Variables de thème partagées par tous les gabarits front du module. */
+    public function assignThemeVariables(): void
+    {
+        $this->context->smarty->assign([
+            'ciklik_bs5' => $this->isBootstrap5Theme(),
+        ]);
+    }
+
     public function hookActionFrontControllerSetMedia($params)
     {
+        $this->assignThemeVariables();
         // Charge les assets uniquement sur la page produit et si le mode fréquence est activé
         if ($this->context->controller instanceof ProductController && Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
             // Charge le CSS pour les options d'abonnement

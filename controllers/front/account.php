@@ -51,7 +51,10 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
             'enable_change_interval' => Configuration::get(Ciklik::CONFIG_ENABLE_CHANGE_INTERVAL),
             'use_frequency_mode' => Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE),
             'token' => Tools::getToken(false),
+            'next_billing_min' => date('Y-m-d', strtotime('+1 day')),
+            'next_billing_max' => date('Y-m-d', strtotime('+6 months')),
         ]);
+        $this->module->assignThemeVariables();
 
         $this->setTemplate('module:ciklik/views/templates/front/account.tpl');
     }

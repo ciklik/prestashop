@@ -5,7 +5,7 @@
  *}
 
 <div>
-    <a class="text-muted" data-toggle="collapse" href="#upsellList{$subscription->uuid|escape:'html':'UTF-8'}" role="button" aria-expanded="false" aria-controls="upsellList{$subscription->uuid|escape:'html':'UTF-8'}">
+    <a class="text-muted" data-toggle="collapse" data-bs-toggle="collapse" href="#upsellList{$subscription->uuid|escape:'html':'UTF-8'}" role="button" aria-expanded="false" aria-controls="upsellList{$subscription->uuid|escape:'html':'UTF-8'}">
         <i class="material-icons" style="font-size: 15px;">add</i> <small>{l s='Non-recurring additional products' mod='ciklik'}</small>
     </a>
     <div class="collapse" id="upsellList{$subscription->uuid|escape:'html':'UTF-8'}">

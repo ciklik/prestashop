@@ -14,8 +14,8 @@
 
             <!-- En-tête de la boîte modale -->
             <div class="modal-header">
-                <h4 class="modal-title">{l s='Change the address for your next delivery' mod='ciklik'}</h4>
-                <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal">&times;</button>
+                <h5 class="modal-title">{l s='Change the address for your next delivery' mod='ciklik'}</h5>
+                {include file="module:ciklik/views/templates/front/_partials/modal-close.tpl"}
             </div>
 
         <!-- Corps de la boîte modale -->
@@ -27,8 +27,9 @@
 
             <form id="changeAddressForm-{$subscription->uuid|escape:'html':'UTF-8'}" action="{$subcription_base_link|escape:'html':'UTF-8'}/{$subscription->uuid|escape:'html':'UTF-8'}/updateaddress" method="POST">
                 <input type="hidden" name="token" value="{$token|escape:'html':'UTF-8'}">
-                <label for="changeAddressForm">{l s='Address:' mod='ciklik'}</label>
-                <select name="changeAddressForm" id="changeAddressForm">
+                <div class="form-group mb-3">
+                <label class="form-label" for="changeAddressForm-{$subscription->uuid|escape:'html':'UTF-8'}-select">{l s='Address:' mod='ciklik'}</label>
+                <select class="form-control form-select" name="changeAddressForm" id="changeAddressForm-{$subscription->uuid|escape:'html':'UTF-8'}-select">
                     {foreach from=$addresses item=$address}
                         <option value="{$address['id_address']|escape:'html':'UTF-8'}">
                             {$address['address1']|escape:'html':'UTF-8'} <br>
@@ -37,13 +38,14 @@
                     {/foreach}
 
                 </select>
-                <button type="submit" class="btn btn-primary">{l s='Update' mod='ciklik'}</button>
+                </div>
             </form>
         </div>
 
         <!-- Pied de la boîte modale -->
         <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal" data-bs-dismiss="modal" data-bs-dismiss="modal">{l s='Cancel' mod='ciklik'}</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">{l s='Cancel' mod='ciklik'}</button>
+            <button type="submit" form="changeAddressForm-{$subscription->uuid|escape:'html':'UTF-8'}" class="btn btn-primary">{l s='Update' mod='ciklik'}</button>
         </div>
 
     </div>

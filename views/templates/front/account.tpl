@@ -27,13 +27,9 @@
                 <tr>
                     <td>
                         {if $subscription->active}
-                            <span class="label label-pill" style="background-color:#32CD32">
-                {l s='Active' mod='ciklik'}
-              </span>
+                            <span class="label label-pill badge badge-pill badge-success rounded-pill text-bg-success" style="background-color:#32CD32">{l s='Active' mod='ciklik'}</span>
                         {else}
-                            <span class="label label-pill" style="background-color:#8f0621">
-                {l s='Inactive' mod='ciklik'}
-              </span>
+                            <span class="label label-pill badge badge-pill badge-danger rounded-pill text-bg-danger" style="background-color:#8f0621">{l s='Inactive' mod='ciklik'}</span>
                         {/if}
                     </td>
                     <td>
@@ -65,27 +61,10 @@
                                     <div class="customization-title">{l s='Customizations' mod='ciklik'}</div>
                                     {foreach from=$subscription->contents item=content}
                                         {if !empty($content.customizations)}
-                                            {* Extraire les informations du produit *}
-                                            {assign var="product_info" value=":"|explode:$content.external_id}
-                                            {assign var="product_id" value=$product_info[0]}
-                                            {assign var="product_attribute_id" value=0}
-                                            {if count($product_info) > 1}
-                                                {assign var="product_attribute_id" value=$product_info[1]}
-                                            {/if}
                                             <div>
-                                            <a class="text-muted" data-toggle="collapse" href="#customizations{$subscription->uuid|escape:'html':'UTF-8'}-{$content@index}" role="button" aria-expanded="false" aria-controls="customizations{$subscription->uuid|escape:'html':'UTF-8'}-{$content@index}">
+                                            <a class="text-muted" data-toggle="collapse" data-bs-toggle="collapse" href="#customizations{$subscription->uuid|escape:'html':'UTF-8'}-{$content@index}" role="button" aria-expanded="false" aria-controls="customizations{$subscription->uuid|escape:'html':'UTF-8'}-{$content@index}">
                                                 <i class="material-icons" style="font-size: 15px;">add</i> <small>
-                                                {if $product_attribute_id > 0}
-                                                    {if Product::getProductName($product_id, $product_attribute_id)}
-                                                        {Product::getProductName($product_id, $product_attribute_id)}
-                                                    {else if Configuration::get(Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE)}
-                                                        {Product::getProductName($product_id, Product::getDefaultAttribute((int) $product_id))}
-                                                    {else}
-                                                        {Product::getProductName($product_id)}
-                                                    {/if}
-                                                {else}
-                                                    {Product::getProductName($product_id)}
-                                                {/if}
+                                                {$content.name|escape:'html':'UTF-8'}
                                                 </small>
                                             </a>
                                             <div class="collapse" id="customizations{$subscription->uuid|escape:'html':'UTF-8'}-{$content@index}">

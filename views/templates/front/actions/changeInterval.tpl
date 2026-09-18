@@ -14,8 +14,8 @@
 
             <!-- En-tête de la boîte modale -->
             <div class="modal-header">
-                <h4 class="modal-title">{l s='Change my subscription frequency' mod='ciklik'}</h4>
-                <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal">&times;</button>
+                <h5 class="modal-title">{l s='Change my subscription frequency' mod='ciklik'}</h5>
+                {include file="module:ciklik/views/templates/front/_partials/modal-close.tpl"}
             </div>
 
             <!-- Corps de la boîte modale -->
@@ -24,9 +24,10 @@
                 <p>{l s='The date of your next order will not change, the frequency change will take effect from the following order.' mod='ciklik'}</p>
                 <form id="newIntervalForm-{$subscription->uuid|escape:'html':'UTF-8'}" action="{$subcription_base_link|escape:'html':'UTF-8'}/{$subscription->uuid|escape:'html':'UTF-8'}/contents" method="POST">
                 <input type="hidden" name="token" value="{$token|escape:'html':'UTF-8'}">
-                <label for="interval">{l s='Choose' mod='ciklik'}</label>
+                <div class="form-group mb-3">
+                <label class="form-label" for="product_combination-{$subscription->uuid|escape:'html':'UTF-8'}">{l s='Choose' mod='ciklik'}</label>
                 {if $use_frequency_mode === '1'}
-                    <select name="product_combination" id="product_combination" required>
+                    <select class="form-control form-select" name="product_combination" id="product_combination-{$subscription->uuid|escape:'html':'UTF-8'}" required>
                         {if !empty($subscription->contents)}
                             {assign var=content value=$subscription->contents[0]}
                             {if !empty($content.other_combinations)}
@@ -42,7 +43,7 @@
                     </select>
                     <input type="hidden" name="use_frequency_mode" value="1">
                 {else}
-                    <select name="product_combination" id="product_combination" required>
+                    <select class="form-control form-select" name="product_combination" id="product_combination-{$subscription->uuid|escape:'html':'UTF-8'}" required>
                         {if !empty($subscription->contents)}
                             {assign var=content value=$subscription->contents[0]}
                             {if !empty($content.other_combinations)}
@@ -59,13 +60,14 @@
                     <input type="hidden" name="use_frequency_mode" value="0">
                 {/if}
 
-                    <button type="submit">{l s='Change frequency' mod='ciklik'}</button>
+                </div>
                 </form>
             </div>
 
             <!-- Pied de la boîte modale -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" data-bs-dismiss="modal">{l s='Cancel' mod='ciklik'}</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">{l s='Cancel' mod='ciklik'}</button>
+                <button type="submit" form="newIntervalForm-{$subscription->uuid|escape:'html':'UTF-8'}" class="btn btn-primary">{l s='Change frequency' mod='ciklik'}</button>
             </div>
 
         </div>

@@ -20,20 +20,10 @@
             </thead>
             <tbody>
                 {foreach from=$subscription->contents item=content}
-                    {assign var="product_info" value=":"|explode:$content.external_id}
-                    {assign var="product_id" value=$product_info[0]}
-                    {assign var="product_attribute_id" value=0}
-                    {if count($product_info) > 1}
-                        {assign var="product_attribute_id" value=$product_info[1]}
-                    {/if}
                     <tr id="product-row-{$subscription->uuid|escape:'html':'UTF-8'}-{$content@index}">
                         <td>
                             <small>
-                            {if $product_attribute_id|intval > 0 && Product::getProductName($product_id|intval, $product_attribute_id|intval)}
-                                {Product::getProductName($product_id|intval, $product_attribute_id|intval)|escape:'html':'UTF-8'}
-                            {else}
-                                {Product::getProductName($product_id|intval)|escape:'html':'UTF-8'}
-                            {/if}
+                            {$content.name|escape:'html':'UTF-8'}
                             </small>
                         </td>
                         <td>

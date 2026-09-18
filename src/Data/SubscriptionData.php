@@ -165,10 +165,50 @@ class SubscriptionData
             $processedContents[] = array_merge($item, [
                 'other_combinations' => $otherCombinations,
                 'is_customization' => $isCustomization,
+                'name' => self::resolveProductName((string) $item['external_id']),
             ]);
         }
 
         return $processedContents;
+    }
+
+    /**
+     * Nom du produit (et de sa déclinaison) pour un external_id Ciklik.
+     *
+     * Trois formes existent : « id_product:id_product_attribute » (mode fréquence),
+     * « id_product_attribute » seul (mode déclinaison) et un suffixe « _<md5> » pour les
+     * personnalisations. Calculé ici plutôt que dans les gabarits, où l'appel statique
+     * Product::getProductName() recevait l'identifiant de déclinaison comme un produit.
+     */
+    public static function resolveProductName(string $externalId): string
+    {
+        $externalId = (string) preg_replace('/_[0-9a-f]{32}$/i', '', $externalId);
+        $parts = explode(':', $externalId);
+        $idLang = (int) \Context::getContext()->language->id;
+
+        if (count($parts) > 1) {
+            $idProduct = (int) $parts[0];
+            $idAttribute = (int) $parts[1];
+        } else {
+            $idAttribute = (int) $parts[0];
+            $combination = new \Combination($idAttribute);
+            $idProduct = \Validate::isLoadedObject($combination) ? (int) $combination->id_product : $idAttribute;
+            if (!\Validate::isLoadedObject($combination)) {
+                $idAttribute = 0;
+            }
+        }
+
+        $name = $idAttribute > 0 ? \Product::getProductName($idProduct, $idAttribute, $idLang) : '';
+
+        if (empty($name) && $idAttribute > 0 && \Configuration::get(\Ciklik::CONFIG_FALLBACK_TO_DEFAULT_ATTRIBUTE)) {
+            $name = \Product::getProductName($idProduct, (int) \Product::getDefaultAttribute($idProduct), $idLang);
+        }
+
+        if (empty($name)) {
+            $name = \Product::getProductName($idProduct, null, $idLang);
+        }
+
+        return (string) $name;
     }
 
     /**
