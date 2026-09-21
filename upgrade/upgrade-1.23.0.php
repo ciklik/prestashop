@@ -26,7 +26,7 @@ if (!defined('_PS_VERSION_')) {
  * Les réglages 2 et 3 sont désactivés par défaut, leur activation reste un choix
  * volontaire du marchand.
  */
-function upgrade_module_1_23_0()
+function upgrade_module_1_23_0($module)
 {
     // Les réglages et les hooks d'abord : ils n'échouent pas en pratique.
     // Ne pose chaque défaut que si la clé n'existe pas encore, pour ne pas
