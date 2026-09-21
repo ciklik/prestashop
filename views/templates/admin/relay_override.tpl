@@ -143,8 +143,7 @@
 $(function () {
     var relayManageUrl = '{$manageActionUrl|escape:"javascript":"UTF-8"}';
     var relayAjaxToken = '{$manageAjaxToken|escape:"javascript":"UTF-8"}';
-    var relayCustomerId = {$ciklik_relay_customer_id|default:0|intval};
-    var relayShopId = {$ciklik_relay_shop_id|default:0|intval};
+    var relayOrderId = {$ciklik_relay_order_id|default:0|intval};
     var relayCarrierModule = '{$ciklik_relay_module|escape:"javascript":"UTF-8"}';
 
     function relayShowError(msg) {
@@ -177,8 +176,7 @@ $(function () {
         $btn.attr('disabled', true);
         data.ajax = true;
         data.ajax_token = relayAjaxToken;
-        data.id_customer = relayCustomerId;
-        data.id_shop = relayShopId;
+        data.id_order = relayOrderId;
         data.carrier_module = relayCarrierModule;
 
         $.ajax({ type: 'POST', url: relayManageUrl, dataType: 'json', data: data })
@@ -315,7 +313,7 @@ $(function () {
                 ajax: true,
                 action: 'searchRelays',
                 ajax_token: relayAjaxToken,
-                id_shop: relayShopId,
+                id_order: relayOrderId,
                 carrier_module: relayCarrierModule,
                 zipcode: zipcode,
                 city: $('#ciklik-relay-search-city').val(),

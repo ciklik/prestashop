@@ -35,7 +35,26 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         'phone' => ['max' => 32, 'validate' => 'isPhoneNumber'],
         'product_code' => ['max' => 16, 'validate' => 'isGenericName'],
         'network' => ['max' => 16, 'validate' => 'isGenericName'],
-        'parcel_shop_working_day' => ['max' => 255, 'validate' => null],
+        // Horaires GLS : json_encode du GLSWorkingDay du module, ~640 caractères
+        // pour 6 jours d'ouverture (mesuré sur les données réelles). Un plafond
+        // à 255 rejetait la sélection de tout relais connu GLS.
+        'parcel_shop_working_day' => ['max' => 4000, 'validate' => null],
+    ];
+
+    /**
+     * Longueur maximale de l'identifiant relais, par module, alignée sur les
+     * colonnes réelles des tables transporteurs (num varchar(6) Mondial Relay,
+     * colissimo_id varchar(8), relay_id varchar(8) DPD, id_pr varchar(10)
+     * Chronopost). PrestaShop forçant sql_mode='' à la connexion, un
+     * identifiant trop long serait sinon tronqué silencieusement en base et
+     * produirait un code invalide sur l'étiquette du rebill.
+     */
+    const RELAY_ID_MAX_LENGTHS = [
+        'mondialrelay' => 6,
+        'colissimo' => 8,
+        'dpdfrance' => 8,
+        'nkmgls' => 20,
+        'chronopost' => 10,
     ];
 
     /** @var Employee|null Employé BO authentifié (posé par postProcess) */
@@ -231,13 +250,14 @@ class CiklikManageModuleFrontController extends ModuleFrontController
     {
         $this->assertEmployeeCanManageRelays();
 
-        $idCustomer = (int) Tools::getValue('id_customer');
+        list($idCustomer) = $this->resolveOrderContext();
         $carrierModule = strtolower((string) Tools::getValue('carrier_module'));
         $relayId = trim((string) Tools::getValue('relay_id'));
 
-        if ($idCustomer <= 0
-            || !in_array($carrierModule, CiklikDeliveryOverride::SUPPORTED_MODULES, true)
-            || !preg_match('/^[a-zA-Z0-9_-]+$/', $relayId)) {
+        if (!in_array($carrierModule, CiklikDeliveryOverride::SUPPORTED_MODULES, true)
+            || !preg_match('/^[a-zA-Z0-9_-]+$/', $relayId)
+            || (isset(self::RELAY_ID_MAX_LENGTHS[$carrierModule])
+                && Tools::strlen($relayId) > self::RELAY_ID_MAX_LENGTHS[$carrierModule])) {
             $this->ajaxFailAndDie(
                 $this->module->l('Invalid pickup point data', 'manage'),
                 400
@@ -296,11 +316,10 @@ class CiklikManageModuleFrontController extends ModuleFrontController
     {
         $this->assertEmployeeCanManageRelays();
 
-        $idCustomer = (int) Tools::getValue('id_customer');
+        list($idCustomer) = $this->resolveOrderContext();
         $carrierModule = strtolower((string) Tools::getValue('carrier_module'));
 
-        if ($idCustomer <= 0
-            || !in_array($carrierModule, CiklikDeliveryOverride::SUPPORTED_MODULES, true)) {
+        if (!in_array($carrierModule, CiklikDeliveryOverride::SUPPORTED_MODULES, true)) {
             $this->ajaxFailAndDie(
                 $this->module->l('Invalid pickup point data', 'manage'),
                 400
@@ -315,6 +334,33 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             'success' => true,
             'message' => $this->module->l('Pickup point reset to automatic mode.', 'manage'),
         ]));
+    }
+
+    /**
+     * Redérive le client et la boutique depuis la commande consultée en BO.
+     *
+     * Ce contrôleur est un contrôleur front : tout ce qui arrive dans la requête
+     * est sous le contrôle de l'appelant. On ne lit donc ni id_customer ni
+     * id_shop, sans quoi un employé pourrait poser un relais sur le client d'une
+     * autre boutique. Seul id_order est accepté, et on vérifie que l'employé a
+     * bien le droit sur la boutique de cette commande.
+     *
+     * @return array{0: int, 1: int} [id_customer, id_shop]
+     */
+    private function resolveOrderContext()
+    {
+        $order = new Order((int) Tools::getValue('id_order'));
+
+        if (!Validate::isLoadedObject($order)
+            || !$this->employee
+            || (!$this->employee->isSuperAdmin() && !$this->employee->hasAuthOnShop((int) $order->id_shop))) {
+            $this->ajaxFailAndDie(
+                $this->module->l('Access denied', 'manage'),
+                403
+            );
+        }
+
+        return [(int) $order->id_customer, (int) $order->id_shop];
     }
 
     /**
@@ -378,8 +424,10 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         // Les credentials transporteur sont lus via Configuration::get, résolue
         // sur la boutique de contexte. La recherche tourne côté front (ce
         // contrôleur) : on force la boutique de la commande consultée en BO pour
-        // que les bons credentials soient utilisés en multiboutique.
-        $idShop = (int) Tools::getValue('id_shop');
+        // que les bons credentials soient utilisés en multiboutique. La boutique
+        // vient de la commande, jamais de la requête : sinon un employé pourrait
+        // faire consommer le compte transporteur d'une autre boutique.
+        list(, $idShop) = $this->resolveOrderContext();
         if ($idShop > 0 && Shop::isFeatureActive()) {
             Shop::setContext(Shop::CONTEXT_SHOP, $idShop);
         }

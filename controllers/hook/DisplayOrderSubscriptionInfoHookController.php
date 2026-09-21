@@ -96,7 +96,7 @@ class DisplayOrderSubscriptionInfoHookController
         // Bloc « point relais des prochains prélèvements » : uniquement si le
         // transporteur des rebills (celui du fingerprint, pas celui de la
         // commande affichée) est un module relais supporté.
-        $relayVars = $this->buildRelayOverrideVars($subscription, (int) $order->id_customer, (int) $order->id_shop);
+        $relayVars = $this->buildRelayOverrideVars($subscription, (int) $order->id_customer, (int) $order->id_shop, (int) $order->id);
 
         $this->context->smarty->assign(array_merge([
             'subscription_items' => $subscriptionInfos,
@@ -120,7 +120,7 @@ class DisplayOrderSubscriptionInfoHookController
      *
      * @return array
      */
-    private function buildRelayOverrideVars($subscription, $idCustomer, $idShop = 0)
+    private function buildRelayOverrideVars($subscription, $idCustomer, $idShop = 0, $idOrder = 0)
     {
         $vars = [
             'ciklik_relay_supported' => false,
@@ -128,6 +128,9 @@ class DisplayOrderSubscriptionInfoHookController
             'ciklik_relay_carrier_name' => '',
             'ciklik_relay_customer_id' => $idCustomer,
             'ciklik_relay_shop_id' => $idShop,
+            // Seul identifiant posté au contrôleur : client et boutique en sont
+            // redérivés côté serveur, jamais lus depuis la requête.
+            'ciklik_relay_order_id' => $idOrder,
             'ciklik_relay_current' => null,
             'ciklik_relay_has_override' => false,
             'ciklik_relay_known' => [],
@@ -154,6 +157,13 @@ class DisplayOrderSubscriptionInfoHookController
             return $vars;
         }
 
+        // Offres domicile des modules relais (Chrono13, DPD Predict/Classic,
+        // Colissimo domicile...) : pas de bloc — un override n'y serait jamais
+        // appliqué au rebill (gardes des drivers ou ligne ignorée par le module)
+        if (!DeliveryModuleManager::carrierSupportsRelay($module, $carrier)) {
+            return $vars;
+        }
+
         $override = CiklikDeliveryOverride::get($idCustomer, $module);
 
         if ($override) {
@@ -168,7 +178,13 @@ class DisplayOrderSubscriptionInfoHookController
                 ),
             ];
         } else {
-            $peek = DeliveryModuleManager::peekLegacyRelay($idCustomer, $module);
+            // L'adresse du fingerprint est celle des paniers de rebill : la
+            // passer aligne l'affichage sur le relais que le clonage choisira
+            $peek = DeliveryModuleManager::peekLegacyRelay(
+                $idCustomer,
+                $module,
+                (int) $subscription->external_fingerprint->id_address_delivery
+            );
             $current = $peek ? array_merge(['source' => 'auto'], $peek) : null;
         }
 
