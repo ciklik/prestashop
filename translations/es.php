@@ -309,6 +309,7 @@ $_MODULE['<{ciklik}prestashop>ciklik_84cdc76cabf41bd7c961f6ab12f117d8'] = 'year'
 $_MODULE['<{ciklik}prestashop>ciklik_75aeb98e5241592ad6a6c2c4c78a16ef'] = 'years';
 $_MODULE['<{ciklik}prestashop>ciklik_6fc473c3b5128bcdb9a23d270155ddd1'] = 'Every %s';
 $_MODULE['<{ciklik}prestashop>ciklik_3204d99329835a7ddb1240cdd5503bde'] = 'Every %d %s';
+$_MODULE['<{ciklik}prestashop>ciklik_63647e43c1410cb00be657af693601e4'] = 'Confirmo que este pedido contiene una suscripción que se renovará automáticamente';
 
 // AdminConfigureCiklikController - missing entries
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a02758d758e8bec77a33d7f392eb3f8a'] = 'No currency has been set for this module.';
@@ -452,3 +453,5 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a78ab9721da8f5fdfab
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3e59665923bee6d7aba7bb480b4cb5d3'] = 'Avisar si hay frecuencias diferentes';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_caa090964291fa55e94132cc1b9067bf'] = 'Muestra un aviso cuando la cesta contiene suscripciones con frecuencias diferentes.';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_d7ea4e854eb2b7a22df112470671faaa'] = 'Texto del aviso de frecuencias diferentes';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fc1b2aaa6156d1ab4cbda2b34e5bc2b8'] = 'Exigir el consentimiento de suscripción al finalizar la compra';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_363be34fc836ed8784daf532d33534df'] = 'Añade una casilla obligatoria en el paso de pago cuando el carrito contiene una suscripción. El cliente debe reconocer explícitamente la renovación automática antes de realizar el pedido.';
