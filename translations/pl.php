@@ -309,6 +309,7 @@ $_MODULE['<{ciklik}prestashop>ciklik_84cdc76cabf41bd7c961f6ab12f117d8'] = 'year'
 $_MODULE['<{ciklik}prestashop>ciklik_75aeb98e5241592ad6a6c2c4c78a16ef'] = 'years';
 $_MODULE['<{ciklik}prestashop>ciklik_6fc473c3b5128bcdb9a23d270155ddd1'] = 'Every %s';
 $_MODULE['<{ciklik}prestashop>ciklik_3204d99329835a7ddb1240cdd5503bde'] = 'Every %d %s';
+$_MODULE['<{ciklik}prestashop>ciklik_63647e43c1410cb00be657af693601e4'] = 'Potwierdzam, że to zamówienie zawiera subskrypcję, która będzie automatycznie odnawiana';
 
 // AdminConfigureCiklikController - missing entries
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a02758d758e8bec77a33d7f392eb3f8a'] = 'No currency has been set for this module.';
@@ -452,3 +453,5 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_a78ab9721da8f5fdfab
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3e59665923bee6d7aba7bb480b4cb5d3'] = 'Ostrzegaj przy różnych częstotliwościach';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_caa090964291fa55e94132cc1b9067bf'] = 'Wyświetla ostrzeżenie, gdy koszyk zawiera subskrypcje o różnych częstotliwościach.';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_d7ea4e854eb2b7a22df112470671faaa'] = 'Treść ostrzeżenia o różnych częstotliwościach';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_fc1b2aaa6156d1ab4cbda2b34e5bc2b8'] = 'Wymagaj zgody na subskrypcję przy składaniu zamówienia';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_363be34fc836ed8784daf532d33534df'] = 'Dodaje obowiązkowe pole wyboru na etapie płatności, gdy koszyk zawiera subskrypcję. Klient musi wyraźnie potwierdzić automatyczne odnowienie przed złożeniem zamówienia.';
