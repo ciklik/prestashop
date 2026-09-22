@@ -210,6 +210,10 @@ class DeliveryModuleManager
                         null,
                         true
                     );
+                } else {
+                    // Db::insert retourne false sans exception hors debug : sans
+                    // ce log, un rebill sans ligne relais serait indétectable
+                    self::logOverride('mondialrelay', $cart->id, 'échec insertion clonage (Db::insert=false)', 3);
                 }
             }
         } catch (\Exception $e) {
@@ -286,6 +290,8 @@ class DeliveryModuleManager
 
         if ($result) {
             self::logOverride('mondialrelay', $cart->id, 'relais override appliqué: ' . $override['relay_id'], 1);
+        } else {
+            self::logOverride('mondialrelay', $cart->id, 'échec insertion override, repli sur le clonage');
         }
 
         return (bool) $result;
@@ -435,6 +441,8 @@ class DeliveryModuleManager
                     null,
                     true
                 );
+            } else {
+                self::logOverride('dpdfrance', $cart->id, 'échec insertion clonage (Db::insert=false)', 3);
             }
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
@@ -467,6 +475,15 @@ class DeliveryModuleManager
     {
         $payload = $override['payload'];
 
+        // relay_id > 8 caractères : la colonne du module est varchar(8) et
+        // sql_mode='' (forcé par PS) tronquerait silencieusement en un code
+        // invalide sur l'étiquette. Mieux vaut le repli sur le clonage.
+        if (\Tools::strlen($override['relay_id']) > 8) {
+            self::logOverride('dpdfrance', $cart->id, 'relay_id trop long (max 8), repli sur le clonage');
+
+            return false;
+        }
+
         $technicalSource = \Db::getInstance()->getRow(
             'SELECT * FROM ' . _DB_PREFIX_ . 'dpdfrance_shipping
              WHERE id_customer = ' . (int) $cart->id_customer . '
@@ -486,26 +503,44 @@ class DeliveryModuleManager
         if (!$idCountry) {
             $idCountry = (int) $technicalSource['id_country'];
         }
+        // Jamais 0 : le module recopie id_country dans l'adresse relais créée à
+        // la validation, et l'export DPD Station résout l'ISO depuis cet id
+        // (0 = code pays vide dans le fichier, ligne rejetée à l'import).
+        if (!$idCountry) {
+            $idCountry = (int) \Configuration::get('PS_COUNTRY_DEFAULT');
+        }
 
+        // Téléphone d'avisage SMS : normalisé comme le fait le flux Predict du
+        // module (chiffres et + uniquement) pour tenir dans gsm_dest varchar(14)
+        // sans perdre de chiffres par troncature.
+        $gsmDest = isset($payload['phone']) && '' !== (string) $payload['phone']
+            ? $payload['phone']
+            : $technicalSource['gsm_dest'];
+        $gsmDest = (string) preg_replace('/[^0-9+]/', '', (string) $gsmDest);
+
+        // Longueurs alignées sur le schéma du module v6 : service varchar(3),
+        // relay_id 8, company 32 (23 sur boutiques migrées depuis v5 : le seul
+        // consommateur du module tronque lui-même à 23), address 128,
+        // postcode 10, city 100, gsm_dest 14.
         $result = \Db::getInstance()->insert('dpdfrance_shipping', [
             'id_customer' => (int) $cart->id_customer,
             'id_cart' => (int) $cart->id,
             'id_carrier' => (int) $cart->id_carrier,
-            'service' => pSQL($technicalSource['service']),
+            'service' => pSQL(\Tools::substr($technicalSource['service'], 0, 3)),
             'relay_id' => pSQL($override['relay_id']),
-            'company' => pSQL(isset($payload['name']) ? $payload['name'] : ''),
-            'address1' => pSQL(isset($payload['address1']) ? $payload['address1'] : ''),
-            'address2' => pSQL(isset($payload['address2']) ? $payload['address2'] : ''),
-            'postcode' => pSQL(isset($payload['zipcode']) ? $payload['zipcode'] : ''),
-            'city' => pSQL(isset($payload['city']) ? $payload['city'] : ''),
+            'company' => pSQL(\Tools::substr(isset($payload['name']) ? $payload['name'] : '', 0, 32)),
+            'address1' => pSQL(\Tools::substr(isset($payload['address1']) ? $payload['address1'] : '', 0, 128)),
+            'address2' => pSQL(\Tools::substr(isset($payload['address2']) ? $payload['address2'] : '', 0, 128)),
+            'postcode' => pSQL(\Tools::substr(isset($payload['zipcode']) ? $payload['zipcode'] : '', 0, 10)),
+            'city' => pSQL(\Tools::substr(isset($payload['city']) ? $payload['city'] : '', 0, 100)),
             'id_country' => $idCountry,
-            'gsm_dest' => pSQL(isset($payload['phone']) && '' !== (string) $payload['phone']
-                ? $payload['phone']
-                : $technicalSource['gsm_dest']),
+            'gsm_dest' => pSQL(\Tools::substr($gsmDest, 0, 14)),
         ]);
 
         if ($result) {
             self::logOverride('dpdfrance', $cart->id, 'relais override appliqué: ' . $override['relay_id'], 1);
+        } else {
+            self::logOverride('dpdfrance', $cart->id, 'échec insertion override, repli sur le clonage');
         }
 
         return (bool) $result;
@@ -590,6 +625,8 @@ class DeliveryModuleManager
                     null,
                     true
                 );
+            } else {
+                self::logOverride('colissimo', $cart->id, 'échec insertion clonage (Db::insert=false)', 3);
             }
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
@@ -651,6 +688,8 @@ class DeliveryModuleManager
 
         if ($result) {
             self::logOverride('colissimo', $cart->id, 'relais override appliqué: ' . $override['relay_id'], 1);
+        } else {
+            self::logOverride('colissimo', $cart->id, 'échec insertion override, repli sur le clonage');
         }
 
         return (bool) $result;
@@ -825,9 +864,16 @@ class DeliveryModuleManager
                 'phone' => pSQL($existingGlsCarrier['phone']),
                 'phone_mobile' => pSQL($existingGlsCarrier['phone_mobile']),
                 'customer_phone_mobile' => pSQL($existingGlsCarrier['customer_phone_mobile']),
-                'id_country' => isset($existingGlsCarrier['id_country']) ? (int) $existingGlsCarrier['id_country'] : null,
+                'id_country' => isset($existingGlsCarrier['id_country']) ? (int) $existingGlsCarrier['id_country'] : 0,
                 'parcel_shop_working_day' => pSQL($existingGlsCarrier['parcel_shop_working_day']),
             ];
+
+            // nkmgls < 3.2.0 : la colonne original_id_address_delivery n'existe
+            // pas encore (le module Shopping Feed gère la même bascule par
+            // version). L'inclure ferait échouer tout l'INSERT (erreur 1054).
+            if (!self::columnExists(_DB_PREFIX_ . 'gls_cart_carrier', 'original_id_address_delivery')) {
+                unset($newGlsCarrier['original_id_address_delivery']);
+            }
 
             // Insérer la nouvelle ligne
             $result = \Db::getInstance()->insert('gls_cart_carrier', $newGlsCarrier);
@@ -841,6 +887,8 @@ class DeliveryModuleManager
                     null,
                     true
                 );
+            } else {
+                self::logOverride('nkmgls', $cart->id, 'échec insertion clonage (Db::insert=false)', 3);
             }
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
@@ -885,7 +933,7 @@ class DeliveryModuleManager
             return false;
         }
 
-        $idCountry = null;
+        $idCountry = 0;
         if (!empty($payload['country_iso'])) {
             $idCountry = (int) \Country::getByIso(strtoupper($payload['country_iso']));
         }
@@ -893,7 +941,7 @@ class DeliveryModuleManager
             $idCountry = (int) $technicalSource['id_country'];
         }
 
-        $result = \Db::getInstance()->insert('gls_cart_carrier', [
+        $newGlsCarrier = [
             'id_cart' => (int) $cart->id,
             'id_customer' => (int) $cart->id_customer,
             'id_carrier' => (int) $cart->id_carrier,
@@ -912,10 +960,19 @@ class DeliveryModuleManager
             'parcel_shop_working_day' => pSQL(isset($payload['parcel_shop_working_day'])
                 ? $payload['parcel_shop_working_day']
                 : $technicalSource['parcel_shop_working_day']),
-        ]);
+        ];
+
+        // nkmgls < 3.2.0 : colonne absente, cf. remarque dans handleNkmgls
+        if (!self::columnExists(_DB_PREFIX_ . 'gls_cart_carrier', 'original_id_address_delivery')) {
+            unset($newGlsCarrier['original_id_address_delivery']);
+        }
+
+        $result = \Db::getInstance()->insert('gls_cart_carrier', $newGlsCarrier);
 
         if ($result) {
             self::logOverride('nkmgls', $cart->id, 'relais override appliqué: ' . $override['relay_id'], 1);
+        } else {
+            self::logOverride('nkmgls', $cart->id, 'échec insertion override, repli sur le clonage');
         }
 
         return (bool) $result;
@@ -947,10 +1004,13 @@ class DeliveryModuleManager
      *
      * @param int $idCustomer
      * @param string $module Nom du module transporteur (minuscules)
+     * @param int $idAddressDelivery Adresse de livraison des rebills (celle du
+     *                               fingerprint) : permet d'afficher le même
+     *                               relais que celui que le clonage choisira
      *
      * @return array|null ['relay_id' => string, 'label' => string] ou null
      */
-    public static function peekLegacyRelay($idCustomer, $module)
+    public static function peekLegacyRelay($idCustomer, $module, $idAddressDelivery = 0)
     {
         try {
             switch ($module) {
@@ -958,13 +1018,30 @@ class DeliveryModuleManager
                     if (!self::tableExists(_DB_PREFIX_ . 'mondialrelay_selected_relay')) {
                         return null;
                     }
-                    $row = \Db::getInstance()->getRow(
-                        'SELECT selected_relay_num, selected_relay_adr1, selected_relay_city
-                         FROM ' . _DB_PREFIX_ . 'mondialrelay_selected_relay
-                         WHERE id_customer = ' . (int) $idCustomer . '
-                           AND id_order IS NOT NULL
-                         ORDER BY date_add DESC'
-                    );
+                    // Même ordre de priorité que handleMondialrelay : d'abord la
+                    // dernière ligne de l'adresse des rebills, sinon la dernière
+                    // ligne du client. Sans ce filtre, l'UI pouvait afficher un
+                    // relais différent de celui que le clonage utilisera.
+                    $row = null;
+                    if ($idAddressDelivery > 0) {
+                        $row = \Db::getInstance()->getRow(
+                            'SELECT selected_relay_num, selected_relay_adr1, selected_relay_city
+                             FROM ' . _DB_PREFIX_ . 'mondialrelay_selected_relay
+                             WHERE id_address_delivery = ' . (int) $idAddressDelivery . '
+                               AND id_customer = ' . (int) $idCustomer . '
+                               AND id_order IS NOT NULL
+                             ORDER BY date_add DESC'
+                        );
+                    }
+                    if (!$row) {
+                        $row = \Db::getInstance()->getRow(
+                            'SELECT selected_relay_num, selected_relay_adr1, selected_relay_city
+                             FROM ' . _DB_PREFIX_ . 'mondialrelay_selected_relay
+                             WHERE id_customer = ' . (int) $idCustomer . '
+                               AND id_order IS NOT NULL
+                             ORDER BY date_add DESC'
+                        );
+                    }
 
                     return $row ? [
                         'relay_id' => (string) $row['selected_relay_num'],
@@ -1230,6 +1307,28 @@ class DeliveryModuleManager
      *
      * @return bool
      */
+    /**
+     * Vérifie l'existence d'une colonne : les schémas des tables des modules
+     * transporteurs varient selon la version installée chez le marchand.
+     *
+     * @param string $tableName Nom complet de la table (avec préfixe)
+     * @param string $columnName
+     *
+     * @return bool
+     */
+    private static function columnExists($tableName, $columnName)
+    {
+        try {
+            $rows = \Db::getInstance()->executeS(
+                'SHOW COLUMNS FROM `' . bqSQL($tableName) . "` LIKE '" . pSQL($columnName) . "'"
+            );
+
+            return !empty($rows);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
     private static function tableExists($tableName)
     {
         try {
@@ -1338,13 +1437,15 @@ class DeliveryModuleManager
 
             if ($result) {
                 \PrestaShopLogger::addLog(
-                    'DeliveryModuleManager::handleChronopost - Ligne clonée avec succès - Cart ID: ' . (int) $cart->id . ' - PR ID: ' . (int) $existingRelais['id_pr'],
+                    'DeliveryModuleManager::handleChronopost - Ligne clonée avec succès - Cart ID: ' . (int) $cart->id . ' - PR ID: ' . pSQL($existingRelais['id_pr']),
                     1,
                     null,
                     'DeliveryModuleManager',
                     null,
                     true
                 );
+            } else {
+                self::logOverride('chronopost', $cart->id, 'échec insertion clonage (Db::insert=false)', 3);
             }
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
@@ -1360,11 +1461,16 @@ class DeliveryModuleManager
 
     public static function getChronoRelaisIDs()
     {
+        // Liste alignée sur Chronopost::getChronoRelaisIDs() du module officiel :
+        // les transporteurs ToShop/Shop2Shop y sont traités comme des relais
+        // (lecture de chrono_cart_relais pour le recipientRef de l'étiquette).
         return [
             (int) \Configuration::get('CHRONOPOST_CHRONORELAIS_AMBIENT_ID'),
             (int) \Configuration::get('CHRONOPOST_CHRONORELAIS_ID'),
             (int) \Configuration::get('CHRONOPOST_RELAISEUROPE_ID'),
             (int) \Configuration::get('CHRONOPOST_RELAISDOM_ID'),
+            (int) \Configuration::get('CHRONOPOST_TOSHOPDIRECT_ID'),
+            (int) \Configuration::get('CHRONOPOST_TOSHOPDIRECT_EUROPE_ID'),
         ];
     }
 
@@ -1373,5 +1479,130 @@ class DeliveryModuleManager
         $carrier = new \Carrier($idCarrier);
 
         return in_array($carrier->id_reference, self::getChronoRelaisIDs());
+    }
+
+    /**
+     * Le transporteur est-il une offre « point relais » de son module ?
+     *
+     * Les cinq modules supportés posent external_module_name sur TOUTES leurs
+     * offres, domicile compris (Chrono13/18, DPD Predict/Classic, Colissimo
+     * domicile, Mondial Relay domicile, GLS Chez Vous). Sans ce test, le bloc
+     * BO s'affichait pour des abonnements domicile et acceptait un override
+     * jamais appliqué au rebill. Sources de vérité relevées dans les modules
+     * officiels ; en cas d'indétermination (schéma/config inconnus), on répond
+     * true : mieux vaut afficher le bloc à tort que le masquer pour un vrai
+     * abonnement relais.
+     *
+     * @param string $module Nom du module transporteur (minuscules)
+     * @param \Carrier $carrier Transporteur courant des rebills
+     *
+     * @return bool
+     */
+    public static function carrierSupportsRelay($module, $carrier)
+    {
+        try {
+            switch ($module) {
+                case 'chronopost':
+                    // Même garde que handleChronopost (liste alignée sur celle
+                    // du module, ToShop/Shop2Shop inclus)
+                    return in_array((int) $carrier->id_reference, self::getChronoRelaisIDs(), true);
+
+                case 'nkmgls':
+                    // Même garde que handleNkmgls : seule l'instance (ou les
+                    // clones par référence) du transporteur GLS_GLSRELAIS_ID
+                    // est une offre relais
+                    $glsRelaisId = (int) \Configuration::get('GLS_GLSRELAIS_ID');
+                    if (!$glsRelaisId) {
+                        return false;
+                    }
+                    $glsRelaisCarrier = new \Carrier($glsRelaisId);
+
+                    return (int) $carrier->id === $glsRelaisId
+                        || ((int) $carrier->id_reference
+                            && (int) $carrier->id_reference === (int) $glsRelaisCarrier->id_reference);
+
+                case 'colissimo':
+                    // Le module résout le type de service par l'id_reference du
+                    // transporteur (ColissimoService::getServiceTypeByIdCarrier)
+                    if (!self::tableExists(_DB_PREFIX_ . 'colissimo_service')) {
+                        return true;
+                    }
+                    $type = \Db::getInstance()->getValue(
+                        'SELECT type FROM ' . _DB_PREFIX_ . 'colissimo_service
+                         WHERE id_carrier = ' . (int) $carrier->id_reference
+                    );
+                    if (false === $type || null === $type || '' === $type) {
+                        return true; // indéterminé : ne pas masquer à tort
+                    }
+
+                    return 'RELAIS' === strtoupper((string) $type);
+
+                case 'dpdfrance':
+                    // Listes d'id_carrier au format |int|int maintenues par le
+                    // module (hookActionCarrierUpdate) dans sa Configuration
+                    if (self::carrierInDpdLists($carrier, [
+                        'DPDFRANCE_RELAIS_CARRIER_LOG',
+                        'DPDFRANCE_RELAIS_RETAIL_CARRIER_LOG',
+                        'DPDFRANCE_RELAIS_LOCKER_CARRIER_LOG',
+                    ])) {
+                        return true;
+                    }
+                    if (self::carrierInDpdLists($carrier, [
+                        'DPDFRANCE_PREDICT_CARRIER_LOG',
+                        'DPDFRANCE_CLASSIC_CARRIER_LOG',
+                    ])) {
+                        return false;
+                    }
+
+                    return true; // indéterminé
+
+                case 'mondialrelay':
+                    // Mode de livraison porté par mondialrelay_carrier_method
+                    // (maintenue par hookActionCarrierUpdate du module) ;
+                    // modes relais : 24R/DRI en v3, 24R/MED/APM en v4
+                    if (!self::tableExists(_DB_PREFIX_ . 'mondialrelay_carrier_method')) {
+                        return true;
+                    }
+                    $mode = \Db::getInstance()->getValue(
+                        'SELECT delivery_mode FROM ' . _DB_PREFIX_ . 'mondialrelay_carrier_method
+                         WHERE id_carrier = ' . (int) $carrier->id . '
+                           AND is_deleted = 0'
+                    );
+                    if (false === $mode || null === $mode || '' === $mode) {
+                        return true; // indéterminé
+                    }
+
+                    return in_array(strtoupper((string) $mode), ['24R', 'DRI', 'MED', 'APM'], true);
+            }
+        } catch (\Exception $e) {
+            return true;
+        }
+
+        return true;
+    }
+
+    /**
+     * Le transporteur figure-t-il dans une des listes d'id_carrier du module
+     * DPD France (Configuration au format |int1|int2) ?
+     *
+     * @param \Carrier $carrier
+     * @param array $configKeys
+     *
+     * @return bool
+     */
+    private static function carrierInDpdLists($carrier, array $configKeys)
+    {
+        foreach ($configKeys as $key) {
+            $raw = (string) \Configuration::get($key);
+            if ('' === $raw) {
+                continue;
+            }
+            $ids = array_map('intval', explode('|', ltrim($raw, '|')));
+            if (in_array((int) $carrier->id, $ids, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
