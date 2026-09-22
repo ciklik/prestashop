@@ -448,8 +448,8 @@ class AdminConfigureCiklikController extends ModuleAdminController
                         'type' => 'radio',
                         'title' => $this->l('Mode'),
                         'choices' => [
-                            'SANDBOX' => $this->l('Test'),
-                            'LIVE' => $this->l('Production'),
+                            'SANDBOX' => $this->l('Demo'),
+                            'LIVE' => $this->l('Production/Dev/Test'),
                         ],
                         'required' => true,
                     ],
