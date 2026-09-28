@@ -18,6 +18,18 @@ if (!defined('_PS_USE_SQL_SLAVE_')) {
     define('_PS_USE_SQL_SLAVE_', true);
 }
 
+if (!defined('_DB_NAME_')) {
+    define('_DB_NAME_', 'prestashop_test');
+}
+
+// Fonction PrestaShop de nettoyage des identifiants SQL (tables, colonnes)
+if (!function_exists('bqSQL')) {
+    function bqSQL($string)
+    {
+        return str_replace('`', '\\`', pSQL($string));
+    }
+}
+
 // Fonction PrestaShop de sanitisation SQL
 if (!function_exists('pSQL')) {
     function pSQL($string, $htmlOK = false)
@@ -111,6 +123,11 @@ class Db
         self::$updateCalls = [];
         self::$mockGetRowResults = [];
         self::$mockGetRowDefault = [];
+        self::$mockGetValueDefault = '0';
+        self::$mockGetValueResults = [];
+        self::$executeCalls = [];
+        self::$mockExecuteResult = true;
+        self::$queryLog = [];
     }
 
     /**
@@ -157,6 +174,8 @@ class Db
 
     public function executeS($query)
     {
+        self::$queryLog[] = is_object($query) ? get_class($query) : (string) $query;
+
         return self::$mockExecuteS;
     }
 
@@ -176,18 +195,82 @@ class Db
         return self::$mockUpdateDefault;
     }
 
-    public function getValue($query)
+    /** @var mixed Resultat par defaut de getValue() */
+    private static $mockGetValueDefault = '0';
+
+    /** @var array File de resultats pour getValue() */
+    private static $mockGetValueResults = [];
+
+    /** @var array Enregistrement des requetes passees a execute() */
+    public static $executeCalls = [];
+
+    /** @var bool Resultat de execute() */
+    private static $mockExecuteResult = true;
+
+    /** @var array Requetes passees a getValue(), getRow() et execute(), dans l'ordre */
+    public static $queryLog = [];
+
+    /**
+     * Configure le resultat par defaut de getValue()
+     *
+     * @param mixed $result
+     */
+    public static function setMockGetValue($result)
     {
-        return '0';
+        self::$mockGetValueDefault = $result;
     }
 
-    public function execute($query)
+    /**
+     * Configure une file de resultats pour getValue()
+     *
+     * @param array $results
+     */
+    public static function setMockGetValueResults(array $results)
     {
-        return true;
+        self::$mockGetValueResults = $results;
     }
 
-    public function getRow($query)
+    /**
+     * Configure le resultat de execute()
+     *
+     * @param bool $result
+     */
+    public static function setMockExecuteResult($result)
     {
+        self::$mockExecuteResult = (bool) $result;
+    }
+
+    /**
+     * Une Exception placee dans la file de getValue() est levee a son tour
+     */
+    public function getValue($query, $useCache = true)
+    {
+        self::$queryLog[] = is_object($query) ? get_class($query) : (string) $query;
+
+        if (!empty(self::$mockGetValueResults)) {
+            $next = array_shift(self::$mockGetValueResults);
+            if ($next instanceof Throwable) {
+                throw $next;
+            }
+
+            return $next;
+        }
+
+        return self::$mockGetValueDefault;
+    }
+
+    public function execute($query, $useCache = true)
+    {
+        self::$executeCalls[] = $query;
+        self::$queryLog[] = is_object($query) ? get_class($query) : (string) $query;
+
+        return self::$mockExecuteResult;
+    }
+
+    public function getRow($query, $useCache = true)
+    {
+        self::$queryLog[] = is_object($query) ? get_class($query) : (string) $query;
+
         if (!empty(self::$mockGetRowResults)) {
             return array_shift(self::$mockGetRowResults);
         }
@@ -356,14 +439,38 @@ class Product
 {
     public $id;
     public $name;
+    public $active = true;
+    public $visibility = 'both';
+    public $available_for_order = true;
 
     /** @var array Noms mockés [id => name] */
     private static $mockNames = [];
 
+    /** @var bool Résultat de isAssociatedToShop() */
+    public static $mockAssociatedToShop = true;
+
+    /** @var bool Résultat de checkAccess() */
+    public static $mockAccess = true;
+
+    /** @var array Clients passés à checkAccess() */
+    public static $checkAccessCalls = [];
+
     public function __construct($id = null, $full = false, $idLang = null)
     {
         $this->id = $id;
-        $this->name = isset(self::$mockNames[$id]) ? self::$mockNames[$id] : '';
+        $this->name = null !== $id && isset(self::$mockNames[$id]) ? self::$mockNames[$id] : '';
+    }
+
+    public function isAssociatedToShop($idShop = null)
+    {
+        return self::$mockAssociatedToShop;
+    }
+
+    public function checkAccess($idCustomer)
+    {
+        self::$checkAccessCalls[] = $idCustomer;
+
+        return self::$mockAccess;
     }
 
     public static function setMockName($id, $name)
@@ -374,6 +481,23 @@ class Product
     public static function resetMocks()
     {
         self::$mockNames = [];
+        self::$mockAssociatedToShop = true;
+        self::$mockAccess = true;
+        self::$checkAccessCalls = [];
+    }
+}
+
+/**
+ * Stub Pack pour les tests unitaires
+ */
+class Pack
+{
+    /** @var array Identifiants des produits qui sont des packs */
+    public static $packs = [];
+
+    public static function isPack($idProduct)
+    {
+        return in_array((int) $idProduct, self::$packs, true);
     }
 }
 
@@ -426,6 +550,126 @@ class Ciklik
     public const CONFIG_ORDER_STATE = 'CIKLIK_ORDER_STATE';
     public const CONFIG_ENABLE_CREATION_ORDER_STATE = 'CIKLIK_ENABLE_CREATION_ORDER_STATE';
     public const CONFIG_CREATION_ORDER_STATE = 'CIKLIK_CREATION_ORDER_STATE';
+    public const CONFIG_ENABLE_UPSELL = 'CIKLIK_ENABLE_UPSELL';
+}
+
+/**
+ * Stub Validate pour les tests unitaires : memes expressions que
+ * classes/Validate.php de PrestaShop 1.7 pour les champs de payload relais
+ */
+class Validate
+{
+    public static function isLoadedObject($object)
+    {
+        return is_object($object) && !empty($object->id);
+    }
+
+    public static function isGenericName($name)
+    {
+        return empty($name) || preg_match('/^[^<>={}]*$/u', $name);
+    }
+
+    public static function isAddress($address)
+    {
+        return empty($address) || preg_match('/^[^!<>?=+@{}_$%]*$/u', $address);
+    }
+
+    public static function isPostCode($postcode)
+    {
+        return empty($postcode) || preg_match('/^[a-zA-Z 0-9-]+$/', $postcode);
+    }
+
+    public static function isCityName($city)
+    {
+        return preg_match('/^[^!<>;?=+@#"°{}_$%]*$/u', $city);
+    }
+
+    public static function isPhoneNumber($number)
+    {
+        return preg_match('/^[+0-9. ()\/-]*$/', $number);
+    }
+}
+
+/**
+ * Stub Shop pour les tests unitaires : contexte multiboutique
+ */
+class Shop
+{
+    const CONTEXT_SHOP = 1;
+    const CONTEXT_GROUP = 2;
+    const CONTEXT_ALL = 4;
+
+    /** @var bool */
+    public static $featureActive = false;
+
+    /** @var int */
+    public static $context = self::CONTEXT_SHOP;
+
+    /** @var int|null */
+    public static $contextShopId = 1;
+
+    /** @var int|null */
+    public static $contextGroupId = 1;
+
+    /** @var array Appels a setContext() [type, id] */
+    public static $setContextCalls = [];
+
+    public static function isFeatureActive()
+    {
+        return self::$featureActive;
+    }
+
+    public static function getContext()
+    {
+        return self::$context;
+    }
+
+    public static function getContextShopID($nullValueWithoutMultishop = false)
+    {
+        return self::$contextShopId;
+    }
+
+    public static function getContextShopGroupID($nullValueWithoutMultishop = false)
+    {
+        return self::$contextGroupId;
+    }
+
+    public static function setContext($type, $id = null)
+    {
+        self::$setContextCalls[] = [$type, $id];
+        self::$context = $type;
+        self::$contextShopId = self::CONTEXT_SHOP === $type ? $id : null;
+        self::$contextGroupId = self::CONTEXT_GROUP === $type ? $id : null;
+    }
+
+    public static function resetMocks()
+    {
+        self::$featureActive = false;
+        self::$context = self::CONTEXT_SHOP;
+        self::$contextShopId = 1;
+        self::$contextGroupId = 1;
+        self::$setContextCalls = [];
+    }
+}
+
+/**
+ * Stub Tools pour les tests unitaires : seulement ce que le code teste appelle
+ */
+class Tools
+{
+    /**
+     * Version reduite de Tools::replaceAccentedChars (lettres accentuees
+     * courantes du francais)
+     */
+    public static function replaceAccentedChars($str)
+    {
+        return strtr((string) $str, [
+            'à' => 'a', 'â' => 'a', 'ä' => 'a', 'ç' => 'c', 'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'î' => 'i', 'ï' => 'i', 'ô' => 'o', 'ö' => 'o', 'ù' => 'u', 'û' => 'u', 'ü' => 'u', 'ÿ' => 'y',
+            'À' => 'A', 'Â' => 'A', 'Ä' => 'A', 'Ç' => 'C', 'É' => 'E', 'È' => 'E', 'Ê' => 'E', 'Ë' => 'E',
+            'Î' => 'I', 'Ï' => 'I', 'Ô' => 'O', 'Ö' => 'O', 'Ù' => 'U', 'Û' => 'U', 'Ü' => 'U',
+        ]);
+    }
 }
 
 /**

@@ -16,6 +16,19 @@ if (!defined('_PS_VERSION_')) {
 class CiklikApiResponseHandler
 {
     /**
+     * Refus connus de l'API sur le champ « product » des routes produits
+     * d'abonnement, reconnus au début de leur texte (en français côté API) :
+     * clé du refus => motif. Le module traduit chaque clé dans la langue du
+     * client.
+     */
+    const KNOWN_PRODUCT_REFUSALS = [
+        'not_attached' => "/^Ce produit n'est pas rattach/u",
+        'last_product' => '/^Impossible de retirer le dernier produit/u',
+        'unknown_product' => "/^Le produit n'existe pas/u",
+        'other_tenant' => "/^Ce produit n'appartient pas/u",
+    ];
+
+    /**
      * Formate la réponse de l'API
      *
      * @param ResponseInterface $response Réponse HTTP de Guzzle
@@ -27,12 +40,17 @@ class CiklikApiResponseHandler
         // Dans Guzzle 6+, getBody() retourne un stream qui ne peut être lu qu'une seule fois
         // Il faut le convertir en chaîne pour le lire
         $bodyContents = (string) $response->getBody();
-        $responseContents = json_decode($bodyContents, true);
+        $decoded = json_decode($bodyContents, true);
+
+        // Réponse non JSON (429 ou 502 en texte brut, page HTML d'un proxy) :
+        // aucun contenu exploitable. array_key_exists() sur null levait une
+        // TypeError en PHP 8, soit une erreur 500 au lieu d'un refus propre.
+        $responseContents = is_array($decoded) ? $decoded : null;
 
         return [
             'status' => $this->responseIsSuccessful($responseContents, $response->getStatusCode()),
             'httpCode' => $response->getStatusCode(),
-            'body' => array_key_exists('data', $responseContents) ? $responseContents['data'] : [],
+            'body' => null !== $responseContents && array_key_exists('data', $responseContents) ? $responseContents['data'] : [],
             'meta' => $responseContents['meta'] ?? null,
             'links' => $responseContents['links'] ?? null,
             'message' => $response->getReasonPhrase(),
@@ -43,16 +61,31 @@ class CiklikApiResponseHandler
     /**
      * Message d'erreur à montrer au client pour une réponse refusée par l'API
      *
-     * Premier message exploitable de errors, échappé en HTML comme les autres
-     * textes de l'API affichés au client ; $fallback (message du module) sinon.
+     * Refus connu du champ « product » : sa traduction par le module, si
+     * elle est fournie. Sinon, premier message exploitable de errors, échappé
+     * en HTML comme les autres textes de l'API affichés au client, à
+     * condition que le client lise la langue de l'API ; $fallback (message du
+     * module) dans tous les autres cas.
      *
      * @param array $response Réponse formatée par handleResponse() ou buildErrorResponse()
      * @param string $fallback Message générique de repli
+     * @param array $knownRefusals Traductions des refus connus : clé de KNOWN_PRODUCT_REFUSALS => message
+     * @param bool $apiTextAllowed Le texte brut de l'API (en français) peut être montré au client
      *
      * @return string
      */
-    public static function customerErrorMessage($response, $fallback)
+    public static function customerErrorMessage($response, $fallback, array $knownRefusals = [], $apiTextAllowed = true)
     {
+        $refusal = self::knownProductRefusal($response);
+
+        if (null !== $refusal && isset($knownRefusals[$refusal]) && is_string($knownRefusals[$refusal])) {
+            return $knownRefusals[$refusal];
+        }
+
+        if (!$apiTextAllowed) {
+            return $fallback;
+        }
+
         $message = is_array($response) && isset($response['errors'])
             ? self::firstErrorMessage($response['errors'])
             : null;
@@ -65,6 +98,35 @@ class CiklikApiResponseHandler
 
         // htmlentities rend une chaîne vide sur un UTF-8 invalide
         return '' === $escaped ? $fallback : $escaped;
+    }
+
+    /**
+     * Refus connu de l'API sur le champ « product » ({@see KNOWN_PRODUCT_REFUSALS}).
+     *
+     * @param mixed $response Réponse formatée
+     *
+     * @return string|null Clé du refus, null si aucun refus connu
+     */
+    public static function knownProductRefusal($response)
+    {
+        if (!is_array($response) || !isset($response['errors']) || !is_array($response['errors'])
+            || !isset($response['errors']['product'])) {
+            return null;
+        }
+
+        foreach ((array) $response['errors']['product'] as $message) {
+            if (!is_string($message)) {
+                continue;
+            }
+
+            foreach (self::KNOWN_PRODUCT_REFUSALS as $key => $pattern) {
+                if (1 === preg_match($pattern, trim($message))) {
+                    return $key;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -76,4 +76,45 @@ class SubscriptionDataTest extends TestCase
             'ligne vide' => [[]],
         ];
     }
+    /**
+     * Ligne personnalisée visée : identifiant avec hash, ou sans hash quand
+     * les seules lignes du produit sont personnalisées
+     */
+    public function testCustomizedLineIsTargeted()
+    {
+        $contents = [
+            ['external_id' => '11:42', 'external_id_with_customizations' => '11:42_' . self::HASH, 'quantity' => 1],
+            ['external_id' => '11:43', 'external_id_with_customizations' => '11:43', 'quantity' => 2],
+        ];
+
+        $this->assertTrue(SubscriptionData::targetsCustomizedLine($contents, '11:42'));
+        $this->assertTrue(SubscriptionData::targetsCustomizedLine($contents, '11:42_' . self::HASH));
+        $this->assertTrue(SubscriptionData::targetsCustomizedLine([], '11:42_' . self::HASH));
+
+        // Mode attributs
+        $this->assertTrue(SubscriptionData::targetsCustomizedLine(
+            [['external_id' => '42', 'external_id_with_customizations' => '42_' . self::HASH]],
+            '42'
+        ));
+    }
+
+    /**
+     * Ligne standard, produit absent de l'abonnement, ou ligne standard du
+     * même produit à côté d'une ligne personnalisée : modification permise
+     */
+    public function testStandardLineIsNotTargeted()
+    {
+        $contents = [
+            ['external_id' => '11:42', 'external_id_with_customizations' => '11:42_' . self::HASH],
+            ['external_id' => '11:43', 'external_id_with_customizations' => '11:43'],
+        ];
+
+        $this->assertFalse(SubscriptionData::targetsCustomizedLine($contents, '11:43'));
+        $this->assertFalse(SubscriptionData::targetsCustomizedLine($contents, '11:99'));
+        $this->assertFalse(SubscriptionData::targetsCustomizedLine(null, '11:43'));
+
+        $withStandardToo = array_merge($contents, [['external_id' => '11:42']]);
+        $this->assertFalse(SubscriptionData::targetsCustomizedLine($withStandardToo, '11:42'));
+        $this->assertFalse(SubscriptionData::targetsCustomizedLine(array_reverse($withStandardToo), '11:42'));
+    }
 }

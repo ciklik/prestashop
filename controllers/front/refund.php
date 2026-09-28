@@ -178,11 +178,16 @@ class CiklikRefundModuleFrontController extends ModuleFrontController
 
     protected function renderAndExit($value = null, $controller = null, $method = null)
     {
+        // Réponse JSON déclarée comme telle et jamais réinterprétée par le
+        // navigateur : ajaxRender() ne pose aucun Content-Type, la réponse
+        // partait en text/html, avec des messages repris de l'API
+        header('Content-Type: application/json; charset=utf-8');
+        header('X-Content-Type-Options: nosniff');
+
         // Controller::ajaxRender existe à partir de PS 1.7.5.0 ; repli manuel en deçà.
         if (method_exists($this, 'ajaxRender')) {
             $this->ajaxRender($value, $controller, $method);
         } else {
-            header('Content-Type: application/json; charset=utf-8');
             echo $value;
         }
         exit;

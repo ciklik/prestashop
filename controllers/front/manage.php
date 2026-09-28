@@ -18,44 +18,18 @@ if (!defined('_PS_VERSION_')) {
 class CiklikManageModuleFrontController extends ModuleFrontController
 {
     /**
-     * Champs de payload relais acceptés : longueur max et méthode Validate
-     * éventuelle. Les champs sans validateur (formats propriétaires des
-     * transporteurs) sont seulement nettoyés et bornés. Les valeurs finissent
-     * sur des étiquettes et dans les flux transporteurs : pas de balises, pas
-     * de caractères de contrôle ni de retours-ligne.
+     * Champs de payload relais acceptés : règle partagée avec l'espace
+     * client, portée par CiklikDeliveryOverride. Alias conservé pour les
+     * intégrations qui lisaient la constante ici.
      */
-    const RELAY_PAYLOAD_RULES = [
-        'name' => ['max' => 64, 'validate' => 'isGenericName'],
-        'name2' => ['max' => 64, 'validate' => 'isGenericName'],
-        'address1' => ['max' => 128, 'validate' => 'isAddress'],
-        'address2' => ['max' => 128, 'validate' => 'isAddress'],
-        'zipcode' => ['max' => 12, 'validate' => 'isPostCode'],
-        'city' => ['max' => 64, 'validate' => 'isCityName'],
-        'country_iso' => ['max' => 2, 'validate' => null],
-        'phone' => ['max' => 32, 'validate' => 'isPhoneNumber'],
-        'product_code' => ['max' => 16, 'validate' => 'isGenericName'],
-        'network' => ['max' => 16, 'validate' => 'isGenericName'],
-        // Horaires GLS : json_encode du GLSWorkingDay du module, ~640 caractères
-        // pour 6 jours d'ouverture (mesuré sur les données réelles). Un plafond
-        // à 255 rejetait la sélection de tout relais connu GLS.
-        'parcel_shop_working_day' => ['max' => 4000, 'validate' => null],
-    ];
+    const RELAY_PAYLOAD_RULES = CiklikDeliveryOverride::RELAY_PAYLOAD_RULES;
 
     /**
-     * Longueur maximale de l'identifiant relais, par module, alignée sur les
-     * colonnes réelles des tables transporteurs (num varchar(6) Mondial Relay,
-     * colissimo_id varchar(8), relay_id varchar(8) DPD, id_pr varchar(10)
-     * Chronopost). PrestaShop forçant sql_mode='' à la connexion, un
-     * identifiant trop long serait sinon tronqué silencieusement en base et
-     * produirait un code invalide sur l'étiquette du rebill.
+     * Longueurs maximales de l'identifiant relais par module : règle partagée
+     * avec l'espace client, portée par CiklikDeliveryOverride. Alias conservé
+     * pour les intégrations qui lisaient la constante ici.
      */
-    const RELAY_ID_MAX_LENGTHS = [
-        'mondialrelay' => 6,
-        'colissimo' => 8,
-        'dpdfrance' => 8,
-        'nkmgls' => 20,
-        'chronopost' => 10,
-    ];
+    const RELAY_ID_MAX_LENGTHS = CiklikDeliveryOverride::RELAY_ID_MAX_LENGTHS;
 
     /** @var Employee|null Employé BO authentifié (posé par postProcess) */
     private $employee;
@@ -131,7 +105,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             $response = (new Subscription($this->context->link))->update($uuid, [
                 'active' => false,
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->ajaxFailAndDie(
                 $this->module->l('An error occurred while updating the subscription.', 'manage')
             );
@@ -164,7 +138,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             $response = (new Subscription($this->context->link))->update($uuid, [
                 'active' => true,
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->ajaxFailAndDie(
                 $this->module->l('An error occurred while updating the subscription.', 'manage')
             );
@@ -220,7 +194,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             $response = (new Subscription($this->context->link))->update($uuid, [
                 'next_billing' => $nextBilling,
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->ajaxFailAndDie(
                 $this->module->l('An error occurred while updating the subscription.', 'manage')
             );
@@ -254,10 +228,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         $carrierModule = strtolower((string) Tools::getValue('carrier_module'));
         $relayId = trim((string) Tools::getValue('relay_id'));
 
-        if (!in_array($carrierModule, CiklikDeliveryOverride::SUPPORTED_MODULES, true)
-            || !preg_match('/^[a-zA-Z0-9_-]+$/', $relayId)
-            || (isset(self::RELAY_ID_MAX_LENGTHS[$carrierModule])
-                && Tools::strlen($relayId) > self::RELAY_ID_MAX_LENGTHS[$carrierModule])) {
+        if (!CiklikDeliveryOverride::isValidRelayId($carrierModule, $relayId)) {
             $this->ajaxFailAndDie(
                 $this->module->l('Invalid pickup point data', 'manage'),
                 400
@@ -265,25 +236,16 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         }
 
         $payload = [];
-        foreach (self::RELAY_PAYLOAD_RULES as $field => $rules) {
+        foreach (array_keys(CiklikDeliveryOverride::RELAY_PAYLOAD_RULES) as $field) {
             $value = Tools::getValue('relay_' . $field);
             if (false === $value) {
                 continue;
             }
 
             // Nettoyage : balises, caractères de contrôle, retours-ligne
-            $value = preg_replace('/[\x00-\x1F\x7F]/u', ' ', strip_tags((string) $value));
-            $value = is_string($value) ? trim($value) : '';
+            $value = CiklikDeliveryOverride::cleanPayloadValue($value);
             if ('' === $value) {
                 continue;
-            }
-
-            if (Tools::strlen($value) > $rules['max']
-                || ($rules['validate'] && !call_user_func(['Validate', $rules['validate']], $value))) {
-                $this->ajaxFailAndDie(
-                    $this->module->l('Invalid pickup point data', 'manage'),
-                    400
-                );
             }
 
             $payload[$field] = $value;
@@ -292,6 +254,14 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         // Le code pays doit rester un ISO alpha-2 exploitable par les drivers
         if (isset($payload['country_iso']) && !preg_match('/^[a-zA-Z]{2}$/', $payload['country_iso'])) {
             unset($payload['country_iso']);
+        }
+
+        // Longueurs et validateurs PrestaShop : même règle que l'espace client
+        if (!CiklikDeliveryOverride::isValidPayload($payload)) {
+            $this->ajaxFailAndDie(
+                $this->module->l('Invalid pickup point data', 'manage'),
+                400
+            );
         }
 
         if (!CiklikDeliveryOverride::save($idCustomer, $carrierModule, $relayId, $payload)) {
@@ -448,7 +418,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
                 'city' => (string) Tools::getValue('city'),
                 'country_iso' => (string) Tools::getValue('country_iso'),
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->ajaxFailAndDie(
                 $this->module->l('Pickup point search failed. Please try again or use manual entry.', 'manage')
             );
@@ -493,11 +463,16 @@ class CiklikManageModuleFrontController extends ModuleFrontController
 
     protected function renderAndExit($value = null, $controller = null, $method = null)
     {
+        // Réponse JSON déclarée comme telle et jamais réinterprétée par le
+        // navigateur : ajaxRender() ne pose aucun Content-Type, la réponse
+        // partait en text/html, avec des messages repris de l'API
+        header('Content-Type: application/json; charset=utf-8');
+        header('X-Content-Type-Options: nosniff');
+
         // Controller::ajaxRender existe à partir de PS 1.7.5.0 ; repli manuel en deçà.
         if (method_exists($this, 'ajaxRender')) {
             $this->ajaxRender($value, $controller, $method);
         } else {
-            header('Content-Type: application/json; charset=utf-8');
             echo $value;
         }
         exit;

@@ -7,8 +7,8 @@
 
 use PrestaShop\Module\Ciklik\Data\CartSubscriptionData;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
-use PrestaShop\Module\Ciklik\Managers\CiklikDeliveryOverride;
 use PrestaShop\Module\Ciklik\Managers\CiklikRelaySearch;
+use PrestaShop\Module\Ciklik\Managers\CiklikSubscriptionRelay;
 use PrestaShop\Module\Ciklik\Managers\DeliveryModuleManager;
 
 if (!defined('_PS_VERSION_')) {
@@ -139,60 +139,30 @@ class DisplayOrderSubscriptionInfoHookController
             'ciklik_relay_assets_path' => $this->module->getPathUri(),
         ];
 
-        if (!$subscription
-            || !$subscription->external_fingerprint
-            || empty($subscription->external_fingerprint->id_carrier_reference)) {
+        // Transporteur des rebills résolu depuis le fingerprint, offres domicile
+        // des modules relais exclues (résolution partagée avec l'espace client)
+        $resolved = CiklikSubscriptionRelay::resolveCarrier($subscription);
+
+        if (null === $resolved) {
             return $vars;
         }
 
-        $carrier = Carrier::getCarrierByReference((int) $subscription->external_fingerprint->id_carrier_reference);
+        $module = $resolved['module'];
+        $carrier = $resolved['carrier'];
 
-        if (!$carrier || empty($carrier->external_module_name)) {
-            return $vars;
-        }
-
-        $module = strtolower($carrier->external_module_name);
-
-        if (!in_array($module, CiklikDeliveryOverride::SUPPORTED_MODULES, true)) {
-            return $vars;
-        }
-
-        // Offres domicile des modules relais (Chrono13, DPD Predict/Classic,
-        // Colissimo domicile...) : pas de bloc — un override n'y serait jamais
-        // appliqué au rebill (gardes des drivers ou ligne ignorée par le module)
-        if (!DeliveryModuleManager::carrierSupportsRelay($module, $carrier)) {
-            return $vars;
-        }
-
-        $override = CiklikDeliveryOverride::get($idCustomer, $module);
-
-        if ($override) {
-            $payload = $override['payload'];
-            $current = [
-                'source' => 'override',
-                'relay_id' => $override['relay_id'],
-                'label' => trim(
-                    (isset($payload['name']) ? $payload['name'] : '')
-                    . ' - ' . (isset($payload['city']) ? $payload['city'] : ''),
-                    ' -'
-                ),
-            ];
-        } else {
-            // L'adresse du fingerprint est celle des paniers de rebill : la
-            // passer aligne l'affichage sur le relais que le clonage choisira
-            $peek = DeliveryModuleManager::peekLegacyRelay(
-                $idCustomer,
-                $module,
-                (int) $subscription->external_fingerprint->id_address_delivery
-            );
-            $current = $peek ? array_merge(['source' => 'auto'], $peek) : null;
-        }
+        // L'adresse du fingerprint est celle des paniers de rebill : la passer
+        // aligne l'affichage sur le relais que le clonage choisira
+        $current = CiklikSubscriptionRelay::getCurrent(
+            $idCustomer,
+            $module,
+            (int) $subscription->external_fingerprint->id_address_delivery
+        );
 
         $vars['ciklik_relay_supported'] = true;
         $vars['ciklik_relay_module'] = $module;
         $vars['ciklik_relay_carrier_name'] = $carrier->name;
         $vars['ciklik_relay_current'] = $current;
-        $vars['ciklik_relay_has_override'] = (bool) $override;
+        $vars['ciklik_relay_has_override'] = null !== $current && 'override' === $current['source'];
         $vars['ciklik_relay_known'] = DeliveryModuleManager::getKnownRelays($idCustomer, $module);
         $vars['ciklik_relay_search_supported'] = CiklikRelaySearch::supportsSearch($module);
 

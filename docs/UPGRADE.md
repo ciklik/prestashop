@@ -1,5 +1,41 @@
 # Guide de mise à jour — module Ciklik
 
+## 1.24.0 : changement de point relais côté client, sécurité de Mes abonnements
+
+### Pour la plupart des marchands : rien à faire
+
+- La mise à jour crée la table `ciklik_relay_search_quota`, compteur des recherches de relais.
+- Dans « Mes abonnements », un abonnement livré en point relais propose « Changer de point relais »
+  à la place de « Changer l'adresse », qui reste pour la livraison à domicile et quand aucun relais
+  ne peut être proposé. Un point relais choisi pour les prochaines livraisons s'affiche comme
+  adresse de livraison de l'abonnement. La fonction est active dès la mise à jour, sans réglage.
+- Recherche par adresse disponible pour Mondial Relay, Colissimo et DPD France (adresses
+  françaises), y compris sous PrestaShop 1.7. Chronopost : relais connus en back-office seulement,
+  recherche désactivée dans cette version.
+- « Ajouter à l'abonnement » (upsell) n'est plus proposé pour un produit inactif, visible nulle
+  part, non disponible à la commande, réservé à d'autres groupes de clients, ni en mode catalogue
+  (les packs étaient déjà exclus) ; le serveur refuse les mêmes ajouts. Le retrait d'un upsell
+  reste possible dans tous les cas.
+
+### Si vous avez SURCHARGÉ des templates du module dans votre thème
+
+Toutes les actions de « Mes abonnements » (arrêt, reprise, report, date, fréquence, adresse,
+produits, upsell, relais) exigent désormais un **POST portant le jeton `token`**, y compris les
+appels AJAX, et quel que soit le réglage « Augmenter la sécurité du front office »
+(`PS_TOKEN_ENABLE`) de PrestaShop. Une URL `/ciklik/subscription/{uuid}/{action}` appelée en GET
+est refusée, sauf l'affichage de la page `/relay`.
+
+| Template surchargé | À faire |
+|--------------------|---------|
+| `actions/ListUpsellSubscriptionAndDelete.tpl` | ajouter `formData.append('token', '{$token\|escape:'javascript':'UTF-8'}');` avant le `fetch` |
+| `actions/chooseUpsellSubscription.tpl` | ajouter `formData.append('token', '{$ciklik_token\|escape:'javascript':'UTF-8'}');` avant le `fetch` |
+| `account.tpl` et les modales `actions/*.tpl` | garder `<input type="hidden" name="token" value="{$token\|escape:'html':'UTF-8'}">` dans chaque formulaire POST |
+| `account.tpl` | pour un abonnement en relais, inclure `actions/changePickupPoint.tpl` à la place de `actions/changeDeliveryAddress.tpl`, et afficher `$next_delivery_relays` (voir le template du module) |
+
+Le jeton attendu est celui que PrestaShop assigne déjà (`Tools::getToken(false)`, soit `{$token}`
+dans « Mes abonnements » et `{$static_token}` ailleurs) : une surcharge qui le transmet déjà n'a
+rien à changer.
+
 ## 1.20.0 — Compatibilité PHP 7.0 / PrestaShop 1.7.0 et suppression de Carbon
 
 ### Pour la quasi-totalité des marchands : rien à faire

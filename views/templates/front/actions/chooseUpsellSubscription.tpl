@@ -55,6 +55,13 @@ var ciklikUpsellMessages = {
     success: '{l s='The product has been successfully added to your subscription' mod='ciklik' js=1}'
 };
 
+// Les messages du contrôleur arrivent échappés en HTML ; textContent affiche
+// du texte brut : on décode les entités dans un document inerte
+function ciklikUpsellMessageText(message) {
+    if (!message) return '';
+    return new DOMParser().parseFromString(message, 'text/html').documentElement.textContent;
+}
+
 document.getElementById('subscription-select').addEventListener('change', function() {
     var selectedOption = this.options[this.selectedIndex];
     window.selectedUrl = selectedOption.dataset.url;
@@ -96,6 +103,7 @@ document.getElementById('submitUpsell').addEventListener('click', function() {
         }
     {/if}
     formData.append('action', 'addUpsell');
+    formData.append('token', '{$ciklik_token|escape:'javascript':'UTF-8'}');
 
     // Send AJAX request
     fetch(window.selectedUrl, {
@@ -114,7 +122,7 @@ document.getElementById('submitUpsell').addEventListener('click', function() {
 
         if (data.success) {
             alertDiv.className = 'alert alert-success';
-            alertDiv.textContent = data.message || ciklikUpsellMessages.success;
+            alertDiv.textContent = ciklikUpsellMessageText(data.message) || ciklikUpsellMessages.success;
             modalBody.appendChild(alertDiv);
 
             // Ferme la modale après 2 secondes
@@ -133,7 +141,7 @@ document.getElementById('submitUpsell').addEventListener('click', function() {
             }, 2000);
         } else {
             alertDiv.className = 'alert alert-danger';
-            alertDiv.textContent = data.message || '{l s='An error occurred.' mod='ciklik' js=1}';
+            alertDiv.textContent = ciklikUpsellMessageText(data.message) || '{l s='An error occurred.' mod='ciklik' js=1}';
             modalBody.appendChild(alertDiv);
             submitBtn.disabled = false;
         }

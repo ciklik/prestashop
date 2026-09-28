@@ -92,6 +92,10 @@ $ciklik = [
 <input type="checkbox" name="ciklik" value="1" {if $ciklik.selected} checked="checked"{/if}>
 ```
 
+### Changement de point relais côté client
+
+Dans « Mes abonnements », un abonnement livré en point relais propose « Changer de point relais » à la place de « Changer l'adresse », dès qu'un relais peut être proposé au client (recherche par adresse chez le transporteur, ou relais déjà utilisés lors de commandes passées). La fonction est active dès la mise à jour du module, sans réglage. Les recherches de relais sont limitées à 20 par client et 1000 par boutique et par heure.
+
 ## Support
 
 - Guide de mise à jour : voir [UPGRADE.md](UPGRADE.md)

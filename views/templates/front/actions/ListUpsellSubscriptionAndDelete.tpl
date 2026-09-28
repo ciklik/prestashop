@@ -36,7 +36,9 @@
         </table>
     </div>
     <script>
-        document.querySelectorAll('.delete-upsell').forEach(button => {
+        // Boutons de cet abonnement seulement : le gabarit est inclus pour chaque
+        // abonnement, un sélecteur global doublait les écouteurs (et les appels)
+        document.querySelectorAll('#upsellList{$subscription->uuid|escape:'javascript':'UTF-8'} .delete-upsell').forEach(button => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
                 const uuid = this.dataset.subscriptionUuid;
@@ -49,6 +51,7 @@
                 formData.append('quantity', 0);
                 formData.append('action', 'addUpsell');
                 formData.append('uuid', uuid);
+                formData.append('token', '{$token|escape:'javascript':'UTF-8'}');
 
                 fetch('{$subcription_base_link|escape:'javascript':'UTF-8'}/' + uuid + '/addUpsell', {
                     method: 'POST',
@@ -57,7 +60,8 @@
                 .then(response => response.json())
                 .then(data => {
                     if(data.success) {
-                        document.getElementById('upsell-row-' + productId + '-' + attributeId).remove();
+                        var row = button.closest('tr');
+                        if (row) row.remove();
                     }
                 })
                 .catch(error => console.error('Error:', error));

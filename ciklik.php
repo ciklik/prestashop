@@ -19,6 +19,7 @@ use PrestaShop\Module\Ciklik\Data\ShopData;
 use PrestaShop\Module\Ciklik\Helpers\PriceHelper;
 use PrestaShop\Module\Ciklik\Helpers\ProductPriceResolver;
 use PrestaShop\Module\Ciklik\Helpers\SubscriptionHelper;
+use PrestaShop\Module\Ciklik\Helpers\UpsellEligibility;
 use PrestaShop\Module\Ciklik\Install\Installer;
 use PrestaShop\Module\Ciklik\Managers\CiklikAttribute;
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
@@ -152,44 +153,6 @@ class Ciklik extends PaymentModule
         $installer = new Installer();
 
         return $installer->uninstall() && parent::uninstall();
-    }
-
-    /**
-     * Point d'entrée pour la mise à jour du module.
-     * Appelé automatiquement par PrestaShop lors de la mise à jour du module.
-     *
-     * @param string $version La version depuis laquelle on effectue la mise à jour
-     *
-     * @return bool
-     */
-    public function upgradeModule($version)
-    {
-        $installer = new Installer();
-
-        // S'assurer que les onglets d'administration sont installés/mis à jour lors de la mise à jour
-        // Cette méthode est idempotente, donc sûre à appeler à chaque mise à jour
-        if (!$installer->installAdminTabs($this)) {
-            return false;
-        }
-
-        // Crée la table d'override de point relais si absente (CREATE ... IF NOT
-        // EXISTS, idempotent). Garantit sa présence même pour les builds dont la
-        // version ne déclenche pas upgrade-1.23.0.php.
-        foreach (\PrestaShop\Module\Ciklik\Sql\SqlQueries::installDeliveryOverrideQueries() as $query) {
-            if (!\Db::getInstance()->execute($query)) {
-                \PrestaShopLogger::addLog(
-                    'Ciklik upgradeModule - échec création table ciklik_delivery_override',
-                    3,
-                    null,
-                    'Ciklik',
-                    null,
-                    true
-                );
-            }
-        }
-
-        // Appeler la mise à jour parente pour gérer les fichiers d'upgrade
-        return parent::upgradeModule($version);
     }
 
     /**
@@ -806,7 +769,7 @@ class Ciklik extends PaymentModule
 
         // Vérifie si la fonctionnalité d'upsell est activée dans la configuration
         // et si l'utilisateur est connecté (pas un employé)
-        if ((bool) Configuration::get(self::CONFIG_ENABLE_UPSELL)
+        if (UpsellEligibility::isEnabled()
             && $this->context->controller instanceof ProductController // On ignore si nous sommes sur une page de catégorie
             && $this->context->customer !== null
             && $this->context->customer->isLogged()
@@ -894,8 +857,14 @@ class Ciklik extends PaymentModule
 
         $idProduct = (int) $params['product']['id_product'];
 
-        // Vérifier si au moins une des fonctionnalités est activée
-        $hasUpsell = !empty($params['product']['upsell']) && $params['product']['upsell'] === true && !Pack::isPack($idProduct);
+        // Vérifier si au moins une des fonctionnalités est activée. Upsell :
+        // même règle que le contrôleur qui reçoit l'ajout (UpsellEligibility),
+        // produit chargé seulement quand l'upsell est proposé à ce client
+        $hasUpsell = !empty($params['product']['upsell']) && $params['product']['upsell'] === true
+            && null === UpsellEligibility::refusal(
+                new Product($idProduct, false, (int) $this->context->language->id),
+                (int) $this->context->customer->id
+            );
         $hasSubscriptionMode = Configuration::get(self::CONFIG_USE_FREQUENCY_MODE);
 
         // Si aucune fonctionnalité n'est activée, ne rien afficher
@@ -968,6 +937,9 @@ class Ciklik extends PaymentModule
             'ciklik_subscription_base_price' => $subscriptionBasePrice,
             'ciklik_price_mode' => $priceMode,
             'ciklik_combination_prices_json' => ProductPriceResolver::encodeCombinationPricesJson($combinationPrices),
+            // Jeton des actions d'abonnement (celui de Mes abonnements),
+            // exigé par l'ajout en upsell
+            'ciklik_token' => $hasUpsell ? Tools::getToken(false) : '',
         ];
 
         // Si le mode fréquence est activé, récupérer les données d'abonnement
@@ -1729,8 +1701,13 @@ class Ciklik extends PaymentModule
         return $name === 'hummingbird' || strpos($name, 'hummingbird') === 0;
     }
 
-    /** Variables de thème partagées par tous les gabarits front du module. */
-    public function assignThemeVariables(): void
+    /**
+     * Variables de thème partagées par tous les gabarits front du module.
+     * Sans type de retour : « : void » n'existe qu'à partir de PHP 7.1, et
+     * PHP 7.0 le lit comme une classe « void », d'où une TypeError à chaque
+     * appel.
+     */
+    public function assignThemeVariables()
     {
         $this->context->smarty->assign([
             'ciklik_bs5' => $this->isBootstrap5Theme(),

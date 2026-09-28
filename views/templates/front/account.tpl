@@ -78,12 +78,27 @@
                         {/if}
                     </td>
                     <td>
-                        {$subscription->address->first_name|escape:'html':'UTF-8'} {$subscription->address->last_name|escape:'html':'UTF-8'}<br>
-                        {$subscription->address->address|escape:'html':'UTF-8'} <br>
+                        {if !empty($next_delivery_relays[$subscription->uuid])}
+                            {* Point relais choisi pour les prochaines livraisons (surcharge), différent de l'adresse de l'empreinte : affiché à sa place *}
+                            {assign var='next_relay' value=$next_delivery_relays[$subscription->uuid]}
+                            <small class="text-muted">{l s='Next delivery address' mod='ciklik'}</small><br>
+                            {if $next_relay.name}{$next_relay.name|escape:'html':'UTF-8'}{else}{l s='Pickup point' mod='ciklik'} {$next_relay.relay_id|escape:'html':'UTF-8'}{/if}<br>
+                            {if $next_relay.address1}{$next_relay.address1|escape:'html':'UTF-8'}<br>{/if}
+                            {if $next_relay.address2}{$next_relay.address2|escape:'html':'UTF-8'}<br>{/if}
+                            {if $next_relay.zipcode || $next_relay.city}{$next_relay.zipcode|escape:'html':'UTF-8'} {$next_relay.city|escape:'html':'UTF-8'}<br>{/if}
+                        {else}
+                            {$subscription->address->first_name|escape:'html':'UTF-8'} {$subscription->address->last_name|escape:'html':'UTF-8'}<br>
+                            {$subscription->address->address|escape:'html':'UTF-8'} <br>
 
-                        {$subscription->address->postcode|escape:'html':'UTF-8'} {$subscription->address->city|escape:'html':'UTF-8'}, {$subscription->address->country|escape:'html':'UTF-8'}
-                        <br>
-                        {include file="module:ciklik/views/templates/front/actions/changeDeliveryAddress.tpl" subscription=$subscription addresses=$addresses}
+                            {$subscription->address->postcode|escape:'html':'UTF-8'} {$subscription->address->city|escape:'html':'UTF-8'}, {$subscription->address->country|escape:'html':'UTF-8'}
+                            <br>
+                        {/if}
+                        {if !empty($relay_subscriptions[$subscription->uuid])}
+                            {* Livraison en point relais avec un relais à proposer : ce lien seul, à la place de celui d'adresse *}
+                            {include file="module:ciklik/views/templates/front/actions/changePickupPoint.tpl" relay_change_url=$relay_subscriptions[$subscription->uuid]}
+                        {else}
+                            {include file="module:ciklik/views/templates/front/actions/changeDeliveryAddress.tpl" subscription=$subscription addresses=$addresses}
+                        {/if}
                     </td>
                     <td>
                         {if $subscription->active}

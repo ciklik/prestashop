@@ -15,6 +15,12 @@ if (!defined('_PS_VERSION_')) {
 
 class DeliveryModuleManager
 {
+    /** Relais connus renvoyés par getKnownRelays, les plus récents d'abord */
+    const KNOWN_RELAYS_LIMIT = 10;
+
+    /** Lignes lues en base par getKnownRelays avant dédoublonnage */
+    const KNOWN_RELAYS_SCAN = 50;
+
     /**
      * Détecte le module de livraison utilisé par le panier et exécute la méthode correspondante si elle existe
      *
@@ -1144,7 +1150,19 @@ class DeliveryModuleManager
     /**
      * Lecture seule : relais déjà utilisés par le client sur ce transporteur
      * (repli de sélection du bloc BO quand la recherche est indisponible).
-     * Résultats normalisés et dédoublonnés par relay_id.
+     * Seuls comptent les paniers réellement commandés (jointure sur orders,
+     * id_order renseigné chez Mondial Relay) : un relais posé dans un panier
+     * abandonné, par le widget du transporteur, n'est jamais repris, ni
+     * proposé au client, ni signé.
+     * Résultats normalisés et dédoublonnés par relay_id, limités aux
+     * KNOWN_RELAYS_LIMIT plus récents : la lecture en base est bornée
+     * (KNOWN_RELAYS_SCAN relais) et la page client n'expose qu'un historique
+     * court.
+     *
+     * Ordre du dernier usage : une ligne par relais (GROUP BY sur son
+     * identifiant), triée sur le dernier panier qui l'a porté (MAX(id_cart)).
+     * PrestaShop pose sql_mode='' à la connexion : les autres colonnes
+     * viennent d'une des lignes du relais, dont l'adresse ne varie pas.
      *
      * @param int $idCustomer
      * @param string $module Nom du module transporteur (minuscules)
@@ -1163,11 +1181,15 @@ class DeliveryModuleManager
                     }
                     $rows = \Db::getInstance()->executeS(
                         'SELECT selected_relay_num, selected_relay_adr1, selected_relay_adr2, selected_relay_adr3,
-                                selected_relay_adr4, selected_relay_postcode, selected_relay_city, selected_relay_country_iso
+                                selected_relay_adr4, selected_relay_postcode, selected_relay_city, selected_relay_country_iso,
+                                MAX(id_cart) AS last_cart
                          FROM ' . _DB_PREFIX_ . 'mondialrelay_selected_relay
                          WHERE id_customer = ' . (int) $idCustomer . '
                            AND id_order IS NOT NULL
-                         ORDER BY date_add DESC'
+                           AND selected_relay_num IS NOT NULL AND selected_relay_num != \'\'
+                         GROUP BY selected_relay_num
+                         ORDER BY last_cart DESC
+                         LIMIT ' . (int) self::KNOWN_RELAYS_SCAN
                     );
                     foreach ((array) $rows as $row) {
                         $items[] = [
@@ -1189,13 +1211,15 @@ class DeliveryModuleManager
                         return [];
                     }
                     $rows = \Db::getInstance()->executeS(
-                        'SELECT DISTINCT pp.*
+                        'SELECT pp.*, MAX(ccp.id_cart) AS last_cart
                          FROM ' . _DB_PREFIX_ . 'colissimo_cart_pickup_point ccp
-                         INNER JOIN ' . _DB_PREFIX_ . 'cart c ON c.id_cart = ccp.id_cart
+                         INNER JOIN ' . _DB_PREFIX_ . 'orders o ON o.id_cart = ccp.id_cart
                          INNER JOIN ' . _DB_PREFIX_ . 'colissimo_pickup_point pp
                             ON pp.id_colissimo_pickup_point = ccp.id_colissimo_pickup_point
-                         WHERE c.id_customer = ' . (int) $idCustomer . '
-                         ORDER BY pp.id_colissimo_pickup_point DESC'
+                         WHERE o.id_customer = ' . (int) $idCustomer . '
+                         GROUP BY pp.id_colissimo_pickup_point
+                         ORDER BY last_cart DESC
+                         LIMIT ' . (int) self::KNOWN_RELAYS_SCAN
                     );
                     foreach ((array) $rows as $row) {
                         $items[] = [
@@ -1217,10 +1241,16 @@ class DeliveryModuleManager
                         return [];
                     }
                     $rows = \Db::getInstance()->executeS(
-                        'SELECT relay_id, company, address1, address2, postcode, city
-                         FROM ' . _DB_PREFIX_ . 'dpdfrance_shipping
-                         WHERE id_customer = ' . (int) $idCustomer . '
-                         ORDER BY id_cart DESC'
+                        'SELECT ds.relay_id, ds.company, ds.address1, ds.address2, ds.postcode, ds.city,
+                                MAX(ds.id_cart) AS last_cart
+                         FROM ' . _DB_PREFIX_ . 'dpdfrance_shipping ds
+                         INNER JOIN ' . _DB_PREFIX_ . 'orders o ON o.id_cart = ds.id_cart
+                         WHERE ds.id_customer = ' . (int) $idCustomer . '
+                           AND o.id_customer = ' . (int) $idCustomer . '
+                           AND ds.relay_id != \'\'
+                         GROUP BY ds.relay_id
+                         ORDER BY last_cart DESC
+                         LIMIT ' . (int) self::KNOWN_RELAYS_SCAN
                     );
                     foreach ((array) $rows as $row) {
                         $items[] = [
@@ -1240,10 +1270,16 @@ class DeliveryModuleManager
                         return [];
                     }
                     $rows = \Db::getInstance()->executeS(
-                        'SELECT parcel_shop_id, name, address1, address2, postcode, city, parcel_shop_working_day
-                         FROM ' . _DB_PREFIX_ . 'gls_cart_carrier
-                         WHERE id_customer = ' . (int) $idCustomer . '
-                         ORDER BY id_cart DESC'
+                        'SELECT g.parcel_shop_id, g.name, g.address1, g.address2, g.postcode, g.city, g.parcel_shop_working_day,
+                                MAX(g.id_cart) AS last_cart
+                         FROM ' . _DB_PREFIX_ . 'gls_cart_carrier g
+                         INNER JOIN ' . _DB_PREFIX_ . 'orders o ON o.id_cart = g.id_cart
+                         WHERE g.id_customer = ' . (int) $idCustomer . '
+                           AND o.id_customer = ' . (int) $idCustomer . '
+                           AND g.parcel_shop_id != \'\'
+                         GROUP BY g.parcel_shop_id
+                         ORDER BY last_cart DESC
+                         LIMIT ' . (int) self::KNOWN_RELAYS_SCAN
                     );
                     foreach ((array) $rows as $row) {
                         $items[] = [
@@ -1264,12 +1300,14 @@ class DeliveryModuleManager
                         return [];
                     }
                     $rows = \Db::getInstance()->executeS(
-                        'SELECT DISTINCT ccr.id_pr
+                        'SELECT ccr.id_pr, MAX(ccr.id_cart) AS last_cart
                          FROM ' . _DB_PREFIX_ . 'chrono_cart_relais ccr
-                         INNER JOIN ' . _DB_PREFIX_ . 'cart c ON c.id_cart = ccr.id_cart
-                         WHERE c.id_customer = ' . (int) $idCustomer . '
+                         INNER JOIN ' . _DB_PREFIX_ . 'orders o ON o.id_cart = ccr.id_cart
+                         WHERE o.id_customer = ' . (int) $idCustomer . '
                            AND ccr.id_pr IS NOT NULL AND ccr.id_pr != \'\'
-                         ORDER BY ccr.id_pr DESC'
+                         GROUP BY ccr.id_pr
+                         ORDER BY last_cart DESC
+                         LIMIT ' . (int) self::KNOWN_RELAYS_SCAN
                     );
                     foreach ((array) $rows as $row) {
                         $items[] = [
@@ -1297,7 +1335,7 @@ class DeliveryModuleManager
             $deduped[$item['relay_id']] = $item;
         }
 
-        return array_values($deduped);
+        return array_slice(array_values($deduped), 0, self::KNOWN_RELAYS_LIMIT);
     }
 
     /**

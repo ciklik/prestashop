@@ -193,6 +193,59 @@ class SubscriptionData
     }
 
     /**
+     * Une modification de produit demandée depuis le compte vise-t-elle une
+     * ligne personnalisée de l'abonnement ? C'est le cas quand l'identifiant
+     * reçu porte le hash de personnalisation, ou quand il désigne, hash
+     * retiré, des lignes toutes personnalisées. Une ligne standard du même
+     * produit reste modifiable : c'est elle que l'API vise.
+     *
+     * Mes abonnements masque déjà ces boutons ; la règle refuse côté serveur
+     * une requête forgée, sur les contenus de l'abonnement déjà chargés.
+     *
+     * @param mixed $contents Lignes de contenu brutes de l'API (clé content)
+     * @param string $externalId Identifiant reçu, déjà validé
+     *
+     * @return bool
+     */
+    public static function targetsCustomizedLine($contents, string $externalId): bool
+    {
+        if (preg_match('/_[0-9a-f]{32}$/i', $externalId)) {
+            return true;
+        }
+
+        if (!is_array($contents)) {
+            return false;
+        }
+
+        $customized = false;
+
+        foreach ($contents as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $ids = [];
+            foreach (['external_id', 'external_id_with_customizations'] as $key) {
+                if (isset($item[$key]) && is_scalar($item[$key])) {
+                    $ids[] = (string) preg_replace('/_[0-9a-f]{32}$/i', '', (string) $item[$key]);
+                }
+            }
+
+            if (!in_array($externalId, $ids, true)) {
+                continue;
+            }
+
+            if (!self::isCustomizationItem($item)) {
+                return false;
+            }
+
+            $customized = true;
+        }
+
+        return $customized;
+    }
+
+    /**
      * Nom du produit (et de sa déclinaison) pour un external_id Ciklik.
      *
      * Trois formes existent : « id_product:id_product_attribute » (mode fréquence),

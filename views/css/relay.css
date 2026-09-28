@@ -1,0 +1,247 @@
+/**
+ * Page « Changer de point relais » (espace client).
+ *
+ * Feuille volontairement neutre : elle s'appuie sur les classes Bootstrap du
+ * thème (card, btn, form-control, badge, alert) et n'ajoute que la mise en
+ * page. L'accent vient du thème (variable Bootstrap 5 puis 4), gris sinon.
+ * Tout est préfixé ciklik-relay- pour ne rien écraser côté thème.
+ */
+
+.ciklik-relay-page {
+  --ciklik-relay-border: #d8dce1;
+  --ciklik-relay-muted: #5f6771;
+  --ciklik-relay-surface: #f6f7f9;
+  --ciklik-relay-accent: var(--bs-primary, var(--primary, #3a4451));
+  --ciklik-relay-radius: 4px;
+  display: grid;
+  gap: 1.5rem;
+  max-width: 62rem;
+}
+
+/* Sections : une carte par étape, titre sobre */
+
+.ciklik-relay-page .ciklik-relay-section {
+  margin: 0;
+  border: 1px solid var(--ciklik-relay-border);
+  border-radius: var(--ciklik-relay-radius);
+}
+
+.ciklik-relay-page .ciklik-relay-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--ciklik-relay-surface);
+  border-bottom: 1px solid var(--ciklik-relay-border);
+}
+
+.ciklik-relay-page .ciklik-relay-section__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.ciklik-relay-page .ciklik-relay-section__count {
+  font-size: 0.875rem;
+  color: var(--ciklik-relay-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ciklik-relay-page .ciklik-relay-section__body {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.ciklik-relay-page .ciklik-relay-section__body > .alert {
+  margin: 0;
+}
+
+/* Abonnement et transporteur : paires libellé / valeur */
+
+.ciklik-relay-page .ciklik-relay-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.ciklik-relay-page .ciklik-relay-facts dt {
+  margin: 0;
+  font-weight: 400;
+  color: var(--ciklik-relay-muted);
+}
+
+.ciklik-relay-page .ciklik-relay-facts dd {
+  margin: 0;
+}
+
+/* Encart d'un point relais : résultat, relais connu, relais courant */
+
+.ciklik-relay-page .ciklik-relay-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ciklik-relay-page .ciklik-relay-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--ciklik-relay-border);
+  border-radius: var(--ciklik-relay-radius);
+  background: #fff;
+}
+
+.ciklik-relay-page .ciklik-relay-item--current {
+  border-color: var(--ciklik-relay-accent);
+  box-shadow: inset 0 0 0 1px var(--ciklik-relay-accent);
+}
+
+.ciklik-relay-page .ciklik-relay-item__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ciklik-relay-page .ciklik-relay-item__name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.ciklik-relay-page .ciklik-relay-item__badge {
+  flex-shrink: 0;
+  padding: 0.2em 0.5em;
+  border-radius: 3px;
+  background: var(--ciklik-relay-accent);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.ciklik-relay-page .ciklik-relay-item__address {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.ciklik-relay-page .ciklik-relay-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ciklik-relay-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ciklik-relay-page .ciklik-relay-item__distance {
+  font-weight: 600;
+}
+
+.ciklik-relay-page .ciklik-relay-item__action {
+  margin: auto 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--ciklik-relay-border);
+}
+
+.ciklik-relay-page .ciklik-relay-item__action .btn {
+  width: 100%;
+}
+
+/* Variante compacte : relais déjà utilisés */
+
+.ciklik-relay-page .ciklik-relay-list--compact .ciklik-relay-item {
+  padding: 0.625rem 0.75rem;
+  gap: 0.25rem;
+}
+
+.ciklik-relay-page .ciklik-relay-list--compact .ciklik-relay-item__name {
+  font-size: 0.9375rem;
+}
+
+.ciklik-relay-page .ciklik-relay-list--compact .ciklik-relay-item__address {
+  font-size: 0.875rem;
+}
+
+.ciklik-relay-page .ciklik-relay-list--compact .ciklik-relay-item__action {
+  border-top: 0;
+  padding-top: 0.25rem;
+}
+
+/* Formulaire de recherche : une ligne, repli en colonne sur mobile */
+
+.ciklik-relay-page .ciklik-relay-search {
+  display: grid;
+  grid-template-columns: minmax(6rem, 9rem) minmax(10rem, 1fr) minmax(4rem, 6rem) auto;
+  gap: 0.75rem;
+  align-items: end;
+  margin: 0;
+}
+
+.ciklik-relay-page .ciklik-relay-search .form-group {
+  margin: 0;
+}
+
+.ciklik-relay-page .ciklik-relay-search label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.ciklik-relay-page .ciklik-relay-search .form-control {
+  width: 100%;
+}
+
+.ciklik-relay-page .ciklik-relay-hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ciklik-relay-muted);
+}
+
+/* Pied de page : retour */
+
+.ciklik-relay-page .ciklik-relay-footer {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Clavier : focus visible partout, même si le thème l'efface */
+
+.ciklik-relay-page .btn:focus-visible,
+.ciklik-relay-page .form-control:focus-visible,
+.ciklik-relay-page a:focus-visible {
+  outline: 2px solid var(--ciklik-relay-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 40rem) {
+  .ciklik-relay-page .ciklik-relay-search {
+    grid-template-columns: 1fr;
+  }
+
+  .ciklik-relay-page .ciklik-relay-list {
+    grid-template-columns: 1fr;
+  }
+
+  .ciklik-relay-page .ciklik-relay-facts {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .ciklik-relay-page .ciklik-relay-facts dd {
+    margin-bottom: 0.5rem;
+  }
+}

@@ -47,7 +47,31 @@ class SqlQueries
                 PRIMARY KEY(`id_ciklik_customer`),
                 UNIQUE KEY `id_customer` (`id_customer`)
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;',
-        ], self::installDeliveryOverrideQueries());
+        ], self::installDeliveryOverrideQueries(), self::installRelaySearchQuotaQueries());
+    }
+
+    /**
+     * Table des compteurs de recherche de point relais depuis l'espace client
+     * (RelaySearchQuota) : un compteur par client et par boutique, fenêtre
+     * glissante d'une heure. Consommée aussi par upgrade-1.24.0.php pour les
+     * installations existantes.
+     *
+     * @return array
+     */
+    public static function installRelaySearchQuotaQueries(): array
+    {
+        return [
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'ciklik_relay_search_quota` (
+                `id_quota` int(11) unsigned NOT NULL AUTO_INCREMENT,
+                `id_customer` int(11) unsigned NOT NULL,
+                `id_shop` int(11) unsigned NOT NULL,
+                `window_start` int(10) unsigned NOT NULL,
+                `count` int(10) unsigned NOT NULL DEFAULT 0,
+                PRIMARY KEY (`id_quota`),
+                UNIQUE KEY `customer_shop` (`id_customer`, `id_shop`),
+                KEY `shop_window` (`id_shop`, `window_start`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;',
+        ];
     }
 
     /**
@@ -89,6 +113,7 @@ class SqlQueries
             'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_frequencies`',
             'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_customers`',
             'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_delivery_override`',
+            'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'ciklik_relay_search_quota`',
         ];
     }
 
