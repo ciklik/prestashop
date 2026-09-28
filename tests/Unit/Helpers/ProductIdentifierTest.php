@@ -235,4 +235,57 @@ class ProductIdentifierTest extends TestCase
         $this->assertEquals(42, $result[0]['id_product']);
         $this->assertEquals(55, $result[1]['id_product']);
     }
+
+    // =========================================================================
+    // Tests isValidExternalId (routes produits de l'API)
+    // =========================================================================
+
+    /**
+     * @dataProvider validExternalIdProvider
+     */
+    public function testIsValidExternalIdAcceptsBothModes(string $externalId)
+    {
+        $this->assertTrue(ProductIdentifier::isValidExternalId($externalId));
+    }
+
+    public function validExternalIdProvider(): array
+    {
+        return [
+            'mode fréquence' => ['11:42'],
+            'mode fréquence, produit simple' => ['42:0'],
+            'mode fréquence avec customization' => ['11:42_' . str_repeat('a', 32)],
+            'mode attributs' => ['42'],
+            'mode attributs avec customization' => ['42_' . str_repeat('A', 32)],
+        ];
+    }
+
+    /**
+     * @dataProvider invalidExternalIdProvider
+     */
+    public function testIsValidExternalIdRejectsInvalidFormats($externalId)
+    {
+        $this->assertFalse(ProductIdentifier::isValidExternalId($externalId));
+    }
+
+    public function invalidExternalIdProvider(): array
+    {
+        return [
+            'vide' => [''],
+            'false (paramètre absent)' => [false],
+            'null' => [null],
+            'tableau' => [['42']],
+            'entier' => [42],
+            'lettres' => ['abc'],
+            'colon seul' => [':'],
+            'colon final' => ['42:'],
+            'double colon' => ['1:2:3'],
+            'négatif' => ['-1'],
+            'espaces' => [' 42'],
+            'saut de ligne final' => ["42\n"],
+            'hash trop court' => ['42_' . str_repeat('a', 31)],
+            'underscore sans hash' => ['42_'],
+            'slash' => ['42/1'],
+            'path traversal' => ['../../etc:passwd'],
+        ];
+    }
 }

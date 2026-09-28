@@ -24,6 +24,29 @@ if (!defined('_PS_VERSION_')) {
 class ProductIdentifier
 {
     /**
+     * Formats d'external_id acceptés par les routes produits de l'API :
+     * "id_product:id_product_attribute" (mode fréquence) ou "id_product_attribute"
+     * seul (mode attributs), suivi éventuellement du hash de customization "_md5".
+     * D : le "$" final ne tolère pas de saut de ligne.
+     */
+    const EXTERNAL_ID_PATTERN = '/^[0-9]+(:[0-9]+)?(_[0-9a-f]{32})?$/iD';
+
+    /**
+     * Vérifie le format d'un external_id de produit d'abonnement
+     *
+     * Les deux modes sont acceptés quel que soit le mode actif : un abonnement
+     * garde le format de sa création quand la boutique change de mode.
+     *
+     * @param mixed $externalId Valeur reçue (Tools::getValue peut rendre false ou un tableau)
+     *
+     * @return bool
+     */
+    public static function isValidExternalId($externalId)
+    {
+        return is_string($externalId) && 1 === preg_match(self::EXTERNAL_ID_PATTERN, $externalId);
+    }
+
+    /**
      * Extrait id_product et id_product_attribute depuis un external_id
      *
      * @param string $externalId L'identifiant externe de l'abonnement

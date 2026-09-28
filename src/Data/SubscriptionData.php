@@ -159,17 +159,37 @@ class SubscriptionData
                 $otherCombinations = CiklikCombination::getOtherCombinations((int) $item['external_id']);
             }
 
-            // Détecte les produits avec customisation (external_id contenant _md5hash)
-            $isCustomization = (bool) preg_match('/_[0-9a-f]{32}$/i', $item['external_id']);
-
             $processedContents[] = array_merge($item, [
                 'other_combinations' => $otherCombinations,
-                'is_customization' => $isCustomization,
+                'is_customization' => self::isCustomizationItem($item),
                 'name' => self::resolveProductName((string) $item['external_id']),
             ]);
         }
 
         return $processedContents;
+    }
+
+    /**
+     * Ligne de contenu d'un produit avec customisation (suffixe « _md5hash »).
+     *
+     * L'API retire ce suffixe de external_id et ne le garde que dans
+     * external_id_with_customizations. Lu sur external_id seul, un produit
+     * personnalisé passait pour modifiable dans Mes abonnements, et son
+     * external_id tronqué désignait le produit sans personnalisation.
+     *
+     * @param array $item Ligne de contenu renvoyée par l'API
+     *
+     * @return bool
+     */
+    public static function isCustomizationItem(array $item): bool
+    {
+        foreach (['external_id_with_customizations', 'external_id'] as $key) {
+            if (isset($item[$key]) && preg_match('/_[0-9a-f]{32}$/i', (string) $item[$key])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

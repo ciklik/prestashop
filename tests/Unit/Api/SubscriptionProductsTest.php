@@ -21,6 +21,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use PrestaShop\Module\Ciklik\Api\CiklikApiResponseHandler;
 use PrestaShop\Module\Ciklik\Api\Subscription;
 
 if (!defined('_PS_VERSION_')) {
@@ -113,6 +114,29 @@ class SubscriptionProductsTest extends TestCase
             '/api/v3/subscriptions/' . self::VALID_UUID . '/products/123%3A456',
             $path
         );
+    }
+
+    /**
+     * Mode attributs : l'external_id est l'id_product_attribute seul ("42"),
+     * format des abonnements créés dans ce mode (même si la boutique est
+     * passée depuis en mode fréquence). La requête part telle quelle.
+     */
+    public function testUpdateProductQuantityAcceptsAttributeModeExternalId()
+    {
+        $history = [];
+        $api = $this->createSubscription([$this->successResponse()], $history);
+
+        $result = $api->updateProductQuantity(self::VALID_UUID, '42', 2);
+
+        $this->assertTrue($result['status']);
+        $this->assertCount(1, $history);
+        $this->assertEquals('PATCH', $history[0]['request']->getMethod());
+        $this->assertEquals(
+            '/api/v3/subscriptions/' . self::VALID_UUID . '/products/42',
+            $history[0]['request']->getUri()->getPath()
+        );
+        $body = json_decode($history[0]['request']->getBody()->getContents(), true);
+        $this->assertEquals(['quantity' => 2], $body);
     }
 
     /**
@@ -371,6 +395,25 @@ class SubscriptionProductsTest extends TestCase
     }
 
     /**
+     * Mode attributs : suppression avec l'id_product_attribute seul
+     */
+    public function testRemoveProductAcceptsAttributeModeExternalId()
+    {
+        $history = [];
+        $api = $this->createSubscription([$this->successResponse()], $history);
+
+        $result = $api->removeProduct(self::VALID_UUID, '42');
+
+        $this->assertTrue($result['status']);
+        $this->assertCount(1, $history);
+        $this->assertEquals('DELETE', $history[0]['request']->getMethod());
+        $this->assertEquals(
+            '/api/v3/subscriptions/' . self::VALID_UUID . '/products/42',
+            $history[0]['request']->getUri()->getPath()
+        );
+    }
+
+    /**
      * OpenAPI : la requête DELETE n'a pas de body
      */
     public function testRemoveProductSendsNoBody()
@@ -412,6 +455,45 @@ class SubscriptionProductsTest extends TestCase
 
         $this->assertFalse($result['status']);
         $this->assertEquals(422, $result['httpCode']);
+    }
+
+    /**
+     * Refus réel de l'API (validation Laravel, erreurs rangées par champ) :
+     * le client garde errors tel quel et le message montré au client est
+     * celui de l'API, sans lecture de errors[0] (clé absente)
+     */
+    public function testApiFieldErrorReachesCustomerMessage()
+    {
+        $api = $this->createSubscription([
+            new Response(422, [], json_encode([
+                'message' => "Impossible de retirer le dernier produit d'un abonnement.",
+                'errors' => ['product' => ["Impossible de retirer le dernier produit d'un abonnement."]],
+            ])),
+        ]);
+
+        $result = $api->removeProduct(self::VALID_UUID, '42');
+
+        $this->assertFalse($result['status']);
+        $this->assertArrayNotHasKey(0, $result['errors']);
+        $this->assertSame(
+            'Impossible de retirer le dernier produit d&#039;un abonnement.',
+            CiklikApiResponseHandler::customerErrorMessage($result, 'Repli')
+        );
+    }
+
+    /**
+     * Refus sans erreurs détaillées (404 de l'API) : message générique du module
+     */
+    public function testApiErrorWithoutDetailsFallsBack()
+    {
+        $api = $this->createSubscription([
+            new Response(404, [], json_encode(['message' => 'No query results for model [App\\Product].'])),
+        ]);
+
+        $result = $api->updateProductQuantity(self::VALID_UUID, '42', 2);
+
+        $this->assertFalse($result['status']);
+        $this->assertSame('Repli', CiklikApiResponseHandler::customerErrorMessage($result, 'Repli'));
     }
 
     // =========================================================================
@@ -482,8 +564,9 @@ class SubscriptionProductsTest extends TestCase
     {
         return [
             'vide' => [''],
-            'sans colon' => ['123456'],
             'lettres' => ['abc:def'],
+            'colon final' => ['42:'],
+            'saut de ligne final' => ["1:2\n"],
             'injection SQL' => ['1:1; DROP TABLE'],
             'path traversal' => ['../../../etc:passwd'],
             'hash trop court (31 chars)' => ['1:2_' . str_repeat('a', 31)],
@@ -550,6 +633,8 @@ class SubscriptionProductsTest extends TestCase
             'hash MD5 uppercase' => ['1:2_' . str_repeat('A', 32)],
             'hash MD5 mixte' => ['123:456_aAbBcCdD1234567890eEfF1234567890'],
             'hash MD5 réaliste' => ['9669:134853_e4e9ce5b2c8e9b5f7d3a1c4b6f8e2d0a'],
+            'mode attributs (id_product_attribute seul)' => ['42'],
+            'mode attributs avec hash MD5' => ['42_' . str_repeat('a', 32)],
         ];
     }
 

@@ -5,10 +5,12 @@
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
 
+use PrestaShop\Module\Ciklik\Api\CiklikApiResponseHandler;
 use PrestaShop\Module\Ciklik\Api\Subscription;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
 use PrestaShop\Module\Ciklik\Helpers\IntervalHelper;
+use PrestaShop\Module\Ciklik\Helpers\ProductIdentifier;
 use PrestaShop\Module\Ciklik\Helpers\SkipCadenceResolver;
 use PrestaShop\Module\Ciklik\Helpers\SubscriptionHelper;
 use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
@@ -547,7 +549,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         $externalId = Tools::getValue('external_id');
         $quantity = (int) Tools::getValue('quantity');
 
-        if (empty($externalId) || !preg_match('/^[0-9]+:[0-9]+(_[0-9a-f]{32})?$/i', $externalId)) {
+        if (!ProductIdentifier::isValidExternalId($externalId)) {
             $this->ajaxRenderAndExit(json_encode([
                 'success' => false,
                 'message' => $this->module->l('Invalid product.', 'subscription'),
@@ -568,14 +570,13 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         $result = (new Subscription($this->context->link))->updateProductQuantity($uuid, $externalId, $quantity);
 
         if (!isset($result['status']) || !$result['status']) {
-            $errorMessage = $this->module->l('Error while updating the product quantity.', 'subscription');
-            if (!empty($result['errors'])) {
-                $firstError = is_array($result['errors'][0]) ? $result['errors'][0][0] : $result['errors'][0];
-                $errorMessage = Tools::htmlentitiesUTF8($firstError);
-            }
+            // Refus de l'API : son premier message (validation rangée par champ comprise)
             $this->ajaxRenderAndExit(json_encode([
                 'success' => false,
-                'message' => $errorMessage,
+                'message' => CiklikApiResponseHandler::customerErrorMessage(
+                    $result,
+                    $this->module->l('Error while updating the product quantity.', 'subscription')
+                ),
             ]));
 
             return;
@@ -613,7 +614,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         $externalId = Tools::getValue('external_id');
 
-        if (empty($externalId) || !preg_match('/^[0-9]+:[0-9]+(_[0-9a-f]{32})?$/i', $externalId)) {
+        if (!ProductIdentifier::isValidExternalId($externalId)) {
             $this->ajaxRenderAndExit(json_encode([
                 'success' => false,
                 'message' => $this->module->l('Invalid product.', 'subscription'),
@@ -625,14 +626,13 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         $result = (new Subscription($this->context->link))->removeProduct($uuid, $externalId);
 
         if (!isset($result['status']) || !$result['status']) {
-            $errorMessage = $this->module->l('Error while removing the product from the subscription.', 'subscription');
-            if (!empty($result['errors'])) {
-                $firstError = is_array($result['errors'][0]) ? $result['errors'][0][0] : $result['errors'][0];
-                $errorMessage = Tools::htmlentitiesUTF8($firstError);
-            }
+            // Refus de l'API : son premier message (validation rangée par champ comprise)
             $this->ajaxRenderAndExit(json_encode([
                 'success' => false,
-                'message' => $errorMessage,
+                'message' => CiklikApiResponseHandler::customerErrorMessage(
+                    $result,
+                    $this->module->l('Error while removing the product from the subscription.', 'subscription')
+                ),
             ]));
 
             return;
@@ -723,14 +723,13 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         $result = (new Subscription($this->context->link))->addProduct($uuid, $data);
 
         if (!isset($result['status']) || !$result['status']) {
-            $errorMessage = $this->module->l('Error while adding the product to the subscription.', 'subscription');
-            if (!empty($result['errors'])) {
-                $firstError = is_array($result['errors'][0]) ? $result['errors'][0][0] : $result['errors'][0];
-                $errorMessage = Tools::htmlentitiesUTF8($firstError);
-            }
+            // Refus de l'API : son premier message (validation rangée par champ comprise)
             $this->ajaxRenderAndExit(json_encode([
                 'success' => false,
-                'message' => $errorMessage,
+                'message' => CiklikApiResponseHandler::customerErrorMessage(
+                    $result,
+                    $this->module->l('Error while adding the product to the subscription.', 'subscription')
+                ),
             ]));
 
             return;

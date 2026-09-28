@@ -106,6 +106,13 @@
         });
     }
 
+    // Les messages de l'API arrivent échappés en HTML par le contrôleur ; alert()
+    // affiche du texte brut : on décode les entités dans un document inerte
+    function messageText(message) {
+        if (!message) return '';
+        return new DOMParser().parseFromString(message, 'text/html').documentElement.textContent;
+    }
+
     // Gestion des boutons +/-
     container.querySelectorAll('.ciklik-qty-increase, .ciklik-qty-decrease').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
@@ -132,7 +139,7 @@
                 if (decreaseBtn) decreaseBtn.disabled = (newQty <= 1);
             }, function(result) {
                 self.disabled = false;
-                alert(result.message || '{l s='An error occurred.' mod='ciklik' js=1}');
+                alert(messageText(result.message) || '{l s='An error occurred.' mod='ciklik' js=1}');
             });
         });
     });
@@ -154,8 +161,10 @@
                 var row = document.getElementById('product-row-' + uuid + '-' + rowIndex);
                 if (row) row.remove();
 
-                // Si un seul produit restant, masquer les boutons de suppression
-                var remainingRows = container.querySelectorAll('tbody tr');
+                // Si un seul produit restant, masquer les boutons de suppression.
+                // Lignes produit seulement : « tbody tr » s'évalue sur tout le document
+                // et comptait l'en-tête, ce tableau étant imbriqué dans celui des abonnements
+                var remainingRows = container.querySelectorAll('tr[id^="product-row-"]');
                 if (remainingRows.length <= 1) {
                     container.querySelectorAll('.ciklik-remove-product').forEach(function(b) {
                         b.style.display = 'none';
@@ -163,7 +172,7 @@
                 }
             }, function(result) {
                 self.disabled = false;
-                alert(result.message || '{l s='An error occurred.' mod='ciklik' js=1}');
+                alert(messageText(result.message) || '{l s='An error occurred.' mod='ciklik' js=1}');
             });
         });
     });

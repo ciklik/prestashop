@@ -8,6 +8,7 @@
 namespace PrestaShop\Module\Ciklik\Api;
 
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
+use PrestaShop\Module\Ciklik\Helpers\ProductIdentifier;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -118,7 +119,7 @@ class Subscription extends CiklikApiClient
      * Met à jour la quantité d'un produit dans un abonnement
      *
      * @param string $subscriptionUuid UUID de l'abonnement
-     * @param string $externalId Identifiant externe du produit (format: id_product:id_product_attribute)
+     * @param string $externalId Identifiant externe du produit (id_product:id_product_attribute ou id_product_attribute seul)
      * @param int $quantity Nouvelle quantité
      *
      * @return array Réponse API
@@ -171,7 +172,7 @@ class Subscription extends CiklikApiClient
      * Supprime un produit d'un abonnement
      *
      * @param string $subscriptionUuid UUID de l'abonnement
-     * @param string $externalId Identifiant externe du produit (format: id_product:id_product_attribute)
+     * @param string $externalId Identifiant externe du produit (id_product:id_product_attribute ou id_product_attribute seul)
      *
      * @return array Réponse API
      */
@@ -194,8 +195,9 @@ class Subscription extends CiklikApiClient
     /**
      * Valide le format d'un external_id de produit
      *
-     * Format attendu : id_product:id_product_attribute (ex: 123:456)
-     * Avec optionnellement un suffixe de customisation _md5 (ex: 123:456_abc123def...)
+     * Formats attendus : id_product:id_product_attribute (mode fréquence, ex: 123:456)
+     * ou id_product_attribute seul (mode attributs, ex: 456), avec optionnellement
+     * un suffixe de customisation _md5 (ex: 123:456_abc123def...)
      *
      * @param string $externalId L'identifiant à valider
      *
@@ -203,6 +205,6 @@ class Subscription extends CiklikApiClient
      */
     private function isValidExternalId(string $externalId): bool
     {
-        return (bool) preg_match('/^[0-9]+:[0-9]+(_[0-9a-f]{32})?$/i', $externalId);
+        return ProductIdentifier::isValidExternalId($externalId);
     }
 }
