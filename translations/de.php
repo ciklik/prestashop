@@ -528,3 +528,8 @@ $_MODULE['<{ciklik}prestashop>subscription_75be5725d2d73fb8429a907cf43c7675'] = 
 $_MODULE['<{ciklik}prestashop>relay_a12d820739f006364e4ca568906c391f'] = 'Diesen Paketshop wählen:';
 $_MODULE['<{ciklik}prestashop>account_e9d390185be0a72c46d1ab89212f972a'] = 'Adresse der nächsten Lieferung';
 $_MODULE['<{ciklik}prestashop>account_ee5c5839980b47f1893220655a3de0fb'] = 'Paketshop';
+
+// Paiement en attente (1.25.0)
+$_MODULE['<{ciklik}prestashop>displaypendingpayment_65af85fe8db1891bb48cdabfe29695cf'] = 'Sie haben eine ausstehende Zahlung von %amount% für Ihr Abonnement „%subscription%“.';
+$_MODULE['<{ciklik}prestashop>displaypendingpayment_a3550413411a73f3bed445af5e50075a'] = 'Diese Zahlung begleichen';
+$_MODULE['<{ciklik}prestashop>displaypendingpayment_9a67a955de62758fc69137e4df093f51'] = 'Eine ausstehende Zahlung bleibt fällig, auch wenn Sie eine neue Bestellung aufgeben.';

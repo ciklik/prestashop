@@ -232,7 +232,8 @@ class CiklikApiClient
             $sanitizedOptions = $options;
             unset($sanitizedOptions['headers']);
             $logger->debug('options: ' . var_export($sanitizedOptions, true));
-            $logger->debug('response: ' . var_export($response, true));
+            // Ni les jetons des liens de reprise, qui connectent le client à son compte Ciklik
+            $logger->debug('response: ' . preg_replace('/token=[^&"\'\s]+/', 'token=***', var_export($response, true)));
         }
 
         return $response;
