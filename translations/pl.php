@@ -528,3 +528,8 @@ $_MODULE['<{ciklik}prestashop>subscription_75be5725d2d73fb8429a907cf43c7675'] = 
 $_MODULE['<{ciklik}prestashop>relay_a12d820739f006364e4ca568906c391f'] = 'Wybierz ten punkt odbioru:';
 $_MODULE['<{ciklik}prestashop>account_e9d390185be0a72c46d1ab89212f972a'] = 'Adres następnej dostawy';
 $_MODULE['<{ciklik}prestashop>account_ee5c5839980b47f1893220655a3de0fb'] = 'Punkt odbioru';
+
+// Paiement en attente (1.25.0)
+$_MODULE['<{ciklik}prestashop>displaypendingpayment_65af85fe8db1891bb48cdabfe29695cf'] = 'Płatność w wysokości %amount% za subskrypcję „%subscription%” oczekuje na uregulowanie.';
+$_MODULE['<{ciklik}prestashop>displaypendingpayment_a3550413411a73f3bed445af5e50075a'] = 'Ureguluj płatność';
+$_MODULE['<{ciklik}prestashop>displaypendingpayment_9a67a955de62758fc69137e4df093f51'] = 'Oczekująca płatność pozostaje należna, nawet w przypadku złożenia nowego zamówienia.';

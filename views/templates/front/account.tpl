@@ -37,6 +37,10 @@
 
                         <div>{$subscription->display_interval|escape:'html':'UTF-8'}</div>
 
+                        {if isset($pending_payments[$subscription->uuid])}
+                            {include file="module:ciklik/views/templates/hook/displayPendingPayment.tpl" ciklik_pending_payments=[$pending_payments[$subscription->uuid]]}
+                        {/if}
+
                         {if $enable_change_interval === '1'}
                             {include file="module:ciklik/views/templates/front/actions/changeInterval.tpl" subscription=$subscription }
                         {/if}

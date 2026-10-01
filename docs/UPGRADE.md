@@ -1,5 +1,15 @@
 # Guide de mise à jour — module Ciklik
 
+## 1.25.0 : avertissement de paiement en attente
+
+- Rien à faire : ni réglage, ni table, ni hook à enregistrer (`displayShoppingCartFooter` l'est depuis 1.23.0).
+- Un client connecté dont un renouvellement a été refusé voit le montant dû et « Régler ce paiement » au panier,
+  dans le moyen de paiement Ciklik et dans « Mes abonnements ». Le bouton passe par le contrôleur `pendingpayment`
+  du module, qui redirige vers le lien de reprise Ciklik.
+- Compatibilité déclarée jusqu'à PrestaShop 9.2 (`9.2.99`).
+- `account.tpl` surchargé dans le thème : y inclure `hook/displayPendingPayment.tpl` comme le template du module.
+- Journaux de débogage activés avant la 1.25.0 : purger `var/logs/ciklik-*`, qui peuvent contenir des liens de reprise en clair (masqués depuis).
+
 ## 1.24.0 : changement de point relais côté client, sécurité de Mes abonnements
 
 ### Pour la plupart des marchands : rien à faire

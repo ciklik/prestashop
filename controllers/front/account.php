@@ -6,6 +6,9 @@
  */
 
 use PrestaShop\Module\Ciklik\Api\Subscription;
+use PrestaShop\Module\Ciklik\Data\PendingPaymentData;
+use PrestaShop\Module\Ciklik\Data\SubscriptionData;
+use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomer;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscriptionRelay;
 
@@ -33,11 +36,19 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
         parent::initContent();
 
         $ciklik_customer = CiklikCustomer::getByIdCustomer((int) $this->context->customer->id);
+        $ciklikUuid = (string) ($ciklik_customer['ciklik_uuid'] ?? '');
+        $pendingPayments = [];
 
-        if (array_key_exists('ciklik_uuid', $ciklik_customer)
-            && !is_null($ciklik_customer['ciklik_uuid'])) {
-            $subscriptionsData = (new Subscription($this->context->link))
-                ->getAll(['query' => ['filter' => ['customer_id' => $ciklik_customer['ciklik_uuid']]]]);
+        // UUID vérifié : un filtre vide renverrait les abonnements de toute la boutique
+        if (UuidHelper::isValid($ciklikUuid)) {
+            $response = (new Subscription($this->context->link))
+                ->indexRaw(['query' => ['filter' => ['customer_id' => $ciklikUuid]]]);
+
+            if ($response['status']) {
+                $subscriptionsData = SubscriptionData::collection($response['body']);
+                // Paiements en attente de ses abonnements actifs, dans la même réponse
+                $pendingPayments = PendingPaymentData::collection($response['body'], $ciklikUuid);
+            }
         }
 
         // Un seul lien de changement par abonnement : « Changer de point
@@ -87,8 +98,16 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
             }
         }
 
+        // Comme au panier : une erreur de mise en forme (devise absente de la locale) ne bloque pas la page
+        try {
+            $presentedPendingPayments = $this->module->presentPendingPayments($pendingPayments);
+        } catch (Throwable $e) {
+            $presentedPendingPayments = [];
+        }
+
         $this->context->smarty->assign([
             'subscriptions' => $subscriptionsData ?? [],
+            'pending_payments' => $presentedPendingPayments,
             'relay_subscriptions' => $relaySubscriptions,
             'next_delivery_relays' => $nextDeliveryRelays,
             'subcription_base_link' => Tools::getShopDomainSsl(true) . '/ciklik/subscription',

@@ -15,11 +15,13 @@ use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Api\Subscription;
 use PrestaShop\Module\Ciklik\Data\CartSubscriptionData;
 use PrestaShop\Module\Ciklik\Data\PaymentMethodData;
+use PrestaShop\Module\Ciklik\Data\PendingPaymentData;
 use PrestaShop\Module\Ciklik\Data\ShopData;
 use PrestaShop\Module\Ciklik\Helpers\PriceHelper;
 use PrestaShop\Module\Ciklik\Helpers\ProductPriceResolver;
 use PrestaShop\Module\Ciklik\Helpers\SubscriptionHelper;
 use PrestaShop\Module\Ciklik\Helpers\UpsellEligibility;
+use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
 use PrestaShop\Module\Ciklik\Install\Installer;
 use PrestaShop\Module\Ciklik\Managers\CiklikAttribute;
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
@@ -40,7 +42,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.24.0';
+    const VERSION = '1.25.0';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -93,6 +95,13 @@ class Ciklik extends PaymentModule
      * @var array<int, array{subscribable: array<int, true>, frequencies: array<int, array>}>
      */
     private $cartExtraInfoCache = [];
+    /**
+     * Paiements en attente du client connecté, lus au plus une fois par
+     * requête HTTP (voir getPendingPayments)
+     *
+     * @var PendingPaymentData[]|null
+     */
+    private $pendingPayments;
 
     public function __construct()
     {
@@ -101,18 +110,19 @@ class Ciklik extends PaymentModule
         // Doit rester un littéral : le validateur PrestaShop Addons lit ce champ
         // par regex et refuse toute expression non-littérale (self::VERSION, etc.).
         // À garder synchronisé avec la constante VERSION ci-dessus.
-        $this->version = '1.24.0';
+        $this->version = '1.25.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
         $this->ps_versions_compliancy = [
             'min' => '1.7.0.0',
-            'max' => '9.1.5',
+            'max' => '9.2.99',
         ];
         $this->controllers = [
             'account',
             'cancel',
             'external',
+            'pendingpayment',
             'validation',
         ];
         $this->module_key = 'ad787a7f180e5ed32bf2effd4ca36520';
@@ -410,8 +420,11 @@ class Ciklik extends PaymentModule
             if ($shopData instanceof ShopData && count($shopData->paymentMethods)) {
                 $language = new Language($this->context->cart->id_lang);
 
+                // Avertissement de paiement en attente, avec le moyen de paiement choisi
+                $pendingPaymentWarning = $this->renderPendingPaymentWarning();
+
                 foreach ($shopData->paymentMethods as $method) {
-                    $paymentOptions[] = $this->mountPaymentOption($method, $language);
+                    $paymentOptions[] = $this->mountPaymentOption($method, $language, $pendingPaymentWarning);
                 }
             }
         }
@@ -419,7 +432,7 @@ class Ciklik extends PaymentModule
         return $paymentOptions;
     }
 
-    private function mountPaymentOption(PaymentMethodData $method, Language $language)
+    private function mountPaymentOption(PaymentMethodData $method, Language $language, $additionalHtml = '')
     {
         $paymentOption = new PaymentOption();
         $paymentOption->setModuleName($this->name);
@@ -438,7 +451,9 @@ class Ciklik extends PaymentModule
             ],
         ]);
 
-        $paymentOption->setAdditionalInformation($this->context->smarty->fetch("module:ciklik/views/templates/front/paymentOption{$method->class_key}.tpl"));
+        $paymentOption->setAdditionalInformation(
+            $additionalHtml . $this->context->smarty->fetch("module:ciklik/views/templates/front/paymentOption{$method->class_key}.tpl")
+        );
         $paymentOption->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . "/views/img/option/{$method->class_key}.png"));
 
         return $paymentOption;
@@ -1430,10 +1445,13 @@ class Ciklik extends PaymentModule
     }
 
     /**
-     * Hook displayShoppingCartFooter (mode fréquence uniquement).
+     * Hook displayShoppingCartFooter, sous la liste des produits du panier.
      *
-     * Affiche, sous le récap panier, une mention légale de récurrence et, en
-     * option, deux avertissements : panier mixte (abonnement + achat unique) et
+     * Affiche d'abord, tous modes confondus, l'avertissement de paiement en
+     * attente du client connecté quand le panier contient un abonnement.
+     *
+     * Puis, en mode fréquence, une mention légale de récurrence et, en option,
+     * deux avertissements : panier mixte (abonnement + achat unique) et
      * fréquences d'abonnement différentes. Tous les textes et les activations
      * sont configurables en back-office (voir AdminConfigureCiklikController).
      *
@@ -1443,14 +1461,29 @@ class Ciklik extends PaymentModule
      */
     public function hookDisplayShoppingCartFooter($params)
     {
-        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)
-            || !Configuration::get(self::CONFIG_CART_FOOTER_ENABLED)) {
-            return '';
-        }
-
         $cart = $this->context->cart;
 
         if (!Validate::isLoadedObject($cart)) {
+            return '';
+        }
+
+        $pendingPaymentWarning = CiklikSubscribable::cartHasSubscribable($cart) ? $this->renderPendingPaymentWarning() : '';
+
+        return $pendingPaymentWarning . $this->renderCartFooterRecap($cart);
+    }
+
+    /**
+     * Récap du pied de panier (mode fréquence uniquement) : mention de
+     * récurrence et avertissements configurés en back-office.
+     *
+     * @param Cart $cart
+     *
+     * @return string HTML rendu ou chaîne vide si non applicable
+     */
+    private function renderCartFooterRecap(Cart $cart)
+    {
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)
+            || !Configuration::get(self::CONFIG_CART_FOOTER_ENABLED)) {
             return '';
         }
 
@@ -1712,6 +1745,105 @@ class Ciklik extends PaymentModule
         $this->context->smarty->assign([
             'ciklik_bs5' => $this->isBootstrap5Theme(),
         ]);
+    }
+
+    /**
+     * Paiements en attente (renouvellements refusés) des abonnements actifs du
+     * client connecté, indexés par uuid d'abonnement : panier, moyen de
+     * paiement et contrôleur pendingpayment. Au plus un appel à l'API par
+     * requête, limité à 2 secondes ; une erreur vaut « rien à régler », pour ne
+     * jamais gêner la commande. Rien pour un invité.
+     *
+     * @return PendingPaymentData[]
+     */
+    public function getPendingPayments()
+    {
+        if (null !== $this->pendingPayments) {
+            return $this->pendingPayments;
+        }
+
+        $this->pendingPayments = [];
+
+        if (!$this->context->customer->isLogged()) {
+            return [];
+        }
+
+        $ciklikUuid = (string) (CiklikCustomer::getByIdCustomer((int) $this->context->customer->id)['ciklik_uuid'] ?? '');
+
+        if (!UuidHelper::isValid($ciklikUuid)) {
+            return [];
+        }
+
+        // Seul appel à l'API pour les paiements en attente : une pause après
+        // une erreur de l'API s'ajouterait ici, avant l'appel et dans ses échecs
+        try {
+            $response = (new Subscription($this->context->link))->indexRaw([
+                // L'API renvoie 20 abonnements : les plus récents d'abord
+                'query' => ['filter' => ['customer_id' => $ciklikUuid], 'sort' => '-created_at'],
+                'timeout' => 2,
+                'connect_timeout' => 1,
+            ]);
+        } catch (Throwable $e) {
+            // Connexion impossible : Guzzle 7 lève une exception
+            return [];
+        }
+
+        if (!empty($response['status'])) {
+            $this->pendingPayments = PendingPaymentData::collection($response['body'], $ciklikUuid);
+        }
+
+        return $this->pendingPayments;
+    }
+
+    /**
+     * Données d'affichage des paiements en attente : abonnement, montant dans
+     * sa devise et lien vers le contrôleur pendingpayment. Le lien de reprise
+     * n'est jamais écrit dans la page.
+     *
+     * @param PendingPaymentData[] $payments Indexés par uuid d'abonnement
+     *
+     * @return array
+     */
+    public function presentPendingPayments(array $payments)
+    {
+        $presented = [];
+
+        foreach ($payments as $uuid => $payment) {
+            $idCurrency = (int) Currency::getIdByIsoCode((string) $payment->currency);
+
+            $presented[$uuid] = [
+                'label' => $payment->label,
+                'amount' => $idCurrency > 0
+                    ? PriceHelper::formatPrice($payment->amount, new Currency($idCurrency))
+                    : number_format($payment->amount, 2) . ' ' . $payment->currency,
+                'link' => $this->context->link->getModuleLink($this->name, 'pendingpayment', ['uuid' => $uuid], true),
+            ];
+        }
+
+        return $presented;
+    }
+
+    /**
+     * Avertissement de paiement en attente, au panier et dans le moyen de
+     * paiement. Une erreur n'affiche rien : la commande passe toujours.
+     *
+     * @return string
+     */
+    private function renderPendingPaymentWarning()
+    {
+        try {
+            $payments = $this->getPendingPayments();
+
+            if (!$payments) {
+                return '';
+            }
+
+            $this->context->smarty->assign('ciklik_pending_payments', $this->presentPendingPayments($payments));
+
+            return $this->context->smarty->fetch('module:ciklik/views/templates/hook/displayPendingPayment.tpl');
+        } catch (Throwable $e) {
+            return '';
+        }
     }
 
     public function hookActionFrontControllerSetMedia($params)

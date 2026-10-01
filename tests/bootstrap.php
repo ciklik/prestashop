@@ -22,6 +22,10 @@ if (!defined('_DB_NAME_')) {
     define('_DB_NAME_', 'prestashop_test');
 }
 
+if (!defined('__PS_BASE_URI__')) {
+    define('__PS_BASE_URI__', '/');
+}
+
 // Fonction PrestaShop de nettoyage des identifiants SQL (tables, colonnes)
 if (!function_exists('bqSQL')) {
     function bqSQL($string)
@@ -670,6 +674,37 @@ class Tools
             'Î' => 'I', 'Ï' => 'I', 'Ô' => 'O', 'Ö' => 'O', 'Ù' => 'U', 'Û' => 'U', 'Ü' => 'U',
         ]);
     }
+
+    /** @var array Paramètres de requête lus par getValue() */
+    public static $requestValues = [];
+
+    /** @var array Appels à redirect() : url et en-têtes */
+    public static $redirects = [];
+
+    public static function getValue($key, $defaultValue = false)
+    {
+        return isset(self::$requestValues[$key]) ? self::$requestValues[$key] : $defaultValue;
+    }
+
+    /**
+     * Comme PrestaShop, une redirection termine la requête : ici par une exception
+     */
+    public static function redirect($url, $baseUri = __PS_BASE_URI__, $link = null, $headers = null)
+    {
+        self::$redirects[] = ['url' => $url, 'headers' => $headers];
+
+        throw new RuntimeException('redirect');
+    }
+}
+
+/**
+ * Stub ModuleFrontController pour les tests des contrôleurs front
+ */
+class ModuleFrontController
+{
+    public $auth = false;
+    public $module;
+    public $context;
 }
 
 /**

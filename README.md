@@ -96,6 +96,12 @@ $ciklik = [
 
 Dans « Mes abonnements », un abonnement livré en point relais propose « Changer de point relais » à la place de « Changer l'adresse », dès qu'un relais peut être proposé au client (recherche par adresse chez le transporteur, ou relais déjà utilisés lors de commandes passées). La fonction est active dès la mise à jour du module, sans réglage. Les recherches de relais sont limitées à 20 par client et 1000 par boutique et par heure.
 
+### Paiement en attente
+
+- Un client connecté dont un renouvellement a été refusé voit le montant dû et un bouton « Régler ce paiement » au panier et dans le moyen de paiement Ciklik (si son panier contient un abonnement), et dans « Mes abonnements ». L'avertissement ne bloque pas la commande.
+- Le bouton passe par le module, qui vérifie l'abonnement du client puis redirige vers le lien de reprise Ciklik : ce lien n'est jamais écrit dans la page. Actif dès la mise à jour, sans réglage ; l'appel à l'API est limité à 2 secondes et une erreur n'affiche rien.
+- Au panier, l'avertissement passe par le hook `displayShoppingCartFooter`, présent dans les thèmes classic (PrestaShop 1.7 à 9.2) et hummingbird (PrestaShop 8.x et 9.x).
+
 ## Support
 
 - Guide de mise à jour : voir [UPGRADE.md](UPGRADE.md)
