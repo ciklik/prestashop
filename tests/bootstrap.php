@@ -43,38 +43,72 @@ if (!function_exists('pSQL')) {
 }
 
 /**
- * Stub DbQuery pour les tests unitaires
+ * Stub DbQuery pour les tests unitaires : build() assemble la requête comme
+ * PrestaShop, pour la base SQLite de Db::useSqlite()
  */
 class DbQuery
 {
+    /** @var array Parties de la requête */
+    private $parts = ['select' => [], 'from' => [], 'join' => [], 'where' => [], 'order' => []];
+
     public function select($fields)
     {
+        $this->parts['select'][] = $fields;
+
         return $this;
     }
 
     public function from($table, $alias = null)
     {
+        $this->parts['from'][] = '`' . _DB_PREFIX_ . $table . '`' . ($alias ? ' ' . $alias : '');
+
         return $this;
     }
 
     public function where($condition)
     {
+        $this->parts['where'][] = '(' . $condition . ')';
+
         return $this;
     }
 
     public function leftJoin($table, $alias, $on)
     {
+        $this->parts['join'][] = 'LEFT JOIN `' . _DB_PREFIX_ . $table . '` ' . $alias . ' ON ' . $on;
+
         return $this;
     }
 
     public function innerJoin($table, $alias, $on)
     {
+        $this->parts['join'][] = 'INNER JOIN `' . _DB_PREFIX_ . $table . '` ' . $alias . ' ON ' . $on;
+
         return $this;
     }
 
     public function orderBy($field)
     {
+        $this->parts['order'][] = $field;
+
         return $this;
+    }
+
+    public function build()
+    {
+        $sql = 'SELECT ' . ($this->parts['select'] ? implode(', ', $this->parts['select']) : '*')
+            . ' FROM ' . implode(', ', $this->parts['from']);
+
+        if ($this->parts['join']) {
+            $sql .= ' ' . implode(' ', $this->parts['join']);
+        }
+        if ($this->parts['where']) {
+            $sql .= ' WHERE ' . implode(' AND ', $this->parts['where']);
+        }
+        if ($this->parts['order']) {
+            $sql .= ' ORDER BY ' . implode(', ', $this->parts['order']);
+        }
+
+        return $sql;
     }
 }
 
@@ -107,6 +141,15 @@ class Db
     /** @var array Resultat par defaut de getRow() si la file est vide */
     private static $mockGetRowDefault = [];
 
+    /**
+     * @var PDO|null Base SQLite en memoire : posee par useSqlite(), les
+     *               requetes y sont reellement executees et les mocks ignores
+     */
+    private static $pdo;
+
+    /** @var array Enregistrement des appels a insert() hors SQLite */
+    public static $insertCalls = [];
+
     public static function getInstance($slave = false)
     {
         if (!self::$instance) {
@@ -132,6 +175,83 @@ class Db
         self::$executeCalls = [];
         self::$mockExecuteResult = true;
         self::$queryLog = [];
+        self::$pdo = null;
+        self::$insertCalls = [];
+    }
+
+    /**
+     * Execute desormais les requetes sur une base SQLite (tests du SQL des
+     * drivers transporteurs) ; resetMocks() revient aux mocks
+     */
+    public static function useSqlite(PDO $pdo)
+    {
+        self::$pdo = $pdo;
+    }
+
+    /**
+     * Requete executee sur SQLite. Les deux requetes propres a MySQL des
+     * drivers (information_schema.TABLES et SHOW COLUMNS) sont traduites ;
+     * getRow et getValue ajoutent LIMIT 1 comme PrestaShop.
+     *
+     * @param string|DbQuery $query
+     * @param bool $limitOne
+     *
+     * @return array
+     */
+    private static function sqliteFetchAll($query, $limitOne = false)
+    {
+        $sql = $query instanceof DbQuery ? $query->build() : (string) $query;
+
+        if (preg_match('/information_schema`?\.`?TABLES.*`TABLE_NAME`\s*=\s*\'([^\']+)\'/is', $sql, $m)) {
+            $stmt = self::$pdo->prepare("SELECT COUNT(*) AS n FROM sqlite_master WHERE type = 'table' AND name = ?");
+            $stmt->execute([$m[1]]);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        if (preg_match('/^\s*SHOW COLUMNS FROM `([^`]+)`(?:\s+LIKE\s+\'([^\']*)\')?/i', $sql, $m)) {
+            $rows = [];
+            foreach (self::$pdo->query('PRAGMA table_info(`' . $m[1] . '`)')->fetchAll(PDO::FETCH_ASSOC) as $column) {
+                if (empty($m[2]) || $column['name'] === $m[2]) {
+                    $rows[] = ['Field' => $column['name']];
+                }
+            }
+
+            return $rows;
+        }
+
+        if ($limitOne && !preg_match('/\blimit\b/i', $sql)) {
+            $sql .= ' LIMIT 1';
+        }
+
+        return self::$pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Comme Db::insert de PrestaShop : null devient '' (sans $nullValues).
+     * Les valeurs, deja passees par pSQL, sont liees telles quelles : les
+     * donnees de test ne contiennent pas de caracteres echappes.
+     */
+    public function insert($table, $data, $nullValues = false, $useCache = true, $type = 1, $addPrefix = true)
+    {
+        if (!self::$pdo) {
+            self::$insertCalls[] = ['table' => $table, 'data' => $data];
+
+            return true;
+        }
+
+        $columns = array_keys($data);
+        $values = [];
+        foreach ($data as $value) {
+            $values[] = null === $value && !$nullValues ? '' : $value;
+        }
+
+        $stmt = self::$pdo->prepare(
+            'INSERT INTO `' . ($addPrefix ? _DB_PREFIX_ : '') . $table . '` (`' . implode('`, `', $columns) . '`)'
+            . ' VALUES (' . implode(', ', array_fill(0, count($columns), '?')) . ')'
+        );
+
+        return $stmt->execute($values);
     }
 
     /**
@@ -179,6 +299,10 @@ class Db
     public function executeS($query)
     {
         self::$queryLog[] = is_object($query) ? get_class($query) : (string) $query;
+
+        if (self::$pdo) {
+            return self::sqliteFetchAll($query);
+        }
 
         return self::$mockExecuteS;
     }
@@ -251,6 +375,16 @@ class Db
     {
         self::$queryLog[] = is_object($query) ? get_class($query) : (string) $query;
 
+        if (self::$pdo) {
+            $rows = self::sqliteFetchAll($query, true);
+            if (!$rows) {
+                return false;
+            }
+            $row = $rows[0];
+
+            return reset($row);
+        }
+
         if (!empty(self::$mockGetValueResults)) {
             $next = array_shift(self::$mockGetValueResults);
             if ($next instanceof Throwable) {
@@ -268,12 +402,22 @@ class Db
         self::$executeCalls[] = $query;
         self::$queryLog[] = is_object($query) ? get_class($query) : (string) $query;
 
+        if (self::$pdo) {
+            return false !== self::$pdo->exec($query instanceof DbQuery ? $query->build() : (string) $query);
+        }
+
         return self::$mockExecuteResult;
     }
 
     public function getRow($query, $useCache = true)
     {
         self::$queryLog[] = is_object($query) ? get_class($query) : (string) $query;
+
+        if (self::$pdo) {
+            $rows = self::sqliteFetchAll($query, true);
+
+            return $rows ? $rows[0] : false;
+        }
 
         if (!empty(self::$mockGetRowResults)) {
             return array_shift(self::$mockGetRowResults);
@@ -284,7 +428,7 @@ class Db
 
     public function Insert_ID()
     {
-        return 0;
+        return self::$pdo ? (int) self::$pdo->lastInsertId() : 0;
     }
 }
 
@@ -377,6 +521,52 @@ class Cart
     public function __construct($id = null)
     {
         $this->id = $id;
+    }
+}
+
+/**
+ * Stub Carrier pour les tests unitaires : transporteurs declares par
+ * setMockCarrier, inconnus sinon (id null, comme un ObjectModel non charge)
+ */
+class Carrier
+{
+    public $id;
+    public $id_reference;
+    public $name = '';
+    public $external_module_name = '';
+
+    /** @var array Transporteurs mockes [id => champs] */
+    private static $mockCarriers = [];
+
+    public function __construct($id = null, $idLang = null)
+    {
+        if (null !== $id && isset(self::$mockCarriers[(int) $id])) {
+            $this->id = (int) $id;
+            foreach (self::$mockCarriers[(int) $id] as $field => $value) {
+                $this->$field = $value;
+            }
+        }
+    }
+
+    public static function setMockCarrier($id, array $fields)
+    {
+        self::$mockCarriers[(int) $id] = $fields + ['id_reference' => (int) $id];
+    }
+
+    public static function getCarrierByReference($idReference, $idLang = null)
+    {
+        foreach (self::$mockCarriers as $id => $fields) {
+            if ((int) $fields['id_reference'] === (int) $idReference) {
+                return new self($id);
+            }
+        }
+
+        return false;
+    }
+
+    public static function resetMocks()
+    {
+        self::$mockCarriers = [];
     }
 }
 
@@ -673,6 +863,18 @@ class Tools
             'À' => 'A', 'Â' => 'A', 'Ä' => 'A', 'Ç' => 'C', 'É' => 'E', 'È' => 'E', 'Ê' => 'E', 'Ë' => 'E',
             'Î' => 'I', 'Ï' => 'I', 'Ô' => 'O', 'Ö' => 'O', 'Ù' => 'U', 'Û' => 'U', 'Ü' => 'U',
         ]);
+    }
+
+    public static function substr($str, $start, $length = false, $encoding = 'utf-8')
+    {
+        return false === $length
+            ? mb_substr((string) $str, (int) $start, null, $encoding)
+            : mb_substr((string) $str, (int) $start, (int) $length, $encoding);
+    }
+
+    public static function strlen($str, $encoding = 'UTF-8')
+    {
+        return mb_strlen((string) $str, $encoding);
     }
 
     /** @var array Paramètres de requête lus par getValue() */

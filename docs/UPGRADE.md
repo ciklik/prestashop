@@ -9,6 +9,7 @@
 - Compatibilité déclarée jusqu'à PrestaShop 9.2 (`9.2.99`).
 - `account.tpl` surchargé dans le thème : y inclure `hook/displayPendingPayment.tpl` comme le template du module.
 - Journaux de débogage activés avant la 1.25.0 : purger `var/logs/ciklik-*`, qui peuvent contenir des liens de reprise en clair (masqués depuis).
+- Correctif : au renouvellement, le relais repris pour Colissimo, DPD, GLS et Chronopost est celui de la commande précédente livrée à la même adresse (et non plus de la dernière commande du client).
 
 ## 1.24.0 : changement de point relais côté client, sécurité de Mes abonnements
 
