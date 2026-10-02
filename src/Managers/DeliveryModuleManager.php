@@ -361,7 +361,8 @@ class DeliveryModuleManager
 
     /**
      * Pour DPD France
-     * Clone la ligne la plus récente avec le même customer pour le nouveau panier
+     * Clone pour le nouveau panier la ligne relais de la dernière commande
+     * payée livrée à la même adresse, sinon de la dernière commande du client
      */
     protected static function handleDpdfrance($cart)
     {
@@ -394,14 +395,17 @@ class DeliveryModuleManager
                 self::logOverride('dpdfrance', $cart->id, 'exception: ' . $e->getMessage());
             }
 
-            // 2. Trouver la dernière commande payée par le customer_id, dont la colonne module vaut 'ciklik'
-            $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
-                    WHERE o.id_customer = ' . (int) $cart->id_customer . '
-                      AND o.module = \'ciklik\'
-                      AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
-                    ORDER BY o.date_add DESC';
-
-            $lastPaidCartId = \Db::getInstance()->getValue($sql);
+            // 2. Source du clonage : la dernière commande Ciklik payée livrée à
+            // la même adresse avec un relais DPD, pour une offre relais
+            // seulement (un renouvellement Predict y recevrait un relais) ; à
+            // défaut, la dernière commande Ciklik payée du client
+            $lastPaidCartId = 0;
+            if (self::carrierSupportsRelay('dpdfrance', new \Carrier((int) $cart->id_carrier))) {
+                $lastPaidCartId = self::getSameAddressRelayCartId($cart->id_customer, $cart->id_address_delivery, 'dpdfrance');
+            }
+            if (!$lastPaidCartId) {
+                $lastPaidCartId = self::getLastPaidCiklikCartId($cart->id_customer);
+            }
 
             if (!$lastPaidCartId) {
                 return; // Aucune commande payée trouvée
@@ -554,7 +558,8 @@ class DeliveryModuleManager
 
     /**
      * Pour Colissimo
-     * Clone la ligne la plus récente avec le même customer pour le nouveau panier
+     * Clone pour le nouveau panier la ligne relais de la dernière commande
+     * payée livrée à la même adresse, sinon de la dernière commande du client
      */
     protected static function handleColissimo($cart)
     {
@@ -587,14 +592,13 @@ class DeliveryModuleManager
                 self::logOverride('colissimo', $cart->id, 'exception: ' . $e->getMessage());
             }
 
-            // 2. Trouver la dernière commande payée par le customer_id, dont la colonne module vaut 'ciklik'
-            $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
-                    WHERE o.id_customer = ' . (int) $cart->id_customer . '
-                      AND o.module = \'ciklik\'
-                      AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
-                    ORDER BY o.date_add DESC';
-
-            $lastPaidCartId = \Db::getInstance()->getValue($sql);
+            // 2. Source du clonage : la dernière commande Ciklik payée livrée à
+            // la même adresse avec un relais Colissimo ; à défaut, la dernière
+            // commande Ciklik payée du client
+            $lastPaidCartId = self::getSameAddressRelayCartId($cart->id_customer, $cart->id_address_delivery, 'colissimo');
+            if (!$lastPaidCartId) {
+                $lastPaidCartId = self::getLastPaidCiklikCartId($cart->id_customer);
+            }
 
             if (!$lastPaidCartId) {
                 return; // Aucune commande payée trouvée
@@ -775,7 +779,8 @@ class DeliveryModuleManager
 
     /**
      * Pour GLS (module nkmgls)
-     * Clone la ligne la plus récente avec le même customer pour le nouveau panier
+     * Clone pour le nouveau panier la ligne relais de la dernière commande
+     * payée livrée à la même adresse, sinon de la dernière commande du client
      */
     protected static function handleNkmgls($cart)
     {
@@ -827,14 +832,13 @@ class DeliveryModuleManager
                 self::logOverride('nkmgls', $cart->id, 'exception: ' . $e->getMessage());
             }
 
-            // 2. Trouver la dernière commande payée par le customer_id, dont la colonne module vaut 'ciklik'
-            $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
-                    WHERE o.id_customer = ' . (int) $cart->id_customer . '
-                      AND o.module = \'ciklik\'
-                      AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
-                    ORDER BY o.date_add DESC';
-
-            $lastPaidCartId = \Db::getInstance()->getValue($sql);
+            // 2. Source du clonage : la dernière commande Ciklik payée livrée à
+            // la même adresse avec un relais GLS ; à défaut, la dernière
+            // commande Ciklik payée du client
+            $lastPaidCartId = self::getSameAddressRelayCartId($cart->id_customer, $cart->id_address_delivery, 'nkmgls');
+            if (!$lastPaidCartId) {
+                $lastPaidCartId = self::getLastPaidCiklikCartId($cart->id_customer);
+            }
 
             if (!$lastPaidCartId) {
                 return; // Aucune commande payée trouvée
@@ -1004,9 +1008,78 @@ class DeliveryModuleManager
     }
 
     /**
+     * Retourne l'ID du panier de la dernière commande Ciklik payée du client
+     * livrée à la même adresse que le renouvellement et portant un relais de
+     * ce transporteur : source du clonage, avant le repli sur
+     * getLastPaidCiklikCartId. Même règle que Mondial Relay, qui cherche
+     * d'abord par adresse de livraison.
+     *
+     * Sans ce filtre, un client avec plusieurs abonnements (domicile et
+     * relais, ou deux relais à deux adresses) recevait au renouvellement le
+     * relais d'un autre abonnement, ou aucun (étiquette Colissimo en échec
+     * faute de relais).
+     *
+     * L'adresse comparée est celle du panier, pas celle de la commande : à la
+     * validation, Colissimo, DPD France, GLS et Chronopost remplacent
+     * l'adresse de la commande par une adresse relais créée pour l'occasion.
+     * Le panier garde l'adresse du client, celle que porte l'empreinte des
+     * renouvellements.
+     *
+     * @param int $idCustomer
+     * @param int $idAddressDelivery Adresse de livraison du renouvellement (empreinte)
+     * @param string $module Nom du module transporteur (minuscules)
+     *
+     * @return int 0 si aucune
+     */
+    private static function getSameAddressRelayCartId($idCustomer, $idAddressDelivery, $module)
+    {
+        // Table panier/relais du module et condition d'un relais renseigné
+        switch ($module) {
+            case 'colissimo':
+                $table = 'colissimo_cart_pickup_point';
+                $relayIsSet = 'r.id_colissimo_pickup_point > 0';
+                break;
+            case 'dpdfrance':
+                // Les paniers DPD Predict ont aussi leur ligne, sans relais
+                $table = 'dpdfrance_shipping';
+                $relayIsSet = 'r.relay_id IS NOT NULL AND r.relay_id != \'\'';
+                break;
+            case 'nkmgls':
+                $table = 'gls_cart_carrier';
+                $relayIsSet = 'r.id_customer = ' . (int) $idCustomer . '
+                   AND r.parcel_shop_id IS NOT NULL AND r.parcel_shop_id != \'\'';
+                break;
+            case 'chronopost':
+                $table = 'chrono_cart_relais';
+                $relayIsSet = 'r.id_pr IS NOT NULL AND r.id_pr != \'\'';
+                break;
+            default:
+                return 0;
+        }
+
+        if ((int) $idAddressDelivery <= 0) {
+            return 0;
+        }
+
+        return (int) \Db::getInstance()->getValue(
+            'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
+             INNER JOIN ' . _DB_PREFIX_ . 'cart c ON c.id_cart = o.id_cart
+             INNER JOIN ' . _DB_PREFIX_ . $table . ' r ON r.id_cart = o.id_cart
+             WHERE o.id_customer = ' . (int) $idCustomer . '
+               AND o.module = \'ciklik\'
+               AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
+               AND c.id_address_delivery = ' . (int) $idAddressDelivery . '
+               AND ' . $relayIsSet . '
+             ORDER BY o.date_add DESC, o.id_order DESC'
+        );
+    }
+
+    /**
      * Lecture seule : le relais que le clonage historique utiliserait au
      * prochain rebill (sans tenir compte d'un éventuel override). Sert au
-     * bloc BO pour afficher l'état « automatique » courant.
+     * bloc BO pour afficher l'état « automatique » courant. Même source que
+     * les drivers : d'abord la dernière commande payée livrée à l'adresse des
+     * rebills avec un relais, sinon la dernière commande payée du client.
      *
      * @param int $idCustomer
      * @param string $module Nom du module transporteur (minuscules)
@@ -1058,7 +1131,8 @@ class DeliveryModuleManager
                     if (!self::tableExists(_DB_PREFIX_ . 'colissimo_cart_pickup_point')) {
                         return null;
                     }
-                    $cartId = self::getLastPaidCiklikCartId($idCustomer);
+                    $cartId = self::getSameAddressRelayCartId($idCustomer, $idAddressDelivery, $module)
+                        ?: self::getLastPaidCiklikCartId($idCustomer);
                     if (!$cartId) {
                         return null;
                     }
@@ -1090,7 +1164,8 @@ class DeliveryModuleManager
                     if (!self::tableExists(_DB_PREFIX_ . 'dpdfrance_shipping')) {
                         return null;
                     }
-                    $cartId = self::getLastPaidCiklikCartId($idCustomer);
+                    $cartId = self::getSameAddressRelayCartId($idCustomer, $idAddressDelivery, $module)
+                        ?: self::getLastPaidCiklikCartId($idCustomer);
                     if (!$cartId) {
                         return null;
                     }
@@ -1108,7 +1183,8 @@ class DeliveryModuleManager
                     if (!self::tableExists(_DB_PREFIX_ . 'gls_cart_carrier')) {
                         return null;
                     }
-                    $cartId = self::getLastPaidCiklikCartId($idCustomer);
+                    $cartId = self::getSameAddressRelayCartId($idCustomer, $idAddressDelivery, $module)
+                        ?: self::getLastPaidCiklikCartId($idCustomer);
                     if (!$cartId) {
                         return null;
                     }
@@ -1127,16 +1203,25 @@ class DeliveryModuleManager
                     if (!self::tableExists(_DB_PREFIX_ . 'chrono_cart_relais')) {
                         return null;
                     }
-                    $idPr = \Db::getInstance()->getValue(
-                        'SELECT ccr.id_pr
-                         FROM ' . _DB_PREFIX_ . 'chrono_cart_relais ccr
-                         INNER JOIN ' . _DB_PREFIX_ . 'orders o ON o.id_cart = ccr.id_cart
-                         WHERE o.id_customer = ' . (int) $idCustomer . '
-                           AND o.module = \'ciklik\'
-                           AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
-                           AND ccr.id_pr IS NOT NULL AND ccr.id_pr != \'\'
-                         ORDER BY o.date_add DESC'
-                    );
+                    $sameAddressCartId = self::getSameAddressRelayCartId($idCustomer, $idAddressDelivery, $module);
+                    if ($sameAddressCartId) {
+                        $idPr = \Db::getInstance()->getValue(
+                            'SELECT id_pr FROM ' . _DB_PREFIX_ . 'chrono_cart_relais
+                             WHERE id_cart = ' . (int) $sameAddressCartId . '
+                               AND id_pr IS NOT NULL AND id_pr != \'\''
+                        );
+                    } else {
+                        $idPr = \Db::getInstance()->getValue(
+                            'SELECT ccr.id_pr
+                             FROM ' . _DB_PREFIX_ . 'chrono_cart_relais ccr
+                             INNER JOIN ' . _DB_PREFIX_ . 'orders o ON o.id_cart = ccr.id_cart
+                             WHERE o.id_customer = ' . (int) $idCustomer . '
+                               AND o.module = \'ciklik\'
+                               AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
+                               AND ccr.id_pr IS NOT NULL AND ccr.id_pr != \'\'
+                             ORDER BY o.date_add DESC'
+                        );
+                    }
 
                     return $idPr ? ['relay_id' => (string) $idPr, 'label' => ''] : null;
             }
@@ -1434,21 +1519,29 @@ class DeliveryModuleManager
                 self::logOverride('chronopost', $cart->id, 'exception: ' . $e->getMessage());
             }
 
-            // 2. Trouver les commandes payées du client avec le module 'ciklik'
-            $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
-                    WHERE o.id_customer = ' . (int) $cart->id_customer . '
-                      AND o.module = \'ciklik\'
-                      AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
-                    ORDER BY o.date_add DESC';
+            // 2. Source du clonage : la dernière commande Ciklik payée livrée à
+            // la même adresse avec un relais Chronopost ; à défaut, les
+            // commandes payées du client avec le module 'ciklik'
+            $sameAddressCartId = self::getSameAddressRelayCartId($cart->id_customer, $cart->id_address_delivery, 'chronopost');
 
-            $paidCartIds = \Db::getInstance()->executeS($sql);
+            if ($sameAddressCartId) {
+                $cartIds = [$sameAddressCartId];
+            } else {
+                $sql = 'SELECT o.id_cart FROM ' . _DB_PREFIX_ . 'orders o
+                        WHERE o.id_customer = ' . (int) $cart->id_customer . '
+                          AND o.module = \'ciklik\'
+                          AND o.current_state IN (SELECT id_order_state FROM ' . _DB_PREFIX_ . 'order_state WHERE paid = 1)
+                        ORDER BY o.date_add DESC';
 
-            if (!$paidCartIds || empty($paidCartIds)) {
-                return; // Aucune commande payée trouvée
+                $paidCartIds = \Db::getInstance()->executeS($sql);
+
+                if (!$paidCartIds || empty($paidCartIds)) {
+                    return; // Aucune commande payée trouvée
+                }
+
+                // 3. Extraire les IDs des cartes
+                $cartIds = array_column($paidCartIds, 'id_cart');
             }
-
-            // 3. Extraire les IDs des cartes
-            $cartIds = array_column($paidCartIds, 'id_cart');
 
             // 4. Trouver dans la table chrono_cart_relais les entrées avec ces cartes qui ont un id_pr
             $query = new \DbQuery();
