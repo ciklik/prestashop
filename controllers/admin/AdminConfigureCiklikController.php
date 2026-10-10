@@ -722,6 +722,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
                 try {
                     (new Shop($this->context->link))->metadata([
                         'supports_json_fingerprint' => '1',
+                        'supports_payment_updates' => '1',
                         'module_version' => Ciklik::VERSION,
                     ]);
                 } catch (Exception $e) {
@@ -778,6 +779,7 @@ class AdminConfigureCiklikController extends ModuleAdminController
                             'prestashop_endpoint' => Tools::getShopDomainSsl(true),
                             'ciklik_encrypted_prestashop_token' => $webservice->key,
                             'supports_json_fingerprint' => '1',
+                            'supports_payment_updates' => '1',
                             'module_version' => Ciklik::VERSION,
                         ],
                         [

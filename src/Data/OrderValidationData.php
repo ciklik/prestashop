@@ -68,11 +68,45 @@ class OrderValidationData
         $this->secure_key = $secure_key;
     }
 
+    /**
+     * État de création d'abonnement choisi en back-office, s'il est activé. Jamais à la place de l'état
+     * « en attente de paiement » : la commande d'un paiement non encaissé ne doit pas paraître payée.
+     *
+     * @return OrderValidationData
+     */
+    public function applyCreationState()
+    {
+        if (OrderData::awaitingPaymentState() > 0 && $this->id_order_state === OrderData::awaitingPaymentState()) {
+            return $this;
+        }
+
+        // Erreur de paiement (paiement en attente dont le panier a changé, commande non terminée) : jamais masquée.
+        if ($this->id_order_state === (int) \Configuration::get('PS_OS_ERROR')) {
+            return $this;
+        }
+
+        if (\Configuration::get(\Ciklik::CONFIG_ENABLE_CREATION_ORDER_STATE)
+            && (int) \Configuration::get(\Ciklik::CONFIG_CREATION_ORDER_STATE) > 0) {
+            $this->id_order_state = (int) \Configuration::get(\Ciklik::CONFIG_CREATION_ORDER_STATE);
+        }
+
+        return $this;
+    }
+
     public static function create(\Cart $cart, OrderData $orderData): OrderValidationData
     {
+        $state = $orderData->getOrderState();
+
+        // Paiement en attente : PrestaShop ne compare pas le montant au total du panier pour un état non validé.
+        // Un panier modifié après le paiement donne une commande en erreur de paiement, jamais « en attente ».
+        if ($orderData->isPaymentPending() && method_exists($cart, 'getOrderTotal')
+            && abs((float) $cart->getOrderTotal(true, \Cart::BOTH) - (float) $orderData->total_paid) >= 0.01) {
+            $state = (int) \Configuration::get('PS_OS_ERROR');
+        }
+
         return new self(
             $cart->id,
-            $orderData->getOrderState(),
+            $state,
             $orderData->total_paid,
             $orderData->getPspName(),
             null,

@@ -509,6 +509,8 @@ class Hook
  */
 class Cart
 {
+    const BOTH = 3;
+
     public $id;
     public $id_customer;
     public $id_address_delivery;
@@ -745,6 +747,7 @@ class Ciklik
     public const CONFIG_ENABLE_CREATION_ORDER_STATE = 'CIKLIK_ENABLE_CREATION_ORDER_STATE';
     public const CONFIG_CREATION_ORDER_STATE = 'CIKLIK_CREATION_ORDER_STATE';
     public const CONFIG_ENABLE_UPSELL = 'CIKLIK_ENABLE_UPSELL';
+    public const CONFIG_OS_AWAITING_PAYMENT = 'CIKLIK_OS_AWAITING_PAYMENT';
 }
 
 /**

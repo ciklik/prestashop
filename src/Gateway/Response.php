@@ -136,6 +136,12 @@ class Response
         $this->send();
     }
 
+    public function sendInternalServerError()
+    {
+        $this->setStatus('HTTP/1.1 500 Internal Server Error');
+        $this->send();
+    }
+
     public function sendConflict()
     {
         $this->setStatus('HTTP/1.1 409 Conflict');

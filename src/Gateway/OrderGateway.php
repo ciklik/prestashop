@@ -65,11 +65,9 @@ class OrderGateway extends AbstractGateway implements EntityGateway
 
         $orderValidationData = OrderValidationData::create($cart, $orderData);
 
-        // Statut différencié pour les créations d'abonnement
-        if (\Tools::getValue('order_type') === 'subscription_creation'
-            && \Configuration::get(\Ciklik::CONFIG_ENABLE_CREATION_ORDER_STATE)
-            && (int) \Configuration::get(\Ciklik::CONFIG_CREATION_ORDER_STATE) > 0) {
-            $orderValidationData->id_order_state = (int) \Configuration::get(\Ciklik::CONFIG_CREATION_ORDER_STATE);
+        // Statut différencié pour les créations d'abonnement (jamais à la place de « en attente de paiement »)
+        if (\Tools::getValue('order_type') === 'subscription_creation') {
+            $orderValidationData->applyCreationState();
         }
 
         $startTime = microtime(true);

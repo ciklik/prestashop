@@ -5,5 +5,6 @@
  *}
 
 <section id="ciklik-paypal">
-  <p>{l s='Payment with Paypal' mod='ciklik'}</p>
+  <p>{l s='Pay with your PayPal account on the secure Ciklik payment page.' mod='ciklik'}</p>
+  <p>{l s='Your next subscription payments will be charged automatically to this PayPal account. You can change your payment method at any time from your account.' mod='ciklik'}</p>
 </section>

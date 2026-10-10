@@ -7,6 +7,7 @@
 
 use PrestaShop\Module\Ciklik\Gateway\CartGateway;
 use PrestaShop\Module\Ciklik\Gateway\OrderGateway;
+use PrestaShop\Module\Ciklik\Gateway\PaymentGateway;
 use PrestaShop\Module\Ciklik\Gateway\Response;
 use PrestaShop\Module\Ciklik\Gateway\SubscriptionGateway;
 
@@ -31,6 +32,9 @@ class CiklikGatewayModuleFrontController extends ModuleFrontController
                 break;
             case 'orders':
                 (new OrderGateway($this->module))->handle();
+                break;
+            case 'payments':
+                (new PaymentGateway($this->module))->handle();
                 break;
             case 'subscriptions':
                 (new SubscriptionGateway($this->module))->handle();

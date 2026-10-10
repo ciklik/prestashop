@@ -1,5 +1,26 @@
 # Guide de mise à jour — module Ciklik
 
+## 1.26.0 : paiement PayPal en attente, option PayPal
+
+- Rien à faire : la mise à jour crée l'état de commande « En attente de paiement (Ciklik) » (non payé, non validé, sans
+  facture ni mail ; jamais supprimé) et annonce à Ciklik que le module traite la confirmation de paiement.
+- Une commande réglée par prélèvement bancaire PayPal, pas encore encaissé, est créée dans cet état. Quand Ciklik reçoit la
+  réponse de PayPal, il appelle `ciklik/gateway/payments` (même authentification que les autres requêtes) : paiement
+  encaissé, la commande passe à l'état payé configuré (le paiement est ajouté avec sa référence de transaction, une seule
+  fois) ; paiement refusé, elle passe à « Erreur de paiement », sans annulation ni remise en stock (l'abonnement Ciklik reste
+  actif, à vous de régulariser). Une commande dont l'état a déjà été changé n'est jamais modifiée.
+- Si la création de l'état échoue, les commandes sont créées comme avant et l'erreur est dans le journal de PrestaShop
+  (Paramètres avancés > Journaux).
+- La confirmation et le détail de commande affichent « paiement en cours de confirmation » tant que la commande est dans cet état.
+- Option de paiement PayPal : nouveau gabarit `paymentOptionPaypalVault.tpl` (compte PayPal, prochains prélèvements,
+  moyen modifiable) et logo PayPal. Surcharge possible depuis le thème.
+- Protection : pour un paiement en attente, `validation` refuse une commande Ciklik liée à un autre panier que le panier
+  courant ; un panier modifié après le paiement donne une commande en « Erreur de paiement ».
+- L'état de création d'abonnement (option du back-office) ne remplace plus jamais « Erreur de paiement ».
+- L'option PayPal n'est plus proposée pour un panier à 0 € (PayPal refuse un paiement nul).
+- Compatibilité inchangée : PrestaShop 1.7.0 à 9.2.
+- Gabarits `displayPaymentReturn.tpl` ou `displayOrderDetail.tpl` surchargés dans le thème : reprendre le paragraphe `payment_pending`.
+
 ## 1.25.0 : avertissement de paiement en attente
 
 - Rien à faire : ni réglage, ni table, ni hook à enregistrer (`displayShoppingCartFooter` l'est depuis 1.23.0).
