@@ -75,6 +75,14 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
             $this->redirectToCheckout();
         }
 
+        // Anti-rejeu par le panier, pour un paiement en attente : sans transaction payée, la garde par
+        // order_payment ci-dessous ne joue pas. Un identifiant de commande rejoué sur un autre panier est refusé
+        // même avant le push serveur. Un paiement encaissé garde les gardes d'avant (un panier PrestaShop
+        // remplacé entre le tunnel et le retour ne doit pas renvoyer un client qui a payé vers le tunnel).
+        if ($orderData->isPaymentPending() && !$orderData->isForCart((int) $this->context->cart->id)) {
+            $this->redirectToCheckout();
+        }
+
         // Anti-rejeu auto-suffisant : `prestashop_order_id` n'est renseigné côté Ciklik qu'au
         // moment du push serveur. Entre la création de la commande par cette voie front et ce
         // push, la transaction de paiement est déjà inscrite dans `order_payment` ; si une
@@ -90,11 +98,8 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
 
         $orderValidationData = OrderValidationData::create($this->context->cart, $orderData);
 
-        // Statut différencié pour les créations d'abonnement
-        if (Configuration::get(Ciklik::CONFIG_ENABLE_CREATION_ORDER_STATE)
-            && (int) Configuration::get(Ciklik::CONFIG_CREATION_ORDER_STATE) > 0) {
-            $orderValidationData->id_order_state = (int) Configuration::get(Ciklik::CONFIG_CREATION_ORDER_STATE);
-        }
+        // Statut différencié pour les créations d'abonnement (jamais à la place de « en attente de paiement »)
+        $orderValidationData->applyCreationState();
 
         $this->module->validateOrder(
             $orderValidationData->id_cart,

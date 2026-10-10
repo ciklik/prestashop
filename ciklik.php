@@ -14,6 +14,7 @@ use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Api\Subscription;
 use PrestaShop\Module\Ciklik\Data\CartSubscriptionData;
+use PrestaShop\Module\Ciklik\Data\OrderData;
 use PrestaShop\Module\Ciklik\Data\PaymentMethodData;
 use PrestaShop\Module\Ciklik\Data\PendingPaymentData;
 use PrestaShop\Module\Ciklik\Data\ShopData;
@@ -42,7 +43,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.25.0';
+    const VERSION = '1.26.0';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -59,6 +60,8 @@ class Ciklik extends PaymentModule
     const CONFIG_ORDER_STATE = 'CIKLIK_ORDER_STATE';
     const CONFIG_ENABLE_CREATION_ORDER_STATE = 'CIKLIK_ENABLE_CREATION_ORDER_STATE';
     const CONFIG_CREATION_ORDER_STATE = 'CIKLIK_CREATION_ORDER_STATE';
+    // État « en attente de paiement » créé par le module (paiement PayPal par prélèvement bancaire non encaissé).
+    const CONFIG_OS_AWAITING_PAYMENT = 'CIKLIK_OS_AWAITING_PAYMENT';
     const CONFIG_ENABLE_ENGAGEMENT = 'CIKLIK_ENABLE_ENGAGEMENT';
     const CONFIG_ENGAGEMENT_INTERVAL = 'CIKLIK_ENGAGEMENT_INTERVAL';
     const CONFIG_ENGAGEMENT_INTERVAL_COUNT = 'CIKLIK_ENGAGEMENT_INTERVAL_COUNT';
@@ -110,7 +113,7 @@ class Ciklik extends PaymentModule
         // Doit rester un littéral : le validateur PrestaShop Addons lit ce champ
         // par regex et refuse toute expression non-littérale (self::VERSION, etc.).
         // À garder synchronisé avec la constante VERSION ci-dessus.
-        $this->version = '1.25.0';
+        $this->version = '1.26.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -424,6 +427,10 @@ class Ciklik extends PaymentModule
                 $pendingPaymentWarning = $this->renderPendingPaymentWarning();
 
                 foreach ($shopData->paymentMethods as $method) {
+                    // PayPal refuse un paiement de 0 € : la carte enregistre le moyen sans rien encaisser.
+                    if ($method->class_key === 'PaypalVault' && (float) $cart->getOrderTotal(true, Cart::BOTH) <= 0.009) {
+                        continue;
+                    }
                     $paymentOptions[] = $this->mountPaymentOption($method, $language, $pendingPaymentWarning);
                 }
             }
@@ -612,6 +619,7 @@ class Ciklik extends PaymentModule
         $this->context->smarty->assign([
             'moduleName' => $this->name,
             'transaction' => $transaction,
+            'payment_pending' => $this->isPaymentPending($order),
         ]);
 
         return $this->context->smarty->fetch('module:ciklik/views/templates/hook/displayOrderDetail.tpl');
@@ -661,9 +669,24 @@ class Ciklik extends PaymentModule
                 'account'
             ),
             'subscription_items' => $subscriptionData,
+            'payment_pending' => $this->isPaymentPending($order),
         ]);
 
         return $this->context->smarty->fetch('module:ciklik/views/templates/hook/displayPaymentReturn.tpl');
+    }
+
+    /**
+     * La commande attend la confirmation du paiement par Ciklik (état « en attente de paiement » du module).
+     *
+     * @param Order $order
+     *
+     * @return bool
+     */
+    private function isPaymentPending(Order $order)
+    {
+        $awaiting = OrderData::awaitingPaymentState();
+
+        return $awaiting > 0 && (int) $order->current_state === $awaiting;
     }
 
     /**

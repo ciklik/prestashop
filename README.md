@@ -102,6 +102,11 @@ Dans « Mes abonnements », un abonnement livré en point relais propose « Chan
 - Le bouton passe par le module, qui vérifie l'abonnement du client puis redirige vers le lien de reprise Ciklik : ce lien n'est jamais écrit dans la page. Actif dès la mise à jour, sans réglage ; l'appel à l'API est limité à 2 secondes et une erreur n'affiche rien.
 - Au panier, l'avertissement passe par le hook `displayShoppingCartFooter`, présent dans les thèmes classic (PrestaShop 1.7 à 9.2) et hummingbird (PrestaShop 8.x et 9.x).
 
+### Paiement PayPal en attente
+
+- Une commande payée par prélèvement bancaire PayPal, pas encore encaissé, est créée dans l'état « En attente de paiement (Ciklik) », créé par le module. Ciklik la passe à l'état payé configuré à l'encaissement, ou à « Erreur de paiement » en cas de refus (requête `ciklik/gateway/payments`, même authentification que les autres).
+- La confirmation et le détail de commande indiquent au client que le paiement est en cours de confirmation. Gabarits `displayPaymentReturn.tpl` et `displayOrderDetail.tpl`, surchargeables par le thème.
+
 ## Support
 
 - Guide de mise à jour : voir [UPGRADE.md](UPGRADE.md)

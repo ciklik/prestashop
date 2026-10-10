@@ -51,6 +51,12 @@ class Installer
             return false;
         }
 
+        // Un échec ne bloque pas l'installation : sans cet état, une commande au paiement en attente est créée
+        // comme avant (état payé configuré), et le journal porte l'erreur.
+        if (AwaitingPaymentState::install() === 0) {
+            \PrestaShopLogger::addLog('Ciklik install - création de l\'état « en attente de paiement » échouée', 3);
+        }
+
         if (!$this->installWebservice()) {
             return false;
         }

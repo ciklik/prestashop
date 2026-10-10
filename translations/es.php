@@ -21,7 +21,6 @@ $_MODULE['<{ciklik}prestashop>account_61f96bd7b6f538c143d82110f770c663'] = 'Canc
 $_MODULE['<{ciklik}prestashop>account_5bd909d2aabb76836e8fdad730968abb'] = 'Personalizaciones';
 
 // Payment Options
-$_MODULE['<{ciklik}prestashop>paymentoptionpaypalvault_a9aeea3dd735b895bd65ef44ec168d8e'] = 'Pago con PayPal';
 $_MODULE['<{ciklik}prestashop>paymentoptionpayplugcreditcard_c0860a68ddf96934f5dd78cea0f8b5af'] = 'Pago con tarjeta de crédito mediante PayPlug';
 $_MODULE['<{ciklik}prestashop>paymentoptionstripecreditcard_d4b70d23ef111bdca92fe6f95bddc00c'] = 'Pago con tarjeta de crédito mediante Stripe';
 
@@ -45,8 +44,12 @@ $_MODULE['<{ciklik}prestashop>displaycustomeraccount_4ca2c509994c2776d0880357b4e
 // Order Confirmation / Detail / Payment Return / PDF Invoice
 $_MODULE['<{ciklik}prestashop>displayorderconfirmation_e4a5003bedaa73765b838faa2251864f'] = 'Tu referencia de transacción es %transaction%.';
 $_MODULE['<{ciklik}prestashop>displayorderdetail_e4a5003bedaa73765b838faa2251864f'] = 'Tu referencia de transacción es %transaction%.';
+$_MODULE['<{ciklik}prestashop>displayorderdetail_7f41a9d5ccd83e5ddee3e8011f2f3db5'] = 'Su pago está siendo confirmado por el proveedor de pago. Su pedido se preparará en cuanto se reciba el pago.';
 $_MODULE['<{ciklik}prestashop>displaypaymentreturn_e4a5003bedaa73765b838faa2251864f'] = 'Tu referencia de transacción es %transaction%.';
 $_MODULE['<{ciklik}prestashop>displaypaymentreturn_11505e49b8050e064743cf2fa9121623'] = 'Detalles de la suscripción';
+$_MODULE['<{ciklik}prestashop>displaypaymentreturn_7f41a9d5ccd83e5ddee3e8011f2f3db5'] = 'Su pago está siendo confirmado por el proveedor de pago. Su pedido se preparará en cuanto se reciba el pago.';
+$_MODULE['<{ciklik}prestashop>paymentoptionpaypalvault_59de4d84c0aaa142ad31db1ddf643331'] = 'Pague con su cuenta PayPal en la página de pago segura de Ciklik.';
+$_MODULE['<{ciklik}prestashop>paymentoptionpaypalvault_26cbe477918d17b93fb7274c6557b56d'] = 'Los próximos pagos de su suscripción se cargarán automáticamente en esta cuenta PayPal. Puede cambiar su método de pago en cualquier momento desde su cuenta.';
 $_MODULE['<{ciklik}prestashop>displaypdfinvoice_e4a5003bedaa73765b838faa2251864f'] = 'Tu referencia de transacción es %transaction%.';
 
 // Change Delivery Address Modal
