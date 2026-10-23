@@ -286,6 +286,9 @@ class Installer
             'actionProductUpdate',
             'actionCiklikCartBeforeRebill',
             'termsAndConditions',
+            // Email d'un client changé dans la boutique, signalé à Ciklik (CustomerEmailSync)
+            'actionObjectCustomerUpdateBefore',
+            'actionObjectCustomerUpdateAfter',
         ];
 
         // Page commande BO : hook migré (>= 1.7.7) sinon hook legacy

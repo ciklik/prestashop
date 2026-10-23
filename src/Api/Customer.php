@@ -35,4 +35,16 @@ class Customer extends CiklikApiClient
 
         return $this->get();
     }
+
+    /** Signale un changement d'email (PUT customers/email) : seul l'identifiant part, Ciklik relit le client */
+    public function notifyEmailChanged(int $idCustomer, array $options = [])
+    {
+        $this->setRoute('customers/email');
+
+        return $this->put(array_merge($options, [
+            'json' => [
+                'external_id' => $idCustomer,
+            ],
+        ]));
+    }
 }
