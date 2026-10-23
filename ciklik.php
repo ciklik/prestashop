@@ -32,6 +32,7 @@ use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikRefund;
 use PrestaShop\Module\Ciklik\Managers\CiklikSpecificPrice;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscribable;
+use PrestaShop\Module\Ciklik\Managers\CustomerEmailSync;
 use PrestaShop\PrestaShop\Core\Checkout\TermsAndConditions;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
@@ -43,7 +44,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.26.0';
+    const VERSION = '1.27.0';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -106,6 +107,9 @@ class Ciklik extends PaymentModule
      */
     private $pendingPayments;
 
+    /** @var CustomerEmailSync|null Adresses mémorisées entre les deux hooks d'enregistrement d'un client */
+    private static $customerEmailSync;
+
     public function __construct()
     {
         $this->name = 'ciklik';
@@ -113,7 +117,7 @@ class Ciklik extends PaymentModule
         // Doit rester un littéral : le validateur PrestaShop Addons lit ce champ
         // par regex et refuse toute expression non-littérale (self::VERSION, etc.).
         // À garder synchronisé avec la constante VERSION ci-dessus.
-        $this->version = '1.26.0';
+        $this->version = '1.27.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -1713,6 +1717,30 @@ class Ciklik extends PaymentModule
         $this->cartExtraInfoCache[$cartId] = $cache;
 
         return $cache;
+    }
+
+    /** Email d'un client : adresse mémorisée avant l'enregistrement (voir CustomerEmailSync) */
+    public function hookActionObjectCustomerUpdateBefore(array $params)
+    {
+        $this->syncCustomerEmail($params, 'rememberPreviousEmail');
+    }
+
+    /** Email d'un client changé dans la boutique : Ciklik prévenu, sans jamais bloquer l'enregistrement */
+    public function hookActionObjectCustomerUpdateAfter(array $params)
+    {
+        $this->syncCustomerEmail($params, 'notifyIfChanged');
+    }
+
+    private function syncCustomerEmail(array $params, $method)
+    {
+        try {
+            if (isset($params['object']) && $params['object'] instanceof Customer) {
+                self::$customerEmailSync = self::$customerEmailSync ?: new CustomerEmailSync();
+                self::$customerEmailSync->$method($params['object']);
+            }
+        } catch (Throwable $e) {
+            // L'enregistrement du client ne dépend jamais de Ciklik
+        }
     }
 
     public function hookActionAuthentication($params)

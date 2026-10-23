@@ -1,5 +1,24 @@
 # Guide de mise à jour — module Ciklik
 
+## 1.27.0 : email d'un client changé dans la boutique
+
+- Rien à faire : la mise à jour enregistre deux hooks (`actionObjectCustomerUpdateBefore`, `actionObjectCustomerUpdateAfter`).
+- Quand un client qui a déjà commandé par Ciklik change d'adresse email (espace client, back-office, import CSV,
+  webservice), le module le signale tout de suite à Ciklik. Seul l'identifiant du client part, jamais l'adresse : Ciklik
+  relit le client dans la boutique par le webservice, comme à une commande, puis emails Ciklik, Klaviyo et webhooks
+  suivent la nouvelle adresse (en général dans la minute). Le webservice de la boutique doit donc rester joignable,
+  comme pour les commandes et les renouvellements.
+- Avant, Ciklik ne reprenait l'adresse qu'à la commande ou au renouvellement suivant, ce qui reste le filet de secours.
+- En multiboutique, le signal part avec la clé de la boutique de la dernière commande Ciklik du client.
+- Jamais bloquant : appel limité à 2 secondes, aucune erreur montrée au client ; un échec est noté dans le journal de
+  PrestaShop (Paramètres avancés > Journaux) et Ciklik reprend l'adresse à la commande suivante. Après un échec, ou
+  6 secondes d'appels cumulés, les autres clients de la même requête (import) ne sont plus signalés.
+- Ciklik garde ses règles : une adresse invalide, ou déjà portée par un autre client du site, n'est pas reprise.
+- Non couvert : un module tiers qui écrit l'email directement en base, sans passer par l'objet Customer ; Ciklik le
+  reprend alors à la commande suivante.
+- Nécessite la plateforme Ciklik à jour (route `PUT customers/email`) ; sans elle, l'appel est refusé et journalisé, rien d'autre.
+- Compatibilité inchangée : PrestaShop 1.7.0 à 9.2.
+
 ## 1.26.0 : paiement PayPal en attente, option PayPal
 
 - Rien à faire : la mise à jour crée l'état de commande « En attente de paiement (Ciklik) » (non payé, non validé, sans
