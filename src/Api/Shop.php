@@ -41,4 +41,16 @@ class Shop extends CiklikApiClient
             )
         );
     }
+
+    /**
+     * Refus de PUT whoiam (409) : l'adresse déclarée diffère de celle déjà enregistrée chez Ciklik
+     *
+     * @param array $response Réponse formatée de metadata()
+     *
+     * @return bool
+     */
+    public static function isEndpointLocked(array $response)
+    {
+        return 409 === ($response['httpCode'] ?? null);
+    }
 }

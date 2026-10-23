@@ -201,6 +201,8 @@ $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_9129df053193a4eb2b6
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_0cbc6611f5540bd0809a388dc95a615b'] = 'Test';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_756d97bb256b8580d4d71ee0c547804e'] = 'Production';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_3956a19a769b2ba5e4c32b6fdd915675'] = 'Connection successful';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_00e0c05b21fea48c340269362abf5c52'] = 'L\'indirizzo del suo negozio è cambiato. Per motivi di sicurezza, Ciklik deve convalidare questa modifica: contatti il supporto Ciklik.';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_5d4e8ca846bddb886c0d43795791495c'] = 'La connessione a Ciklik non è riuscita. Verifichi il suo token API e riprovi; se il problema persiste, contatti il supporto Ciklik.';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_1be415f041c0d8f2e10093a7b4236694'] = 'Connection failed';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_8c4ebeec9fb966f20ea668ca88021418'] = 'Attiva stato specifico per la creazione dell\'abbonamento';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_63867c49fccb06cf2d1806948ac3cf9d'] = 'Usa uno stato ordine diverso per il primo ordine di abbonamento. I rinnovi mantengono lo stato standard sopra.';
