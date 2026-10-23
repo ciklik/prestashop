@@ -1,5 +1,18 @@
 # Guide de mise à jour — module Ciklik
 
+## 1.27.1 : messages de connexion plus clairs, journal de débogage allégé
+
+- Rien à faire. À l'enregistrement du jeton d'API, « Connexion réussie » ne s'affiche plus que si Ciklik a accepté la
+  déclaration de la boutique ; sinon un message d'erreur traduit s'affiche et ni le jeton ni l'hôte ne sont enregistrés :
+  - adresse de boutique différente de celle déjà enregistrée chez Ciklik : « L'adresse de votre boutique a changé. Pour
+    des raisons de sécurité, Ciklik doit valider ce changement : contactez le support Ciklik. » Une fois le changement
+    validé par Ciklik, enregistrer à nouveau le jeton ;
+  - autre échec (jeton refusé, Ciklik injoignable) : « La connexion à Ciklik a échoué. Vérifiez votre jeton d'API puis
+    réessayez ; si le problème persiste, contactez le support Ciklik. »
+- Vider le champ du jeton reste possible.
+- Journal de débogage allégé.
+- Compatibilité inchangée : PrestaShop 1.7.0 à 9.2.
+
 ## 1.27.0 : email d'un client changé dans la boutique
 
 - Rien à faire : la mise à jour enregistre deux hooks (`actionObjectCustomerUpdateBefore`, `actionObjectCustomerUpdateAfter`).

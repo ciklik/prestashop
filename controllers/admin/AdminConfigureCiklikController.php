@@ -770,11 +770,9 @@ class AdminConfigureCiklikController extends ModuleAdminController
                 ]);
 
                 if ($shopData instanceof ShopData) {
-                    Configuration::updateGlobalValue(Ciklik::CONFIG_HOST, $shopData->host);
-
                     $webservice = new WebserviceKey((int) Configuration::get(Ciklik::CONFIG_WEBSERVICE_ID));
 
-                    $ciklikShopApi->metadata(
+                    $metadataResponse = $ciklikShopApi->metadata(
                         [
                             'prestashop_endpoint' => Tools::getShopDomainSsl(true),
                             'ciklik_encrypted_prestashop_token' => $webservice->key,
@@ -788,12 +786,33 @@ class AdminConfigureCiklikController extends ModuleAdminController
                             ],
                         ]
                     );
+
+                    // Adresse de boutique différente de celle enregistrée chez Ciklik : refusée, rien n'est enregistré
+                    if (Shop::isEndpointLocked($metadataResponse)) {
+                        $this->errors[] = $this->l('Your shop address has changed. For security reasons, Ciklik must approve this change: please contact Ciklik support.');
+
+                        return;
+                    }
+
+                    $failed = !$metadataResponse['status'];
+                } elseif ('' === (string) Tools::getValue(Ciklik::CONFIG_API_TOKEN)) {
+                    // Jeton vidé : rien à déclarer
+                    return;
+                } else {
+                    $failed = true;
                 }
 
+                // Jeton refusé ou déclaration en échec : message générique, sans détail technique
+                if ($failed) {
+                    $this->errors[] = $this->l('Connection to Ciklik failed. Check your API token and try again; if the problem persists, contact Ciklik support.');
+
+                    return;
+                }
+
+                Configuration::updateGlobalValue(Ciklik::CONFIG_HOST, $shopData->host);
                 $this->confirmations[] = $this->l('Connection successful');
             } catch (Exception $e) {
-                // Échappement XSS du message d'exception (source externe potentiellement non fiable)
-                $this->errors[] = $this->l('Connection failed') . ' ' . Tools::htmlentitiesUTF8($e->getMessage());
+                $this->errors[] = $this->l('Connection to Ciklik failed. Check your API token and try again; if the problem persists, contact Ciklik support.');
             }
         }
     }

@@ -231,9 +231,13 @@ class CiklikApiClient
             // Ne pas logger les headers (contiennent le Bearer token)
             $sanitizedOptions = $options;
             unset($sanitizedOptions['headers']);
-            $logger->debug('options: ' . var_export($sanitizedOptions, true));
+            // Le jeton du webservice PrestaShop est masqué dans les options comme dans la réponse
+            $maskWebserviceToken = static function ($dump) {
+                return preg_replace("/('ciklik_encrypted_prestashop_token' => )'[^']*'/", "$1'***'", $dump);
+            };
+            $logger->debug('options: ' . $maskWebserviceToken(var_export($sanitizedOptions, true)));
             // Ni les jetons des liens de reprise, qui connectent le client à son compte Ciklik
-            $logger->debug('response: ' . preg_replace('/token=[^&"\'\s]+/', 'token=***', var_export($response, true)));
+            $logger->debug('response: ' . preg_replace('/token=[^&"\'\s]+/', 'token=***', $maskWebserviceToken(var_export($response, true))));
         }
 
         return $response;
