@@ -1,0 +1,122 @@
+name: Publier sur Addons
+
+# Lancé à la main, une fois la description de la release écrite en anglais (elle sert de changelog).
+# Addons choisit le zip d'après la version de PrestaShop de la boutique : on envoie pour chaque
+# version majeure le zip construit avec le PHP le plus bas qu'elle accepte (le zip « 7 » est PHP 7.0).
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Version déjà publiée sur GitHub (ex. 1.27.1)
+        required: true
+      update_type:
+        description: Type de mise à jour
+        type: choice
+        options: [updatemin, updatemaj]
+        default: updatemin
+      ps:
+        description: Version de PrestaShop à envoyer (seule une relance après un envoi partiel en a besoin)
+        type: choice
+        options: [toutes, '1.7', '8', '9']
+        default: toutes
+      essai:
+        description: Essai, sans rien envoyer à Addons
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publication-addons
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: PrestaShop ${{ matrix.ps }}
+    runs-on: ubuntu-latest
+    env:
+      # Zip construit avec le PHP le plus bas accepté par cette version de PrestaShop
+      ZIP: ciklik-with-addon-${{ fromJSON('{"1.7":"7","8":"7.2","9":"8.1"}')[matrix.ps] }}.zip
+    strategy:
+      # Un envoi à la fois, arrêt au premier échec : Addons n'accepte que 3 envois par jour
+      max-parallel: 1
+      fail-fast: true
+      matrix:
+        ps: ${{ fromJSON(inputs.ps == 'toutes' && '["1.7","8","9"]' || format('["{0}"]', inputs.ps)) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Récupérer la description et le zip de la release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          gh release view "$TAG" --json body --jq .body > changelog.md
+          if [ -z "$(tr -d '[:space:]' < changelog.md)" ]; then
+            echo "::error::La release $TAG n'a pas de description : l'écrire en anglais avant de publier."
+            exit 1
+          fi
+          # Addons exige un changelog détaillé en anglais : on refuse un texte trop court ou visiblement français
+          if [ "$(tr -d '[:space:]' < changelog.md | wc -c)" -lt 30 ]; then
+            echo "::error::La description de la release $TAG est trop courte pour Addons (30 caractères au moins)."
+            exit 1
+          fi
+          if [ "$(grep -oiwE 'le|la|les|des|du|pour|avec|une|est|sur' changelog.md | wc -l)" -ge 3 ]; then
+            echo "::error::La description de la release $TAG semble en français : Addons la veut en anglais."
+            exit 1
+          fi
+          gh release download "$TAG" --pattern "$ZIP"
+          # Le zip doit porter la version demandée, pour ne jamais envoyer un autre build
+          if ! unzip -p "$ZIP" ciklik/ciklik.php | grep -q "this->version = '$TAG'"; then
+            echo "::error::$ZIP ne porte pas la version $TAG."
+            exit 1
+          fi
+
+      - name: Fixer la plage de PrestaShop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PS: ${{ matrix.ps }}
+        run: |
+          # Borne haute : dernière version stable publiée de cette branche, sans dépasser le max déclaré par le module
+          MAX=$(unzip -p "$ZIP" ciklik/ciklik.php | sed -n "s/.*'max' => '\([^']*\)'.*/\1/p")
+          TO=""
+          for v in $(gh api --paginate 'repos/PrestaShop/PrestaShop/releases?per_page=100' \
+            --jq '.[] | select(.prerelease | not) | .tag_name' | grep -E "^${PS//./\\.}\.[0-9.]+$" | sort -V); do
+            if [ "$(printf '%s\n' "$v" "$MAX" | sort -V | tail -n 1)" = "$MAX" ]; then TO="$v"; fi
+          done
+          if [ -z "$TO" ]; then
+            echo "::error::Aucune version stable de PrestaShop $PS trouvée sous $MAX."
+            exit 1
+          fi
+          jq --arg to "$TO" '.compatible_to = $to' ".github/addons/ps-$PS.json" > metadata.json
+          echo "PrestaShop $(jq -r .compatible_from metadata.json) à $TO" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Installer PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+
+      - name: Installer l'outil d'envoi de PrestaShop
+        run: |
+          composer global require --no-interaction prestashop/publish-on-marketplace:^2.0
+          composer global config bin-dir --absolute 2>/dev/null >> "$GITHUB_PATH"
+
+      - name: Envoyer sur Addons
+        env:
+          # En essai, l'outil affiche la clé : on lui en passe une factice
+          MARKETPLACE_API_KEY: ${{ inputs.essai && 'essai' || secrets.MARKETPLACE_API_KEY }}
+          ESSAI: ${{ inputs.essai }}
+          UPDATE_TYPE: ${{ inputs.update_type }}
+        run: |
+          set -o pipefail
+          args=(--archive="$PWD/$ZIP" --metadata-json="$PWD/metadata.json" --changelog-file="$PWD/changelog.md" --update-type="$UPDATE_TYPE")
+          if [ "$ESSAI" = "true" ]; then
+            publish-on-marketplace "${args[@]}" --dry-run
+            exit 0
+          fi
+          # L'outil sort en 0 même quand Addons refuse le zip : on lit son message
+          publish-on-marketplace "${args[@]}" | tee sortie.txt
+          grep -q "succesfully uploaded" sortie.txt

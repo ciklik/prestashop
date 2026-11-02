@@ -1,0 +1,8 @@
+{
+  "id_product": "95085",
+  "technical_name": "ciklik",
+  "display_name": "Ciklik",
+  "channel": "stable",
+  "product_type": "module",
+  "compatible_from": "1.7.0.0"
+}
