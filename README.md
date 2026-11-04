@@ -20,7 +20,7 @@ Module de paiement permettant la gestion des abonnements et paiements récurrent
 
 ### Masquer les autres moyens de paiement pour les abonnements
 
-Pour n'afficher que le paiement Ciklik quand le panier contient un abonnement, ouvrir le fichier `themes/{theme}/templates/checkout/_partials/steps/payment.tpl` et ajouter le code suivant au-dessus de `{foreach from=$module_options item="option"}` :
+Pour n'afficher que le paiement Ciklik quand le panier contient un abonnement, ouvrir le fichier `themes/{theme}/templates/checkout/_partials/steps/payment.tpl` et ajouter le code suivant juste après `{hook h='displayPaymentTop'}`, avant la boucle principale `{foreach from=$payment_options item="module_options"}` (placé dans la boucle, il ne fonctionne pas) :
 
 ```smarty
 {assign var="ciklikOption" value=null}
