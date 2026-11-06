@@ -1,5 +1,21 @@
 # Guide de mise à jour — module Ciklik
 
+## 1.28.0 : aide au paramétrage des abonnements
+
+- Rien à faire : la mise à jour crée un onglet caché du back-office (`AdminCiklikProductTransform`), sans table ni hook.
+- Mode fréquences : « Gestion des Fréquences » propose « Activer des fréquences par catégorie ». Aperçu, puis ajout des
+  fréquences choisies aux produits actifs de la catégorie (et de ses sous-catégories, case cochée par défaut). Packs,
+  produits virtuels et inactifs exclus ; rien n'est jamais retiré.
+- Mode déclinaisons : sur la fiche produit, onglet Modules, « Transformer en abonnement ». Les déclinaisons existantes
+  reçoivent « Achat en une fois » sans changer d'identifiant, une déclinaison abonnement est créée par fréquence (mêmes
+  références, EAN, impact prix, images, fournisseurs), avec une copie ponctuelle du stock de la même combinaison. Un
+  produit simple reçoit d'abord une déclinaison « Achat en une fois » qui reprend son stock. Plafond : 1 000 déclinaisons.
+  Pas de remise : les prix abonnement se règlent ensuite dans l'onglet Déclinaisons.
+- « Réaligner le stock » recopie à la demande le stock de chaque « Achat en une fois » sur ses déclinaisons abonnement.
+- L'envoi du catalogue à Ciklik part par lots de 100 variantes (une seule requête en dessous de 100, comme avant).
+- Chaque déclinaison créée déclenche les hooks des autres modules : sur une boutique avec `ps_eventbus` (PrestaShop
+  Accounts, CloudSync), compter environ une seconde par déclinaison. En cas d'expiration, rien n'est conservé.
+
 ## 1.27.1 : messages de connexion plus clairs, journal de débogage allégé
 
 - Rien à faire. À l'enregistrement du jeton d'API, « Connexion réussie » ne s'affiche plus que si Ciklik a accepté la

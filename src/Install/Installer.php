@@ -469,6 +469,11 @@ class Installer
             return false;
         }
 
+        // Onglet caché (id_parent -1) des actions « Transformer en abonnement » de la fiche produit
+        if (!$this->updateOrCreateTab('AdminCiklikProductTransform', 'Subscription transformation', 'Transformation en abonnement', -1, $module, 1)) {
+            return false;
+        }
+
         // S'assurer que l'onglet parent est actif
         $parentTab = new \Tab($parentTabId);
         $parentTab->active = 1;
@@ -581,7 +586,7 @@ class Installer
 
     private function uninstallAdminTabs(): bool
     {
-        foreach (['AdminCiklikFrequencies', 'AdminCiklikSubscriptionsOrders', 'AdminCiklikStockForecast'] as $tabClassName) {
+        foreach (['AdminCiklikFrequencies', 'AdminCiklikSubscriptionsOrders', 'AdminCiklikStockForecast', 'AdminCiklikProductTransform'] as $tabClassName) {
             $idTab = \Tab::getIdFromClassName($tabClassName);
             if ($idTab) {
                 $tab = new \Tab($idTab);

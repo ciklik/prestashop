@@ -13,6 +13,11 @@ if (!defined('_PS_VERSION_')) {
 
 class CiklikSubscribable
 {
+    /**
+     * Enregistre le produit comme abonnable et envoie ses déclinaisons abonnement à Ciklik
+     *
+     * @return array|null Résultat de l'envoi (sent, failed), null si le produit n'en a aucune
+     */
     public static function handle(int $id_product)
     {
         $combinations = CiklikCombination::get($id_product);
@@ -22,10 +27,12 @@ class CiklikSubscribable
                 static::create($id_product);
             }
 
-            CiklikSubscribableVariant::pushToCiklik($id_product, $combinations);
-        } else {
-            static::deleteByIdProduct($id_product);
+            return CiklikSubscribableVariant::pushToCiklik($id_product, $combinations);
         }
+
+        static::deleteByIdProduct($id_product);
+
+        return null;
     }
 
     public static function create(int $id_product): int

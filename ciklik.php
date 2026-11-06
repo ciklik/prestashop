@@ -32,6 +32,7 @@ use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikRefund;
 use PrestaShop\Module\Ciklik\Managers\CiklikSpecificPrice;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscribable;
+use PrestaShop\Module\Ciklik\Managers\CiklikSubscriptionTransformer;
 use PrestaShop\Module\Ciklik\Managers\CustomerEmailSync;
 use PrestaShop\PrestaShop\Core\Checkout\TermsAndConditions;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
@@ -44,7 +45,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.27.1';
+    const VERSION = '1.28.0';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -117,7 +118,7 @@ class Ciklik extends PaymentModule
         // Doit rester un littéral : le validateur PrestaShop Addons lit ce champ
         // par regex et refuse toute expression non-littérale (self::VERSION, etc.).
         // À garder synchronisé avec la constante VERSION ci-dessus.
-        $this->version = '1.27.1';
+        $this->version = '1.28.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -1218,11 +1219,11 @@ class Ciklik extends PaymentModule
 
     public function hookDisplayAdminProductsExtra($params)
     {
-        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
-            return;
-        }
-
         $idProduct = (int) $params['id_product'];
+
+        if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
+            return $idProduct ? $this->renderProductTransformPanel($idProduct) : '';
+        }
 
         $frequencies = CiklikFrequency::getFrequenciesForFrequencyMode();
 
@@ -1285,6 +1286,39 @@ class Ciklik extends PaymentModule
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/product_subscription_tab.tpl');
+    }
+
+    /**
+     * Panneau « Transformer en abonnement » de la fiche produit (mode déclinaisons)
+     *
+     * @param int $idProduct
+     *
+     * @return string
+     */
+    private function renderProductTransformPanel($idProduct)
+    {
+        try {
+            $state = CiklikSubscriptionTransformer::getState($idProduct, (int) $this->context->language->id);
+        } catch (DomainException $e) {
+            return '';
+        }
+
+        $refusals = [
+            'incomplete_config' => $this->l('The Ciklik attribute groups or attributes are missing: check the module settings.'),
+            'pack' => $this->l('Packs cannot be transformed.'),
+            'virtual' => $this->l('Virtual products cannot be transformed.'),
+            'advanced_stock' => $this->l('Products using advanced stock management cannot be transformed.'),
+        ];
+
+        $this->context->smarty->assign([
+            'ciklik_transform' => $state,
+            'ciklik_transform_refusal' => isset($refusals[$state['refusal']]) ? $refusals[$state['refusal']] : '',
+            'ciklik_transform_url' => $this->context->link->getAdminLink('AdminCiklikProductTransform'),
+            'ciklik_transform_js' => $this->getPathUri() . 'views/js/admin-product-transform.js?v=' . self::VERSION,
+            'ciklik_id_product' => $idProduct,
+        ]);
+
+        return $this->display(__FILE__, 'views/templates/admin/product_transform_panel.tpl');
     }
 
     /**

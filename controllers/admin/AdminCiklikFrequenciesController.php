@@ -5,6 +5,7 @@
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
 
+use PrestaShop\Module\Ciklik\Managers\CiklikCategoryFrequencyAssigner;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency as CiklikFrequencyManager;
 
 if (!defined('_PS_VERSION_')) {
@@ -16,6 +17,12 @@ if (!defined('_PS_VERSION_')) {
  */
 class AdminCiklikFrequenciesController extends ModuleAdminController
 {
+    /** @var array|null Sélection postée de l'activation par catégorie */
+    protected $categorySelection;
+
+    /** @var array|null Aperçu calculé de l'activation par catégorie */
+    protected $categoryPreview;
+
     /**
      * Méthode de traduction pour compatibilité PS9
      * En PS9, ModuleAdminController n'a plus la méthode l() directement
@@ -319,7 +326,114 @@ class AdminCiklikFrequenciesController extends ModuleAdminController
         $this->_orderBy = 'id_frequency';
         $this->_orderWay = 'ASC';
 
-        return parent::renderList();
+        return parent::renderList() . $this->renderCategoryPanel();
+    }
+
+    /**
+     * Traite l'aperçu et l'application de l'activation par catégorie, puis le reste
+     */
+    public function postProcess()
+    {
+        // Écriture en POST seulement (Tools::isSubmit lit aussi l'URL)
+        $apply = isset($_POST['submitCiklikCategoryApply']);
+        if ($apply || Tools::isSubmit('submitCiklikCategoryPreview')) {
+            $this->processCategoryAssignment($apply);
+
+            return;
+        }
+
+        parent::postProcess();
+    }
+
+    /**
+     * Aperçu, puis ajout des fréquences choisies aux produits actifs d'une catégorie.
+     * L'ajout n'écrit rien si le résultat recalculé diffère de l'aperçu montré.
+     *
+     * @param bool $apply
+     */
+    protected function processCategoryAssignment($apply)
+    {
+        if (!$this->access('edit')) {
+            $this->errors[] = $this->l('You do not have permission to edit this.');
+
+            return;
+        }
+
+        $this->categorySelection = [
+            'id_category' => (int) Tools::getValue('ciklik_category'),
+            'with_children' => (bool) Tools::getValue('ciklik_with_children'),
+            'frequencies' => array_map('intval', (array) Tools::getValue('ciklik_category_frequencies', [])),
+        ];
+
+        try {
+            $plan = CiklikCategoryFrequencyAssigner::preview(
+                $this->categorySelection['id_category'],
+                $this->categorySelection['with_children'],
+                $this->categorySelection['frequencies'],
+                (int) $this->context->language->id,
+                (int) $this->context->shop->id
+            );
+        } catch (InvalidArgumentException $e) {
+            $this->errors[] = 'unknown_category' === $e->getMessage()
+                ? $this->l('Please choose a category.')
+                : $this->l('Please choose at least one existing frequency.');
+
+            return;
+        }
+
+        if (!$apply) {
+            $this->categoryPreview = $plan;
+
+            return;
+        }
+
+        if ($plan['fingerprint'] !== Tools::getValue('ciklik_fingerprint')) {
+            $this->categoryPreview = $plan;
+            $this->warnings[] = $this->l('The catalog changed since the preview: nothing was added. Check the new preview.');
+
+            return;
+        }
+
+        try {
+            $added = CiklikCategoryFrequencyAssigner::apply($plan);
+        } catch (Throwable $e) {
+            PrestaShopLogger::addLog('Ciklik - activation par catégorie échouée : ' . $e->getMessage(), 3);
+            $this->errors[] = $this->l('The frequencies could not be added. Nothing was changed.');
+
+            return;
+        }
+
+        PrestaShopLogger::addLog(sprintf(
+            'Ciklik - fréquences par catégorie : employé %d, catégorie %d, sous-catégories %s, fréquences %s, %d lignes ajoutées',
+            (int) $this->context->employee->id,
+            $this->categorySelection['id_category'],
+            $this->categorySelection['with_children'] ? 'oui' : 'non',
+            implode(',', $this->categorySelection['frequencies']),
+            $added
+        ), 1);
+
+        $this->confirmations[] = sprintf($this->l('%d frequency associations added to %d products.'), $added, $plan['updated']);
+    }
+
+    /**
+     * Panneau « Activer des fréquences par catégorie » sous la liste
+     *
+     * @return string
+     */
+    protected function renderCategoryPanel()
+    {
+        $idShop = (int) $this->context->shop->id;
+        $selection = $this->categorySelection ?: ['id_category' => 0, 'with_children' => true, 'frequencies' => []];
+
+        $this->context->smarty->assign([
+            'ciklik_categories' => CiklikCategoryFrequencyAssigner::getCategories((int) $this->context->language->id, $idShop),
+            'ciklik_frequencies' => CiklikFrequencyManager::getFrequenciesForFrequencyMode(),
+            'ciklik_selection' => $selection,
+            'ciklik_preview' => $this->categoryPreview,
+            'ciklik_form_action' => self::$currentIndex . '&token=' . $this->token,
+        ]);
+
+        return $this->context->smarty->fetch($this->module->getLocalPath() . 'views/templates/admin/frequencies_by_category.tpl');
     }
 
     /**
