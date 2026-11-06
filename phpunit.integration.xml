@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tests d'intégration : boutique PrestaShop réelle (base de données comprise), module Ciklik installé et
+  configuré en mode déclinaisons. Ils créent puis suppriment leurs propres produits, catégories et attributs.
+  À lancer sur une boutique de développement, jamais en production :
+  CIKLIK_INTEGRATION_WRITES=1 PS_ROOT=/chemin/vers/prestashop php phpunit.phar -c phpunit.integration.xml
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+         bootstrap="tests/Integration/bootstrap.php"
+         colors="true"
+         verbose="true">
+    <testsuites>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

@@ -158,6 +158,11 @@ class Installer
             \Configuration::deleteByName($key);
         }
 
+        // États des transformations en abonnement inachevées (CiklikSubscriptionTransformer::JOB_KEY)
+        \Db::getInstance()->delete('configuration', 'name LIKE \'CIKLIK\\_TRANSFORM\\_%\'');
+        // Produits dont le dernier envoi à Ciklik a échoué (CiklikSubscribable::SYNC_FAILED_KEY)
+        \Db::getInstance()->delete('configuration', 'name LIKE \'CIKLIK\\_SYNC\\_FAILED\\_%\'');
+
         return true;
     }
 
@@ -469,6 +474,10 @@ class Installer
             return false;
         }
 
+        if (!$this->installProductTransformTab($module)) {
+            return false;
+        }
+
         // S'assurer que l'onglet parent est actif
         $parentTab = new \Tab($parentTabId);
         $parentTab->active = 1;
@@ -537,6 +546,15 @@ class Installer
     }
 
     /**
+     * Onglet caché (id_parent -1) des actions « Transformer en abonnement » de la fiche produit.
+     * Ses actions vérifient le droit de modifier les produits, pas un droit propre à l'onglet.
+     */
+    public function installProductTransformTab(\Module $module): bool
+    {
+        return (bool) $this->updateOrCreateTab('AdminCiklikProductTransform', 'Subscription transformation', 'Transformation en abonnement', -1, $module, 1);
+    }
+
+    /**
      * Met à jour ou crée un onglet selon son existence
      *
      * @param string $className Nom de la classe du contrôleur
@@ -581,7 +599,7 @@ class Installer
 
     private function uninstallAdminTabs(): bool
     {
-        foreach (['AdminCiklikFrequencies', 'AdminCiklikSubscriptionsOrders', 'AdminCiklikStockForecast'] as $tabClassName) {
+        foreach (['AdminCiklikFrequencies', 'AdminCiklikSubscriptionsOrders', 'AdminCiklikStockForecast', 'AdminCiklikProductTransform'] as $tabClassName) {
             $idTab = \Tab::getIdFromClassName($tabClassName);
             if ($idTab) {
                 $tab = new \Tab($idTab);

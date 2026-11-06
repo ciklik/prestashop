@@ -1,5 +1,39 @@
 # Guide de mise à jour — module Ciklik
 
+## 1.28.0 : aide au paramétrage des abonnements
+
+- Rien à faire : la mise à jour crée un onglet caché du back-office (`AdminCiklikProductTransform`), sans table ni hook.
+- Mode fréquences : « Gestion des Fréquences » propose « Activer des fréquences par catégorie ». Aperçu, puis ajout des
+  fréquences choisies aux produits actifs de la catégorie (et de ses sous-catégories, case cochée par défaut). Packs,
+  produits virtuels et inactifs exclus ; rien n'est jamais retiré.
+- Mode déclinaisons : sur la fiche produit, onglet Modules, « Transformer en abonnement ». Les déclinaisons existantes
+  reçoivent « Achat en une fois » sans changer d'identifiant, une déclinaison abonnement est créée par fréquence (mêmes
+  références, EAN, impact prix, images, fournisseurs), avec une copie ponctuelle du stock de la même combinaison. Un
+  produit simple reçoit d'abord une déclinaison « Achat en une fois » qui reprend son stock. Plafond : 1 000 déclinaisons.
+  Pas de remise : les prix abonnement se règlent ensuite dans l'onglet Déclinaisons.
+- « Réaligner le stock » recopie à la demande le stock de chaque « Achat en une fois » sur ses déclinaisons abonnement.
+- L'envoi du catalogue à Ciklik part par lots de 100 variantes (une seule requête en dessous de 100, comme avant).
+- La transformation avance par étapes de 50 déclinaisons au plus, avec une barre de progression : chaque création
+  déclenche les hooks des autres modules (environ une seconde par déclinaison avec `ps_eventbus`, PrestaShop
+  Accounts). Chaque étape est entière ou nulle. Page fermée ou étape en échec : la fiche propose « Reprendre » (rien
+  n'est recréé, ce qui manque se déduit des attributs présents) ou « Annuler la transformation » (retire seulement les
+  déclinaisons abonnement créées et l'attribut « Achat en une fois » ajouté ; les déclinaisons d'origine restent).
+  Le catalogue part vers Ciklik une seule fois, à la fin. L'état d'une transformation en cours est gardé en
+  configuration (`CIKLIK_TRANSFORM_<produit>`), effacé à la fin ou à l'annulation.
+- Droits : les actions du panneau demandent le droit de modifier les produits (Paramètres avancés > Équipe >
+  Permissions), rien de plus.
+- Multiboutique : la transformation, son annulation, le réalignement du stock et le renvoi à Ciklik demandent le
+  contexte d'une seule boutique (le stock est posé dans la boutique choisie). En contexte « Toutes les boutiques » ou
+  groupe, le panneau le signale et les actions sont refusées. Les déclinaisons abonnement sont créées dans la boutique
+  choisie seulement : une transformation inachevée se reprend ou s'annule depuis cette boutique.
+- « Renvoyer à Ciklik » : quand l'envoi d'un produit à Ciklik échoue (en tout ou partie), la fiche le signale et
+  propose de renvoyer le produit. Le bouton disparaît après un envoi réussi, depuis ce bouton ou en enregistrant la
+  fiche.
+- Bon à savoir : « Annuler la transformation » retire toutes les déclinaisons du produit qui portent « Abonnement »,
+  puisque le produit n'en avait aucune avant. Une déclinaison abonnement ajoutée à la main pendant une transformation
+  inachevée est donc retirée elle aussi. Terminer ou annuler la transformation avant d'ajouter des déclinaisons à la
+  main.
+
 ## 1.27.1 : messages de connexion plus clairs, journal de débogage allégé
 
 - Rien à faire. À l'enregistrement du jeton d'API, « Connexion réussie » ne s'affiche plus que si Ciklik a accepté la

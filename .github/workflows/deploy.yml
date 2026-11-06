@@ -34,7 +34,7 @@ jobs:
       - name: Generate Zip
         run: |
           # Motifs de répertoire en « dossier/* » : « tests » seul n'excluait rien
-          zip -r app.zip ./ -x "/.git*" -x "/.github*" -x "tests/*" -x "docs/*" -x "/.idea" -x "/.docker" -x "/.php-cs-fixer.dist.php" -x "/phpunit.xml"
+          zip -r app.zip ./ -x "/.git*" -x "/.github*" -x "tests/*" -x "docs/*" -x "/.idea" -x "/.docker" -x "/.php-cs-fixer.dist.php" -x "/phpunit.xml" -x "/phpunit.integration.xml"
           mkdir -p output
           unzip app.zip -d output/ciklik
           rm app.zip
