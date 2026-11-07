@@ -19,6 +19,14 @@ if (!$psRoot || !is_file($psRoot . '/config/config.inc.php')) {
 }
 
 require_once $psRoot . '/config/config.inc.php';
+
+// Un .env.test du module passe avant .env : toute la boutique appelle alors l'API qu'il désigne. Il ne doit jamais
+// rester sur une boutique, les tests refusent de démarrer tant qu'il est là.
+if (file_exists(_PS_MODULE_DIR_ . 'ciklik/.env.test')) {
+    fwrite(STDERR, 'Fichier ' . _PS_MODULE_DIR_ . "ciklik/.env.test présent : il remplace .env pour toute la boutique. Retirez-le, puis relancez les tests.\n");
+    exit(1);
+}
+
 require_once _PS_MODULE_DIR_ . 'ciklik/ciklik.php';
 
 // Contexte d'un employé super-administrateur, boutique par défaut

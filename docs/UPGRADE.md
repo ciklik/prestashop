@@ -33,6 +33,9 @@
   puisque le produit n'en avait aucune avant. Une déclinaison abonnement ajoutée à la main pendant une transformation
   inachevée est donc retirée elle aussi. Terminer ou annuler la transformation avant d'ajouter des déclinaisons à la
   main.
+- Ciklik injoignable depuis la boutique (réseau, adresse de l'API erronée) pendant un renouvellement ou une mise à jour
+  de paiement : la boutique répond 503 avec `{"error": "The shop could not reach Ciklik"}` au lieu d'une erreur
+  fatale, le journal PrestaShop en donne la cause, et Ciklik réessaie plus tard.
 
 ## 1.27.1 : messages de connexion plus clairs, journal de débogage allégé
 

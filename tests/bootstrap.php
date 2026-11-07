@@ -524,6 +524,11 @@ class Cart
     {
         $this->id = $id;
     }
+
+    public function orderExists()
+    {
+        return false;
+    }
 }
 
 /**
@@ -748,6 +753,7 @@ class Ciklik
     public const CONFIG_CREATION_ORDER_STATE = 'CIKLIK_CREATION_ORDER_STATE';
     public const CONFIG_ENABLE_UPSELL = 'CIKLIK_ENABLE_UPSELL';
     public const CONFIG_OS_AWAITING_PAYMENT = 'CIKLIK_OS_AWAITING_PAYMENT';
+    public const CONFIG_WEBSERVICE_ID = 'CIKLIK_WEBSERVICE_ID';
 }
 
 /**

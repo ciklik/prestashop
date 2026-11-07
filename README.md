@@ -107,6 +107,10 @@ Dans « Mes abonnements », un abonnement livré en point relais propose « Chan
 - Une commande payée par prélèvement bancaire PayPal, pas encore encaissé, est créée dans l'état « En attente de paiement (Ciklik) », créé par le module. Ciklik la passe à l'état payé configuré à l'encaissement, ou à « Erreur de paiement » en cas de refus (requête `ciklik/gateway/payments`, même authentification que les autres).
 - La confirmation et le détail de commande indiquent au client que le paiement est en cours de confirmation. Gabarits `displayPaymentReturn.tpl` et `displayOrderDetail.tpl`, surchargeables par le thème.
 
+## Développement
+
+`.env.test` : s'il existe dans `modules/ciklik/`, il remplace `.env` et toute la boutique appelle l'API Ciklik qu'il désigne. Réservé au poste du développeur, il ne doit jamais rester sur une boutique : les tests d'intégration (`phpunit.integration.xml`) refusent de démarrer tant qu'il est présent.
+
 ## Support
 
 - Guide de mise à jour : voir [UPGRADE.md](UPGRADE.md)

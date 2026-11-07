@@ -37,7 +37,8 @@ class OrderGateway extends AbstractGateway implements EntityGateway
         $context = \Context::getContext();
         $context->cart = $cart;
 
-        $orderData = (new \PrestaShop\Module\Ciklik\Api\Order($context->link))->getOne((int) \Tools::getValue('ciklik_order_id'));
+        $ciklikOrderId = (int) \Tools::getValue('ciklik_order_id');
+        list($orderData, $failure) = self::fetchCiklikOrder($ciklikOrderId);
 
         // Garde d'idempotence : la commande existe déjà (retry côté Ciklik).
         // On renvoie la commande existante même si le fetch API a échoué ($orderData null) ;
@@ -49,6 +50,11 @@ class OrderGateway extends AbstractGateway implements EntityGateway
                 $this->applyPostCreationSteps($orderId, $cart, $orderData);
             }
             $this->sendOrderResponse($orderId, $cart);
+        }
+
+        // Ciklik n'a pas répondu : 503, Ciklik réessaiera
+        if (null !== $failure) {
+            $this->sendCiklikUnreachable($ciklikOrderId, $failure);
         }
 
         if (!$orderData instanceof OrderData) {

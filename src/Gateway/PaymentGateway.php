@@ -35,8 +35,14 @@ class PaymentGateway extends AbstractGateway implements EntityGateway
         $lock = null;
 
         try {
-            // Relecture : jamais de confiance dans l'appel (même réponse 400 qu'OrderGateway)
-            $orderData = (new \PrestaShop\Module\Ciklik\Api\Order(\Context::getContext()->link))->getOne($ciklikOrderId);
+            // Relecture : jamais de confiance dans l'appel (mêmes réponses 503 et 400 qu'OrderGateway)
+            list($orderData, $failure) = self::fetchCiklikOrder($ciklikOrderId);
+
+            if (null !== $failure) {
+                $this->sendCiklikUnreachable($ciklikOrderId, $failure);
+
+                return;
+            }
 
             if (!$orderData instanceof OrderData) {
                 \PrestaShopLogger::addLog('Ciklik PaymentGateway - commande Ciklik ' . $ciklikOrderId . ' illisible dans l\'API', 2);

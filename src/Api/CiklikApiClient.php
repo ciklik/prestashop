@@ -57,6 +57,13 @@ class CiklikApiClient
      */
     protected $catchExceptions = false;
 
+    /**
+     * Erreur réseau du dernier appel, rendue comme une réponse d'erreur
+     *
+     * @var RequestException|null
+     */
+    private $networkError;
+
     public function __construct(\Link $link, $client = null)
     {
         $this->setLink($link);
@@ -102,20 +109,7 @@ class CiklikApiClient
      */
     protected function get(array $options = [])
     {
-        try {
-            $response = $this->getClient()->get($this->getRoute(), $options);
-        } catch (RequestException $e) {
-            $response = $e->getResponse();
-            // If no response (network error, timeout, etc.), create a mock response
-            if (null === $response) {
-                $response = new Response(500, [], json_encode(['errors' => ['message' => $e->getMessage()]]));
-            }
-        }
-
-        return $this->handleResponse(
-            $response,
-            $options
-        );
+        return $this->send('get', $options);
     }
 
     /**
@@ -127,20 +121,7 @@ class CiklikApiClient
      */
     protected function post(array $options = []): array
     {
-        try {
-            $response = $this->getClient()->post($this->getRoute(), $options);
-        } catch (RequestException $e) {
-            $response = $e->getResponse();
-            // If no response (network error, timeout, etc.), create a mock response
-            if (null === $response) {
-                $response = new Response(500, [], json_encode(['errors' => ['message' => $e->getMessage()]]));
-            }
-        }
-
-        return $this->handleResponse(
-            $response,
-            $options
-        );
+        return $this->send('post', $options);
     }
 
     /**
@@ -152,20 +133,7 @@ class CiklikApiClient
      */
     protected function put(array $options = []): array
     {
-        try {
-            $response = $this->getClient()->put($this->getRoute(), $options);
-        } catch (RequestException $e) {
-            $response = $e->getResponse();
-            // If no response (network error, timeout, etc.), create a mock response
-            if (null === $response) {
-                $response = new Response(500, [], json_encode(['errors' => ['message' => $e->getMessage()]]));
-            }
-        }
-
-        return $this->handleResponse(
-            $response,
-            $options
-        );
+        return $this->send('put', $options);
     }
 
     /**
@@ -177,20 +145,7 @@ class CiklikApiClient
      */
     protected function delete(array $options = []): array
     {
-        try {
-            $response = $this->getClient()->delete($this->getRoute(), $options);
-        } catch (RequestException $e) {
-            $response = $e->getResponse();
-            // If no response (network error, timeout, etc.), create a mock response
-            if (null === $response) {
-                $response = new Response(500, [], json_encode(['errors' => ['message' => $e->getMessage()]]));
-            }
-        }
-
-        return $this->handleResponse(
-            $response,
-            $options
-        );
+        return $this->send('delete', $options);
     }
 
     /**
@@ -202,12 +157,38 @@ class CiklikApiClient
      */
     protected function patch(array $options = []): array
     {
+        return $this->send('patch', $options);
+    }
+
+    /**
+     * Erreur réseau du dernier appel (connexion impossible, délai dépassé) que Guzzle 5 et 6 lèvent en
+     * RequestException sans réponse, rendue comme une réponse d'erreur. Guzzle 7 lève une ConnectException, qui
+     * n'hérite plus de RequestException et sort du client.
+     *
+     * @return RequestException|null
+     */
+    public function getNetworkError()
+    {
+        return $this->networkError;
+    }
+
+    /**
+     * @param string $method get, post, put, delete ou patch
+     * @param array $options payload
+     *
+     * @return array
+     */
+    private function send($method, array $options): array
+    {
+        $this->networkError = null;
+
         try {
-            $response = $this->getClient()->patch($this->getRoute(), $options);
+            $response = $this->getClient()->{$method}($this->getRoute(), $options);
         } catch (RequestException $e) {
             $response = $e->getResponse();
             // If no response (network error, timeout, etc.), create a mock response
             if (null === $response) {
+                $this->networkError = $e;
                 $response = new Response(500, [], json_encode(['errors' => ['message' => $e->getMessage()]]));
             }
         }

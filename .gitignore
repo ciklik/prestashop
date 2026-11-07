@@ -1,5 +1,6 @@
 vendor/
 composer.lock
+.env.test
 .DS_Store
 .idea
 config_fr.xml

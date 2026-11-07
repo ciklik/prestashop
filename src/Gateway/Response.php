@@ -147,4 +147,10 @@ class Response
         $this->setStatus('HTTP/1.1 409 Conflict');
         $this->send();
     }
+
+    public function sendServiceUnavailable()
+    {
+        $this->setStatus('HTTP/1.1 503 Service Unavailable');
+        $this->send();
+    }
 }

@@ -21,6 +21,7 @@ class CiklikEnv
      * Top of the list are taken in first if they exist in the project.
      * eg: If .env.test is present in the module it will be loaded, if not present
      * we try to load the next one etc ...
+     * Un .env.test ne doit jamais rester sur une boutique : il remplace .env pour tous les appels à l'API.
      *
      * @var array
      */
