@@ -112,7 +112,7 @@ class CartFingerprintData
             $cart->id_address_invoice,
             $cart->id_lang,
             $cart->id_currency,
-            $carrier->id_reference,
+            (int) $carrier->id_reference,
             $upsells,
             $frequency_id,
             $customizations

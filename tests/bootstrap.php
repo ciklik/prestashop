@@ -541,9 +541,16 @@ class Carrier
     public $id_reference;
     public $name = '';
     public $external_module_name = '';
+    public $active = true;
+    public $deleted = false;
 
     /** @var array Transporteurs mockes [id => champs] */
     private static $mockCarriers = [];
+
+    const ALL_CARRIERS = 5;
+
+    /** @var array Lignes renvoyées par getCarriers */
+    public static $zoneCarriers = [];
 
     public function __construct($id = null, $idLang = null)
     {
@@ -571,9 +578,15 @@ class Carrier
         return false;
     }
 
+    public static function getCarriers($idLang, $active = false, $delete = false, $idZone = false, $idsGroup = null, $modulesFilters = 1)
+    {
+        return self::$zoneCarriers;
+    }
+
     public static function resetMocks()
     {
         self::$mockCarriers = [];
+        self::$zoneCarriers = [];
     }
 }
 

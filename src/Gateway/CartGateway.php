@@ -15,6 +15,7 @@ use Configuration;
 use Context;
 use PrestaShop\Module\Ciklik\Data\CartFingerprintData;
 use PrestaShop\Module\Ciklik\Helpers\PsVersionCapabilities;
+use PrestaShop\Module\Ciklik\Helpers\RebillCarrierResolver;
 use PrestaShop\Module\Ciklik\Managers\CiklikCustomization;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikItemFrequency;
@@ -69,10 +70,14 @@ class CartGateway extends AbstractGateway implements EntityGateway
             (new Response())->setBody(['error' => 'Customer not found'])->sendNotFound();
         }
 
-        $carrier = \Carrier::getCarrierByReference($cartFingerprintData->id_carrier_reference);
+        $carrier = RebillCarrierResolver::resolve(
+            $cartFingerprintData->id_carrier_reference,
+            \Address::getZoneById($cartFingerprintData->id_address_delivery),
+            $customer->getGroups()
+        );
 
-        if ($carrier === false) {
-            $carrier = new \Carrier((int) \Configuration::get('PS_CARRIER_DEFAULT'));
+        if ($carrier === null) {
+            (new Response())->setBody(['error' => 'No carrier delivers this address'])->sendConflict();
         }
 
         $cart = new \Cart();
