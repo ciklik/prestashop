@@ -4,6 +4,8 @@
  * @copyright Since 2017 Metrogeek SAS
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
+use PrestaShop\Module\Ciklik\Helpers\CheckoutUrlSigner;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -60,7 +62,17 @@ class CiklikExternalModuleFrontController extends ModuleFrontController
             ));
         }
 
-        Tools::redirect("https://{$host}/vendors/prestashop/customers/{$this->context->cart->id_customer}/carts/{$this->context->cart->id}/psp/{$psp}");
+        $idCustomer = (int) $this->context->cart->id_customer;
+        $idCart = (int) $this->context->cart->id;
+        $url = "https://{$host}/vendors/prestashop/customers/{$idCustomer}/carts/{$idCart}/psp/{$psp}";
+
+        // Lien signé avec la clé du webservice Ciklik : Ciklik refuse un lien qui ne vient pas de la boutique
+        $webservice = new WebserviceKey((int) Configuration::get(Ciklik::CONFIG_WEBSERVICE_ID));
+        if (!empty($webservice->key)) {
+            $url .= '?' . http_build_query(CheckoutUrlSigner::sign($idCustomer, $idCart, $psp, (string) $webservice->key));
+        }
+
+        Tools::redirect($url);
     }
 
     /**
