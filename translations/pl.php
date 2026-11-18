@@ -637,3 +637,18 @@ $_MODULE['<{ciklik}prestashop>product_transform_panel_c11ff540ae4e7a576c66c35ff3
 $_MODULE['<{ciklik}prestashop>manage_b1f03074036e323bcd65b2d70082c906'] = 'Wpisz prawidłowy kod pocztowy i miasto.';
 $_MODULE['<{ciklik}prestashop>manage_7d764d86865c1ccc03d9df498831eff3'] = 'Zbyt wiele wyszukiwań. Spróbuj ponownie później lub użyj ręcznego wpisu.';
 $_MODULE['<{ciklik}prestashop>manage_7752ac1a95236463d6cbbfce6ea385f7'] = 'Wyszukiwanie punktów odbioru jest chwilowo niedostępne. Spróbuj ponownie później.';
+
+// Changement de fréquence en back-office
+$_MODULE['<{ciklik}prestashop>order_subscription_info_37161b8a07a33f9c98d8c997470dbfff'] = 'Zmień częstotliwość';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_d1eb6efe579c37194d055e8ad8cc3ea9'] = 'Obecna częstotliwość';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_789614aa987b0ff1236f26613a08e42a'] = 'Wybierz częstotliwość';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_43b5c9175984c071f30b873fdce0a000'] = 'obecna';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_71d870bba3d81df95a59c53952618da5'] = 'Data następnego zamówienia się nie zmienia: nowa częstotliwość obowiązuje od kolejnego zamówienia.';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_a947205663f9773416bbc62240fa5152'] = 'Każdy produkt przechodzi na swoją kombinację z nową częstotliwością, w cenie tej kombinacji.';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_72269facc3f23130e02c97d6898292ce'] = 'Dla produktów tej subskrypcji nie jest dostępna żadna inna częstotliwość.';
+$_MODULE['<{ciklik}prestashop>manage_15e4edb66b7019438f993c7e9d0f8878'] = 'To jest już częstotliwość tej subskrypcji.';
+$_MODULE['<{ciklik}prestashop>manage_ab96b0fb9f87e88a525739793bfc3698'] = 'Ta częstotliwość nie jest dostępna dla tej subskrypcji.';
+$_MODULE['<{ciklik}prestashop>manage_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Ta częstotliwość nie jest dostępna dla wszystkich produktów subskrypcji.';
+$_MODULE['<{ciklik}prestashop>manage_bdbf67b5231abe7e342cd0ddf84326f1'] = 'Częstotliwość została zmieniona. Data następnego zamówienia pozostaje bez zmian.';
+$_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Ta częstotliwość nie jest dostępna dla wszystkich produktów Twojej subskrypcji.';
+$_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'Nie udało się zmienić subskrypcji. Spróbuj ponownie później.';

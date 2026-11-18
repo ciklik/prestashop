@@ -76,6 +76,10 @@
                             <i class="material-icons">date_range</i> {l s='Change next billing date' mod='ciklik'}
                         </button>
                     {/if}
+
+                    <button type="button" id="ciklik-btn-change-frequency" class="btn btn-outline-primary btn-sm ml-2 ms-2">
+                        <i class="material-icons">autorenew</i> {l s='Change frequency' mod='ciklik'}
+                    </button>
                 </div>
             </div>
 
@@ -91,6 +95,50 @@
                         </button>
                     </div>
                 </div>
+            </div>
+
+            {* Changement de fréquence : mêmes choix que Mes abonnements *}
+            {assign var='ciklik_frequency_has_other' value=false}
+            {foreach from=$ciklik_frequency_choices key=value item=choice}
+                {if $value != $ciklik_frequency_current}{assign var='ciklik_frequency_has_other' value=true}{/if}
+            {/foreach}
+            <div class="mb-3" id="ciklik-change-frequency-form" style="display:none">
+                <p class="mb-2">
+                    <strong>{l s='Current frequency' mod='ciklik'}:</strong>
+                    <span id="ciklik-current-frequency">{$subscription->display_interval|escape:'html':'UTF-8'}</span>
+                </p>
+                {if $ciklik_frequency_has_other}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <select id="ciklik-new-frequency" class="form-control custom-select form-select">
+                                    {if !$ciklik_frequency_mode}
+                                        <option value="">{l s='Choose a frequency' mod='ciklik'}</option>
+                                    {/if}
+                                    {foreach from=$ciklik_frequency_choices key=value item=choice}
+                                        <option value="{$value|intval}"{if $value == $ciklik_frequency_current} selected{/if}>
+                                            {$choice.display_name|escape:'html':'UTF-8'}{if $value == $ciklik_frequency_current} ({l s='current' mod='ciklik'}){/if}
+                                        </option>
+                                    {/foreach}
+                                </select>
+                                <button type="button" id="ciklik-btn-confirm-frequency" class="btn btn-primary">
+                                    {l s='Confirm' mod='ciklik'}
+                                </button>
+                                <button type="button" id="ciklik-btn-cancel-frequency" class="btn btn-outline-secondary">
+                                    {l s='Cancel' mod='ciklik'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0">
+                        {l s='The next order date does not change: the new frequency applies from the following order.' mod='ciklik'}
+                        {if !$ciklik_frequency_mode}
+                            {l s='Each product switches to its combination with the new frequency, at the price of that combination.' mod='ciklik'}
+                        {/if}
+                    </p>
+                {else}
+                    <p class="text-muted mb-0">{l s='No other frequency is available for the products of this subscription.' mod='ciklik'}</p>
+                {/if}
             </div>
 
             {* Produits *}
@@ -266,6 +314,8 @@ $(function () {
     var manageUrl = '{$manageActionUrl|escape:"javascript":"UTF-8"}';
     var ajaxToken = '{$manageAjaxToken|escape:"javascript":"UTF-8"}';
     var subscriptionUuid = '{$subscription->uuid|escape:"javascript":"UTF-8"}';
+    var frequencyMode = {if $ciklik_frequency_mode}true{else}false{/if};
+    var currentSuffix = ' ({l s="current" mod="ciklik" js=1})';
     var labelActive = '{l s="Active" mod="ciklik" js=1}';
     var labelInactive = '{l s="Inactive" mod="ciklik" js=1}';
     var labelDeactivate = '<i class="material-icons">pause</i> {l s="Deactivate subscription" mod="ciklik" js=1}';
@@ -324,6 +374,24 @@ $(function () {
                 $('#ciklik-next-billing').text(parts[2] + '/' + parts[1] + '/' + parts[0]);
                 $('#ciklik-change-date-form').hide();
             }
+
+            if (resp.subscription.frequency) {
+                if (resp.subscription.display_interval) {
+                    $('#ciklik-current-frequency').text(resp.subscription.display_interval);
+                }
+                $('#ciklik-change-frequency-form').hide();
+                if (frequencyMode) {
+                    // La fréquence choisie devient l'actuelle dans la liste
+                    $('#ciklik-new-frequency option').each(function () {
+                        var label = $.trim($(this).text().replace(currentSuffix, ''));
+                        $(this).text(this.value === String(resp.subscription.frequency) ? label + currentSuffix : label);
+                    });
+                } else {
+                    // Mode déclinaisons : les choix dépendent de la nouvelle
+                    // déclinaison, ils seront recalculés au rechargement de la page
+                    $('#ciklik-btn-change-frequency').hide();
+                }
+            }
         })
         .fail(function (xhr) {
             try {
@@ -366,6 +434,20 @@ $(function () {
         var newDate = $('#ciklik-new-date').val();
         if (!newDate) return;
         doManageAction({ action: 'changeNextBilling', next_billing: newDate }, $(this));
+    });
+
+    $('#ciklik-btn-change-frequency').on('click', function () {
+        $('#ciklik-change-frequency-form').toggle();
+    });
+
+    $('#ciklik-btn-cancel-frequency').on('click', function () {
+        $('#ciklik-change-frequency-form').hide();
+    });
+
+    $('#ciklik-btn-confirm-frequency').on('click', function () {
+        var frequency = $('#ciklik-new-frequency').val();
+        if (!frequency) return;
+        doManageAction({ action: 'changeFrequency', id_order: {$ciklik_relay_order_id|intval}, frequency: frequency }, $(this));
     });
 
     $('#ciklik-toggle-technical').on('click', function (e) {

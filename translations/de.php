@@ -637,3 +637,18 @@ $_MODULE['<{ciklik}prestashop>product_transform_panel_c11ff540ae4e7a576c66c35ff3
 $_MODULE['<{ciklik}prestashop>manage_b1f03074036e323bcd65b2d70082c906'] = 'Bitte geben Sie eine gültige Postleitzahl und Stadt ein.';
 $_MODULE['<{ciklik}prestashop>manage_7d764d86865c1ccc03d9df498831eff3'] = 'Zu viele Suchanfragen im Moment. Bitte versuchen Sie es später erneut oder nutzen Sie die manuelle Eingabe.';
 $_MODULE['<{ciklik}prestashop>manage_7752ac1a95236463d6cbbfce6ea385f7'] = 'Die Paketshop-Suche ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut.';
+
+// Changement de fréquence en back-office
+$_MODULE['<{ciklik}prestashop>order_subscription_info_37161b8a07a33f9c98d8c997470dbfff'] = 'Häufigkeit ändern';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_d1eb6efe579c37194d055e8ad8cc3ea9'] = 'Aktuelle Häufigkeit';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_789614aa987b0ff1236f26613a08e42a'] = 'Häufigkeit wählen';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_43b5c9175984c071f30b873fdce0a000'] = 'aktuell';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_71d870bba3d81df95a59c53952618da5'] = 'Das Datum der nächsten Bestellung ändert sich nicht: Die neue Häufigkeit gilt ab der darauffolgenden Bestellung.';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_a947205663f9773416bbc62240fa5152'] = 'Jedes Produkt wechselt zu seiner Variante mit der neuen Häufigkeit, zum Preis dieser Variante.';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_72269facc3f23130e02c97d6898292ce'] = 'Für die Produkte dieses Abonnements ist keine andere Häufigkeit verfügbar.';
+$_MODULE['<{ciklik}prestashop>manage_15e4edb66b7019438f993c7e9d0f8878'] = 'Das ist bereits die Häufigkeit des Abonnements.';
+$_MODULE['<{ciklik}prestashop>manage_ab96b0fb9f87e88a525739793bfc3698'] = 'Diese Häufigkeit ist für dieses Abonnement nicht verfügbar.';
+$_MODULE['<{ciklik}prestashop>manage_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Diese Häufigkeit ist nicht für alle Produkte des Abonnements verfügbar.';
+$_MODULE['<{ciklik}prestashop>manage_bdbf67b5231abe7e342cd0ddf84326f1'] = 'Die Häufigkeit wurde geändert. Das Datum der nächsten Bestellung bleibt unverändert.';
+$_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Diese Häufigkeit ist nicht für alle Produkte Ihres Abonnements verfügbar.';
+$_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'Das Abonnement konnte nicht geändert werden. Bitte versuchen Sie es später erneut.';

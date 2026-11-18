@@ -20,11 +20,10 @@ use PrestaShop\Module\Ciklik\Helpers\SubscriptionHelper;
 use PrestaShop\Module\Ciklik\Helpers\SubscriptionRequestGuard;
 use PrestaShop\Module\Ciklik\Helpers\UpsellEligibility;
 use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
-use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
 use PrestaShop\Module\Ciklik\Managers\CiklikDeliveryOverride;
-use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikRelaySearch;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscribable;
+use PrestaShop\Module\Ciklik\Managers\CiklikSubscriptionFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscriptionRelay;
 
 if (!defined('_PS_VERSION_')) {
@@ -445,18 +444,13 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
     }
 
     /**
-     * Met à jour le contenu d'un abonnement avec une nouvelle combinaison de produit
+     * Change la fréquence d'un abonnement (fenêtre « Modifier la fréquence »).
      *
-     * Cette méthode permet de changer la fréquence d'un abonnement en mettant à jour
-     * la combinaison de produit associée. Elle vérifie que la nouvelle combinaison est valide
-     * et compatible avec l'abonnement existant avant d'effectuer la mise à jour via l'API.
-     *
-     * Le processus :
-     * 1. Récupère l'UUID de l'abonnement et l'ID de la nouvelle combinaison depuis le formulaire
-     * 2. Charge les données de l'abonnement actuel via l'API
-     * 3. Vérifie que la nouvelle combinaison est valide
-     * 4. Met à jour le contenu en conservant les quantités mais en changeant les fréquences
-     * 5. Envoie la mise à jour à l'API
+     * Mode fréquences : nouvelle fréquence de l'abonnement, produits inchangés.
+     * Mode déclinaisons : chaque ligne passe à la déclinaison du même produit à
+     * la nouvelle fréquence. Seuls les choix proposés par la fenêtre sont
+     * acceptés ; la date de la prochaine commande ne change pas. Logique
+     * partagée avec le back-office (CiklikSubscriptionFrequency).
      *
      * @return void
      */
@@ -471,7 +465,8 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $useFrequencyMode = Tools::getValue('use_frequency_mode');
+        // Mode lu dans la configuration, comme la fenêtre qui a proposé les choix
+        $useFrequencyMode = '1' === (string) Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE);
 
         // Récupérer l'abonnement actuel
         $subscriptionApi = new Subscription($this->context->link);
@@ -486,77 +481,32 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             return;
         }
 
-        if ($useFrequencyMode === '1') {
-            $frequencyId = (int) Tools::getValue('product_combination');
-            $frequency = CiklikFrequency::getFrequencyById($frequencyId);
-            $subscriptionData->external_fingerprint->frequency_id = $frequencyId;
+        $result = CiklikSubscriptionFrequency::change(
+            $subscriptionApi,
+            $subscriptionUuid,
+            $subscriptionData->contents,
+            $subscriptionData->external_fingerprint,
+            $useFrequencyMode,
+            Tools::getValue('product_combination')
+        );
 
-            $result = (new Subscription($this->context->link))
-            ->update(
-                $subscriptionUuid,
-                [
-                    'metadata' => ['prestashop_fingerprint' => $subscriptionData->external_fingerprint->encodeDatas()],
-                    'interval' => $frequency['interval'],
-                    'interval_count' => (int) $frequency['interval_count'],
-                ]
-            );
-
-            if (count($result['errors'])) {
-                foreach ($result['errors'] as $key => $error) {
-                    $this->errors[] = Tools::htmlentitiesUTF8($error[0]);
-                }
-            } else {
-                $this->success[] = $this->module->l('Your new frequency has been saved.', 'subscription');
-            }
-
-            $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+        if ($result['success']) {
+            $this->success[] = $useFrequencyMode
+                ? $this->module->l('Your new frequency has been saved.', 'subscription')
+                : $this->module->l('Your subscription content has been updated successfully.', 'subscription');
+        } elseif (CiklikSubscriptionFrequency::ERROR_INVALID_CHOICE === $result['error']) {
+            $this->errors[] = $this->module->l('Invalid combination.', 'subscription');
+        } elseif (CiklikSubscriptionFrequency::ERROR_NO_MATCH === $result['error']) {
+            $this->errors[] = $this->module->l('This frequency is not available for every product of the subscription.', 'subscription');
         } else {
-            $newCombinationId = (int) Tools::getValue('product_combination');
-            // Récupérer les informations de la nouvelle combinaison
-            $newCombination = CiklikCombination::getCombinationDetails($newCombinationId);
-            if (!$newCombination) {
-                $this->errors[] = $this->module->l('Invalid combination.', 'subscription');
-                $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
-
-                return;
-            }
-
-            // Mettre à jour le contenu de l'abonnement
-            $updatedContents = [];
-
-            foreach ($subscriptionData->contents as $content) {
-                $matchingCombination = CiklikCombination::getMatchingCombinations($newCombination, $content['external_id']);
-                if ($matchingCombination) {
-                    $updatedContents[] = [
-                        'external_id' => $matchingCombination['id_product_attribute'],
-                        'quantity' => $content['quantity'],
-                        'interval' => $matchingCombination['interval'],
-                        'interval_count' => $matchingCombination['interval_count'],
-                    ];
-                }
-            }
-
-            // Préparer les données pour la mise à jour de l'API
-            $updateData = [
-                'content' => $updatedContents,
-            ];
-
-            // Envoyer la mise à jour à l'API
-            $result = $subscriptionApi->update(
-                $subscriptionUuid,
-                $updateData
+            // Motif du refus de Ciklik, échappé, ou message générique
+            $this->errors[] = CiklikApiResponseHandler::customerErrorMessage(
+                $result['response'],
+                $this->module->l('Unable to update the subscription. Please try again later.', 'subscription')
             );
-
-            if (isset($result['errors']) && count($result['errors'])) {
-                foreach ($result['errors'] as $error) {
-                    $this->errors[] = Tools::htmlentitiesUTF8($error[0]);
-                }
-            } else {
-                $this->success[] = $this->module->l('Your subscription content has been updated successfully.', 'subscription');
-            }
-
-            $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
         }
+
+        $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
     }
 
     /**

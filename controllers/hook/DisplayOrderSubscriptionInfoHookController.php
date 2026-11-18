@@ -7,7 +7,9 @@
 
 use PrestaShop\Module\Ciklik\Data\CartSubscriptionData;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
+use PrestaShop\Module\Ciklik\Helpers\ShopContextSwitch;
 use PrestaShop\Module\Ciklik\Managers\CiklikRelaySearch;
+use PrestaShop\Module\Ciklik\Managers\CiklikSubscriptionFrequency;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscriptionRelay;
 use PrestaShop\Module\Ciklik\Managers\DeliveryModuleManager;
 
@@ -47,18 +49,33 @@ class DisplayOrderSubscriptionInfoHookController
         $orderData = (new PrestaShop\Module\Ciklik\Api\Order($this->context->link))->getOneByPsOrderId((int) $params['id_order']);
 
         $subscription = null;
+        $frequencyChoices = [];
+        $frequencyMode = false;
 
-        if (
-            $orderData !== null
-            && ($ciklikSubscriptionData = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne($orderData->subscription_uuid))
-            && isset($ciklikSubscriptionData['body']['external_fingerprint'])
-        ) {
-            try {
-                $subscription = SubscriptionData::create($ciklikSubscriptionData['body']);
-            } catch (\InvalidArgumentException $e) {
-                // Fingerprint dans un ancien format (serialize) non encore migré côté app
-                $subscription = null;
+        // Abonnement, mode et fréquences proposées lus dans la boutique de la
+        // commande, comme l'action « Modifier la fréquence » qui les valide
+        $shopContext = new ShopContextSwitch();
+        $shopContext->switchTo((int) $order->id_shop);
+
+        try {
+            if (
+                $orderData !== null
+                && ($ciklikSubscriptionData = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne($orderData->subscription_uuid))
+                && isset($ciklikSubscriptionData['body']['external_fingerprint'])
+            ) {
+                try {
+                    $subscription = SubscriptionData::create($ciklikSubscriptionData['body']);
+                } catch (\InvalidArgumentException $e) {
+                    // Fingerprint dans un ancien format (serialize) non encore migré côté app
+                    $subscription = null;
+                }
             }
+
+            // Choix de Mes abonnements, proposés même si l'option client est désactivée
+            $frequencyMode = '1' === (string) Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE);
+            $frequencyChoices = $subscription ? CiklikSubscriptionFrequency::getChoices($subscription->contents, $frequencyMode) : [];
+        } finally {
+            $shopContext->restore();
         }
 
         // Récupérer les informations d'abonnement de la commande
@@ -106,6 +123,10 @@ class DisplayOrderSubscriptionInfoHookController
             'ciklik_order_url' => 'https://app.ciklik.co/app/resources/checkout-orders/' . $orderData->ciklik_order_id,
             'manageActionUrl' => $this->context->link->getModuleLink('ciklik', 'manage'),
             'manageAjaxToken' => sha1(_COOKIE_KEY_ . 'ciklik_manage'),
+            'ciklik_frequency_choices' => $frequencyChoices,
+            'ciklik_frequency_mode' => $frequencyMode,
+            // Fréquence actuelle, marquée dans la liste en mode fréquences
+            'ciklik_frequency_current' => $frequencyMode && $subscription ? (int) $subscription->external_fingerprint->frequency_id : 0,
         ], $relayVars));
 
         return $this->context->smarty->fetch('module:ciklik/views/templates/admin/order_subscription_info.tpl');
