@@ -5,12 +5,15 @@
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
 
+use PrestaShop\Module\Ciklik\Api\CiklikApiResponseHandler;
 use PrestaShop\Module\Ciklik\Api\Subscription;
+use PrestaShop\Module\Ciklik\Data\SubscriptionData;
 use PrestaShop\Module\Ciklik\Helpers\RelaySearchQuota;
 use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikDeliveryOverride;
 use PrestaShop\Module\Ciklik\Managers\CiklikRefund;
 use PrestaShop\Module\Ciklik\Managers\CiklikRelaySearch;
+use PrestaShop\Module\Ciklik\Managers\CiklikSubscriptionFrequency;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -86,6 +89,9 @@ class CiklikManageModuleFrontController extends ModuleFrontController
                 break;
             case 'searchRelays':
                 $this->handleSearchRelays();
+                break;
+            case 'changeFrequency':
+                $this->handleChangeFrequency();
                 break;
             default:
                 $this->ajaxFailAndDie(
@@ -223,7 +229,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
      */
     private function handleSaveRelayOverride()
     {
-        $this->assertEmployeeCanManageRelays();
+        $this->assertEmployeeCanEditOrders();
 
         list($idCustomer) = $this->resolveOrderContext();
         $carrierModule = strtolower((string) Tools::getValue('carrier_module'));
@@ -285,7 +291,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
      */
     private function handleResetRelayOverride()
     {
-        $this->assertEmployeeCanManageRelays();
+        $this->assertEmployeeCanEditOrders();
 
         list($idCustomer) = $this->resolveOrderContext();
         $carrierModule = strtolower((string) Tools::getValue('carrier_module'));
@@ -304,6 +310,100 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         $this->ajaxRenderAndExit(json_encode([
             'success' => true,
             'message' => $this->module->l('Pickup point reset to automatic mode.', 'manage'),
+        ]));
+    }
+
+    /**
+     * Change la fréquence de l'abonnement de la commande consultée, par la
+     * logique de « Mes abonnements » (CiklikSubscriptionFrequency), même si
+     * l'option client est désactivée : c'est le marchand qui agit. La date de
+     * la prochaine commande ne change pas.
+     */
+    private function handleChangeFrequency()
+    {
+        $this->assertEmployeeCanEditOrders();
+
+        list($idCustomer, $idShop) = $this->resolveOrderContext();
+        $uuid = $this->getValidatedUuid();
+        $value = (int) Tools::getValue('frequency');
+
+        // Jeton d'API, mode et fréquences proposées de la boutique de la commande
+        if ($idShop > 0 && Shop::isFeatureActive()) {
+            Shop::setContext(Shop::CONTEXT_SHOP, $idShop);
+        }
+
+        $api = new Subscription($this->context->link);
+        $useFrequencyMode = '1' === (string) Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE);
+        $subscription = null;
+
+        try {
+            $response = $api->getOne($uuid);
+            if (!empty($response['status']) && !empty($response['body']['external_fingerprint'])) {
+                $subscription = SubscriptionData::create($response['body']);
+            }
+        } catch (Throwable $e) {
+            $subscription = null;
+        }
+
+        if (null === $subscription) {
+            $this->ajaxFailAndDie(
+                $this->module->l('An error occurred while updating the subscription.', 'manage')
+            );
+        }
+
+        // L'abonnement doit être celui du client de la commande : l'UUID vient
+        // de la requête, le client de la commande dont l'accès a été vérifié
+        if ((int) $subscription->external_fingerprint->id_customer !== $idCustomer) {
+            $this->ajaxFailAndDie($this->module->l('Access denied', 'manage'), 403);
+        }
+
+        if ($useFrequencyMode && $value === (int) $subscription->external_fingerprint->frequency_id) {
+            $this->ajaxFailAndDie($this->module->l('This is already the frequency of the subscription.', 'manage'), 400);
+        }
+
+        try {
+            $result = CiklikSubscriptionFrequency::change($api, $uuid, $subscription->contents, $subscription->external_fingerprint, $useFrequencyMode, $value);
+        } catch (Throwable $e) {
+            $result = ['success' => false, 'error' => CiklikSubscriptionFrequency::ERROR_API, 'response' => null];
+        }
+
+        if (CiklikSubscriptionFrequency::ERROR_INVALID_CHOICE === $result['error']) {
+            $this->ajaxFailAndDie($this->module->l('This frequency is not available for this subscription.', 'manage'), 400);
+        }
+
+        if (CiklikSubscriptionFrequency::ERROR_NO_MATCH === $result['error']) {
+            $this->ajaxFailAndDie($this->module->l('This frequency is not available for every product of the subscription.', 'manage'), 400);
+        }
+
+        if (!$result['success']) {
+            // Motif du refus de Ciklik, échappé : le message s'affiche en HTML
+            $apiMessage = CiklikApiResponseHandler::customerErrorMessage($result['response'], '');
+            $this->ajaxFailAndDie(
+                $this->module->l('An error occurred while updating the subscription.', 'manage') . ('' !== $apiMessage ? ' ' . $apiMessage : ''),
+                400
+            );
+        }
+
+        PrestaShopLogger::addLog(
+            'Ciklik frequency change - subscription ' . $uuid . ' - '
+                . ($useFrequencyMode ? 'frequency_id ' : 'id_product_attribute ') . $value,
+            1,
+            null,
+            'CiklikSubscription',
+            $idCustomer,
+            true,
+            (int) $this->employee->id
+        );
+
+        $body = isset($result['response']['body']) && is_array($result['response']['body']) ? $result['response']['body'] : [];
+
+        $this->ajaxRenderAndExit(json_encode([
+            'success' => true,
+            'message' => $this->module->l('The frequency has been updated. The next order date is unchanged.', 'manage'),
+            'subscription' => [
+                'display_interval' => isset($body['display_interval']) ? (string) $body['display_interval'] : (string) $result['choice']['display_name'],
+                'frequency' => $value,
+            ],
         ]));
     }
 
@@ -337,9 +437,10 @@ class CiklikManageModuleFrontController extends ModuleFrontController
     /**
      * Vérifie que l'employé authentifié a le droit de modifier les commandes :
      * super admin, ou droit d'édition sur l'onglet AdminOrders. Le simple fait
-     * d'être connecté au BO (canRun) ne suffit pas pour rediriger des colis.
+     * d'être connecté au BO (canRun) ne suffit pas pour rediriger des colis
+     * ni pour changer la fréquence d'un abonnement.
      */
-    private function assertEmployeeCanManageRelays()
+    private function assertEmployeeCanEditOrders()
     {
         if ($this->employee && $this->employee->isSuperAdmin()) {
             return;
@@ -390,7 +491,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
      */
     private function handleSearchRelays()
     {
-        $this->assertEmployeeCanManageRelays();
+        $this->assertEmployeeCanEditOrders();
 
         // Les credentials transporteur sont lus via Configuration::get, résolue
         // sur la boutique de contexte. La recherche tourne côté front (ce

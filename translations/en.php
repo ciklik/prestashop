@@ -637,3 +637,18 @@ $_MODULE['<{ciklik}prestashop>product_transform_panel_c11ff540ae4e7a576c66c35ff3
 $_MODULE['<{ciklik}prestashop>manage_b1f03074036e323bcd65b2d70082c906'] = 'Please enter a valid zip code and city.';
 $_MODULE['<{ciklik}prestashop>manage_7d764d86865c1ccc03d9df498831eff3'] = 'Too many searches for now. Please try again later or use manual entry.';
 $_MODULE['<{ciklik}prestashop>manage_7752ac1a95236463d6cbbfce6ea385f7'] = 'Pickup point search is temporarily unavailable. Please try again later.';
+
+// Changement de fréquence en back-office
+$_MODULE['<{ciklik}prestashop>order_subscription_info_37161b8a07a33f9c98d8c997470dbfff'] = 'Change frequency';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_d1eb6efe579c37194d055e8ad8cc3ea9'] = 'Current frequency';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_789614aa987b0ff1236f26613a08e42a'] = 'Choose a frequency';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_43b5c9175984c071f30b873fdce0a000'] = 'current';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_71d870bba3d81df95a59c53952618da5'] = 'The next order date does not change: the new frequency applies from the following order.';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_a947205663f9773416bbc62240fa5152'] = 'Each product switches to its combination with the new frequency, at the price of that combination.';
+$_MODULE['<{ciklik}prestashop>order_subscription_info_72269facc3f23130e02c97d6898292ce'] = 'No other frequency is available for the products of this subscription.';
+$_MODULE['<{ciklik}prestashop>manage_15e4edb66b7019438f993c7e9d0f8878'] = 'This is already the frequency of the subscription.';
+$_MODULE['<{ciklik}prestashop>manage_ab96b0fb9f87e88a525739793bfc3698'] = 'This frequency is not available for this subscription.';
+$_MODULE['<{ciklik}prestashop>manage_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'This frequency is not available for every product of the subscription.';
+$_MODULE['<{ciklik}prestashop>manage_bdbf67b5231abe7e342cd0ddf84326f1'] = 'The frequency has been updated. The next order date is unchanged.';
+$_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'This frequency is not available for every product of the subscription.';
+$_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'Unable to update the subscription. Please try again later.';
