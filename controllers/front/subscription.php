@@ -1024,11 +1024,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             $prefill['zipcode'] = trim((string) Tools::getValue('zipcode'));
             $prefill['city'] = trim((string) Tools::getValue('city'));
 
-            if ('' === $prefill['zipcode']
-                || Tools::strlen($prefill['zipcode']) > 12
-                || !Validate::isPostCode($prefill['zipcode'])
-                || Tools::strlen($prefill['city']) > 64
-                || ('' !== $prefill['city'] && !Validate::isCityName($prefill['city']))) {
+            if (!CiklikRelaySearch::isValidSearchAddress($prefill['zipcode'], $prefill['city'])) {
                 $searchError = $this->module->l('Please enter a valid zip code and city.', 'subscription');
             } elseif (RelaySearchQuota::GRANTED !== ($quota = RelaySearchQuota::consume($idCustomer, $relayContext['id_shop']))) {
                 // Plafond atteint : le dire ; compteur inaccessible (journalisé

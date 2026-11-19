@@ -980,6 +980,50 @@ class CiklikRelaySearchTest extends TestCase
   </PUDO_ITEMS>
 </RESPONSE>';
     }
+
+    /**
+     * Adresse de recherche : code postal obligatoire, borné et valide, ville
+     * facultative mais bornée et valide, mêmes règles en back-office et dans
+     * l'espace client
+     *
+     * @dataProvider searchAddressProvider
+     */
+    public function testIsValidSearchAddress($zipcode, $city, $expected)
+    {
+        $this->assertSame($expected, CiklikRelaySearch::isValidSearchAddress($zipcode, $city));
+    }
+
+    public function searchAddressProvider(): array
+    {
+        return [
+            'code postal et ville' => ['75001', 'Paris', true],
+            'code postal seul' => ['75001', '', true],
+            'code postal étranger' => ['SW1A 1AA', 'London', true],
+            'code postal vide' => ['', 'Paris', false],
+            'code postal trop long' => [str_repeat('1', 13), 'Paris', false],
+            'code postal à 12 caractères' => [str_repeat('1', 12), '', true],
+            'code postal invalide' => ['75<01', 'Paris', false],
+            'ville trop longue' => ['75001', str_repeat('a', 65), false],
+            'ville à 64 caractères' => ['75001', str_repeat('a', 64), true],
+            'ville invalide' => ['75001', 'Paris<script>', false],
+        ];
+    }
+
+    /**
+     * Transporteur d'une commande : son id_reference, qui choisit le contrat
+     * Chronopost de son offre ; null pour un transporteur introuvable
+     */
+    public function testCarrierReferenceOfCarrier()
+    {
+        \Carrier::resetMocks();
+        \Carrier::setMockCarrier(12, ['id_reference' => 3, 'external_module_name' => 'chronopost']);
+
+        $this->assertSame(3, CiklikRelaySearch::carrierReferenceOf(12));
+        $this->assertNull(CiklikRelaySearch::carrierReferenceOf(99));
+        $this->assertNull(CiklikRelaySearch::carrierReferenceOf(0));
+
+        \Carrier::resetMocks();
+    }
 }
 
 /**

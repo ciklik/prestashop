@@ -6,6 +6,7 @@
  */
 
 use PrestaShop\Module\Ciklik\Api\Subscription;
+use PrestaShop\Module\Ciklik\Helpers\RelaySearchQuota;
 use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikDeliveryOverride;
 use PrestaShop\Module\Ciklik\Managers\CiklikRefund;
@@ -315,7 +316,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
      * autre boutique. Seul id_order est accepté, et on vérifie que l'employé a
      * bien le droit sur la boutique de cette commande.
      *
-     * @return array{0: int, 1: int} [id_customer, id_shop]
+     * @return array{0: int, 1: int, 2: Order} [id_customer, id_shop, commande]
      */
     private function resolveOrderContext()
     {
@@ -330,7 +331,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             );
         }
 
-        return [(int) $order->id_customer, (int) $order->id_shop];
+        return [(int) $order->id_customer, (int) $order->id_shop, $order];
     }
 
     /**
@@ -397,7 +398,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         // que les bons credentials soient utilisés en multiboutique. La boutique
         // vient de la commande, jamais de la requête : sinon un employé pourrait
         // faire consommer le compte transporteur d'une autre boutique.
-        list(, $idShop) = $this->resolveOrderContext();
+        list(, $idShop, $order) = $this->resolveOrderContext();
         if ($idShop > 0 && Shop::isFeatureActive()) {
             Shop::setContext(Shop::CONTEXT_SHOP, $idShop);
         }
@@ -412,12 +413,35 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             );
         }
 
+        // Mêmes bornes que l'espace client avant tout appel au transporteur
+        $zipcode = trim((string) Tools::getValue('zipcode'));
+        $city = trim((string) Tools::getValue('city'));
+        if (!CiklikRelaySearch::isValidSearchAddress($zipcode, $city)) {
+            $this->ajaxFailAndDie(
+                $this->module->l('Please enter a valid zip code and city.', 'manage'),
+                400
+            );
+        }
+
+        // Plafond d'appels au compte transporteur, compté par employé
+        $quota = RelaySearchQuota::consumeForEmployee((int) $this->employee->id, $idShop);
+        if (RelaySearchQuota::GRANTED !== $quota) {
+            $this->ajaxFailAndDie(
+                RelaySearchQuota::LIMITED === $quota
+                    ? $this->module->l('Too many searches for now. Please try again later or use manual entry.', 'manage')
+                    : $this->module->l('Pickup point search is temporarily unavailable. Please try again later.', 'manage'),
+                RelaySearchQuota::LIMITED === $quota ? 429 : 503
+            );
+        }
+
         try {
+            // Transporteur de la commande : choisit le contrat de son offre
+            // quand le module transporteur en a plusieurs (Chronopost)
             $results = CiklikRelaySearch::searchRelays($carrierModule, [
-                'zipcode' => (string) Tools::getValue('zipcode'),
-                'city' => (string) Tools::getValue('city'),
+                'zipcode' => $zipcode,
+                'city' => $city,
                 'country_iso' => (string) Tools::getValue('country_iso'),
-            ]);
+            ], null, CiklikRelaySearch::carrierReferenceOf((int) $order->id_carrier));
         } catch (Throwable $e) {
             $this->ajaxFailAndDie(
                 $this->module->l('Pickup point search failed. Please try again or use manual entry.', 'manage')
