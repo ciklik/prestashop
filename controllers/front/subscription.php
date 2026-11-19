@@ -1038,7 +1038,9 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                     : $this->module->l('Pickup point search is temporarily unavailable. Please try again later.', 'subscription');
             } else {
                 try {
-                    $results = CiklikRelaySearch::searchRelays($module, $prefill);
+                    // Transporteur de l'abonnement : choisit le contrat de son offre
+                    // quand le module transporteur en a plusieurs (Chronopost)
+                    $results = CiklikRelaySearch::searchRelays($module, $prefill, null, (int) $relayContext['carrier']->id_reference);
                 } catch (Throwable $e) {
                     $searchError = $this->module->l('Pickup point search is temporarily unavailable. Please try again later.', 'subscription');
                 }

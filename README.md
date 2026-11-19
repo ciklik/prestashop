@@ -96,6 +96,8 @@ $ciklik = [
 
 Dans « Mes abonnements », un abonnement livré en point relais propose « Changer de point relais » à la place de « Changer l'adresse », dès qu'un relais peut être proposé au client (recherche par adresse chez le transporteur, ou relais déjà utilisés lors de commandes passées). La fonction est active dès la mise à jour du module, sans réglage. Les recherches de relais sont limitées à 20 par client et 1000 par boutique et par heure.
 
+Chronopost : la recherche par adresse est éteinte par défaut. Elle s'active dans la configuration du module, bloc « Points relais » (affiché quand le module Chronopost est installé), réglage « Recherche de points relais Chronopost » (clé `CIKLIK_CHRONOPOST_SEARCH_ENABLED`). Elle utilise le contrat configuré dans le module Chronopost : celui de l'offre relais du transporteur de l'abonnement, sinon celui d'une autre offre relais, sinon le premier contrat ; les anciennes versions du module (contrat unique) restent prises en charge. Les comptes « Petits pros » ne sont pas pris en charge. Éteinte, seuls les relais déjà utilisés par le client sont proposés.
+
 ### Paiement en attente
 
 - Un client connecté dont un renouvellement a été refusé voit le montant dû et un bouton « Régler ce paiement » au panier et dans le moyen de paiement Ciklik (si son panier contient un abonnement), et dans « Mes abonnements ». L'avertissement ne bloque pas la commande.
