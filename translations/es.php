@@ -17,6 +17,7 @@ $_MODULE['<{ciklik}prestashop>account_3cab03c00dbd11bc3569afa0748013f0'] = 'Inac
 $_MODULE['<{ciklik}prestashop>account_11a755d598c0c417f9a36758c3da7481'] = 'Detener';
 $_MODULE['<{ciklik}prestashop>account_f1cefec9e2196c672a622347f1fbc325'] = 'Reanudar';
 $_MODULE['<{ciklik}prestashop>account_6b235451acbd1025a0331ee9750ace34'] = 'No tienes ninguna suscripción.';
+$_MODULE['<{ciklik}prestashop>account_88705ee164fd46f42af27e834daef18f'] = 'Tus suscripciones no están disponibles en este momento. Inténtalo de nuevo más tarde.';
 $_MODULE['<{ciklik}prestashop>account_61f96bd7b6f538c143d82110f770c663'] = 'Cancelable a partir del:';
 $_MODULE['<{ciklik}prestashop>account_5bd909d2aabb76836e8fdad730968abb'] = 'Personalizaciones';
 
@@ -115,6 +116,10 @@ $_MODULE['<{ciklik}prestashop>subscription_ff64f904b864fe864aa36f6d5346050c'] = 
 $_MODULE['<{ciklik}prestashop>subscription_cb01468b129b7b1bf5510cef1c5a1e46'] = 'Tu suscripción ha sido reactivada.';
 $_MODULE['<{ciklik}prestashop>subscription_942d89ca618df2fd951ad7537c5470bf'] = 'No se ha podido pausar tu suscripción. Inténtalo de nuevo más tarde.';
 $_MODULE['<{ciklik}prestashop>subscription_8a0b9671ca30cf84e284554f51fb1e81'] = 'No se ha podido reactivar tu suscripción. Inténtalo de nuevo más tarde.';
+$_MODULE['<{ciklik}prestashop>subscription_96208a8fe50cea854e1a11add0fa11d4'] = 'No se ha podido cambiar la fecha de renovación de tu suscripción. Inténtalo de nuevo más tarde.';
+$_MODULE['<{ciklik}prestashop>subscription_f5ab91460a8334d94e39ecd81cecb213'] = 'No se ha podido aplazar tu próxima entrega. Inténtalo de nuevo más tarde.';
+$_MODULE['<{ciklik}prestashop>subscription_b4ae99ed913e64d94f569a1d05b38ba1'] = 'No se ha podido guardar tu nueva dirección. Inténtalo de nuevo más tarde.';
+$_MODULE['<{ciklik}prestashop>subscription_a51c6997d2b25e94adc2b6b07765629e'] = 'No se ha podido guardar tu nueva frecuencia. Inténtalo de nuevo más tarde.';
 $_MODULE['<{ciklik}prestashop>subscription_e267d34972b3ab66b987fbad59fba513'] = 'Formato de fecha inválido.';
 $_MODULE['<{ciklik}prestashop>subscription_e7144f2a0b59419e225436775ca592af'] = 'La fecha debe ser en el futuro.';
 $_MODULE['<{ciklik}prestashop>subscription_9e02aff415bb54df2b36554d62bea3e9'] = 'Fecha inválida.';
@@ -442,7 +447,7 @@ $_MODULE['<{ciklik}prestashop>displaycartextraproductinfo_787ad0b7a17de4ad6b1711
 $_MODULE['<{ciklik}prestashop>displaycartextraproductinfo_543ffc111d45d9c3a0cba2026eec14ef'] = 'Compra única';
 $_MODULE['<{ciklik}prestashop>displaycartextraproductinfo_e130919e23bb4fd2f80d56b31e8b1d7d'] = 'Frecuencia:';
 $_MODULE['<{ciklik}prestashop>subscription_5e3997cb2f1aff8363e1c31fae61d05f'] = 'No se ha podido determinar la frecuencia de la suscripción.';
-$_MODULE['<{ciklik}prestashop>subscription_432e75444e63870de2d4d3459c7c262b'] = 'Su próxima entrega se ha aplazado al %s.';
+$_MODULE['<{ciklik}prestashop>subscription_432e75444e63870de2d4d3459c7c262b'] = 'Tu próxima entrega se ha aplazado al %s.';
 $_MODULE['<{ciklik}prestashop>skipnextdelivery_9fbae8eb38cf98cf856e9d0f44120e34'] = 'Saltar la próxima entrega';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_e9e4f50f631c9491921f7e7d7edfc337'] = 'Permitir saltar la próxima entrega';
 $_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_40593a1c7174b397044fa14a3634d5da'] = 'Permite al cliente aplazar su próxima entrega un ciclo desde su cuenta, sin cancelar.';

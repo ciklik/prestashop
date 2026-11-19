@@ -5,6 +5,7 @@
  * @license   https://opensource.org/license/afl-3-0-php/ Academic Free License (AFL 3.0)
  */
 
+use PrestaShop\Module\Ciklik\Api\CiklikApiResponseHandler;
 use PrestaShop\Module\Ciklik\Api\Subscription;
 use PrestaShop\Module\Ciklik\Data\PendingPaymentData;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
@@ -38,16 +39,18 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
         $ciklik_customer = CiklikCustomer::getByIdCustomer((int) $this->context->customer->id);
         $ciklikUuid = (string) ($ciklik_customer['ciklik_uuid'] ?? '');
         $pendingPayments = [];
+        $subscriptionsUnavailable = false;
 
         // UUID vérifié : un filtre vide renverrait les abonnements de toute la boutique
         if (UuidHelper::isValid($ciklikUuid)) {
-            $response = (new Subscription($this->context->link))
-                ->indexRaw(['query' => ['filter' => ['customer_id' => $ciklikUuid]]]);
+            $body = $this->fetchSubscriptions($ciklikUuid);
 
-            if ($response['status']) {
-                $subscriptionsData = SubscriptionData::collection($response['body']);
+            if (null === $body) {
+                $subscriptionsUnavailable = true;
+            } else {
+                $subscriptionsData = SubscriptionData::collection($body);
                 // Paiements en attente de ses abonnements actifs, dans la même réponse
-                $pendingPayments = PendingPaymentData::collection($response['body'], $ciklikUuid);
+                $pendingPayments = PendingPaymentData::collection($body, $ciklikUuid);
             }
         }
 
@@ -107,6 +110,7 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
 
         $this->context->smarty->assign([
             'subscriptions' => $subscriptionsData ?? [],
+            'subscriptions_unavailable' => $subscriptionsUnavailable,
             'pending_payments' => $presentedPendingPayments,
             'relay_subscriptions' => $relaySubscriptions,
             'next_delivery_relays' => $nextDeliveryRelays,
@@ -126,5 +130,55 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
         $this->module->assignThemeVariables();
 
         $this->setTemplate('module:ciklik/views/templates/front/account.tpl');
+    }
+
+    /**
+     * Client de l'API des abonnements (remplacé dans les tests)
+     *
+     * @return Subscription
+     */
+    protected function subscriptionApi()
+    {
+        return new Subscription($this->context->link);
+    }
+
+    /**
+     * Abonnements du client chez Ciklik (corps brut de la réponse). Liste
+     * illisible (refus, réponse illisible, Ciklik injoignable : Guzzle 7 lève
+     * ConnectException hors du client) : message traduit au lieu d'une page
+     * d'erreur ou de « aucun abonnement », cause journalisée sans le texte de
+     * l'API ni celui de l'exception.
+     *
+     * @param string $ciklikUuid
+     *
+     * @return array|null null si Ciklik n'a pas rendu la liste
+     */
+    protected function fetchSubscriptions($ciklikUuid)
+    {
+        $cause = null;
+
+        try {
+            $response = $this->subscriptionApi()->indexRaw(['query' => ['filter' => ['customer_id' => $ciklikUuid]]]);
+        } catch (Throwable $e) {
+            $response = null;
+            $cause = 'exception ' . get_class($e);
+        }
+
+        if (is_array($response) && !empty($response['status']) && isset($response['body']) && is_array($response['body'])) {
+            return $response['body'];
+        }
+
+        PrestaShopLogger::addLog(
+            'Ciklik subscriptions list failed (customer account) - '
+                . (null !== $cause ? $cause : CiklikApiResponseHandler::failureSummary($response)),
+            2,
+            null,
+            'CiklikSubscription',
+            null,
+            true
+        );
+        $this->errors[] = $this->module->l('Your subscriptions are temporarily unavailable. Please try again later.', 'account');
+
+        return null;
     }
 }

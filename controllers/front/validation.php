@@ -37,7 +37,14 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
             $this->redirectToCheckout();
         }
 
-        $orderData = (new PrestaShop\Module\Ciklik\Api\Order($this->context->link))->getOne((int) Tools::getValue('ciklik_order_id'));
+        try {
+            $orderData = (new PrestaShop\Module\Ciklik\Api\Order($this->context->link))->getOne((int) Tools::getValue('ciklik_order_id'));
+        } catch (Throwable $e) {
+            // Ciklik injoignable (Guzzle 7 lève ConnectException) : comme une commande illisible, retour au tunnel ;
+            // la commande d'un paiement abouti est créée par l'appel de Ciklik (OrderGateway), rejoué jusqu'au succès
+            PrestaShopLogger::addLog('Ciklik validation - Ciklik unreachable - exception ' . get_class($e), 2, null, 'Ciklik', null, true);
+            $orderData = null;
+        }
 
         if (!$orderData instanceof OrderData) {
             $this->redirectToCheckout();
