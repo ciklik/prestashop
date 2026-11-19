@@ -943,6 +943,33 @@ class ModuleFrontController
 }
 
 /**
+ * Stub Address pour les tests unitaires : client propriétaire lu dans $customers
+ */
+class Address
+{
+    /** @var array id_address => id_customer */
+    public static $customers = [];
+
+    public $id;
+    public $id_customer = 0;
+    public $firstname = '';
+    public $lastname = '';
+    public $address1 = '';
+    public $address2 = '';
+    public $postcode = '';
+    public $city = '';
+    public $country = '';
+
+    public function __construct($id = null)
+    {
+        $this->id = (int) $id;
+        if (isset(self::$customers[$this->id])) {
+            $this->id_customer = self::$customers[$this->id];
+        }
+    }
+}
+
+/**
  * Stub Link pour les tests unitaires
  */
 class Link

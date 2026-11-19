@@ -77,6 +77,12 @@ class DisplayOrderSubscriptionInfoHookController
             // désactivée, dans le mode de création de l'abonnement
             $frequencyMode = $subscription ? $subscription->frequency_mode : false;
             $frequencyChoices = $subscription ? CiklikSubscriptionFrequency::getChoices($subscription->contents, $frequencyMode) : [];
+        } catch (Throwable $e) {
+            // Ciklik injoignable (Guzzle 7 lève ConnectException) : bloc masqué, la commande s'affiche, cause journalisée
+            PrestaShopLogger::addLog('Ciklik order subscription block - Ciklik unreachable - exception ' . get_class($e), 2, null, 'Ciklik', null, true);
+            $orderData = null;
+            $subscription = null;
+            $frequencyChoices = [];
         } finally {
             $shopContext->restore();
         }

@@ -38,10 +38,10 @@ Cet endpoint correspond à l'action `addProduct` du contrôleur `controllers/fro
 
 Avant de transmettre la requête à l'API Ciklik, le contrôleur applique :
 
-1. **CSRF** — `$this->isTokenValid()`
-2. **Format UUID v4** — strict, via `UuidHelper`
-3. **Propriété de l'abonnement** — `validateSubscriptionOwnership()` vérifie que l'abonnement appartient au client connecté
-4. **Existence du produit** — `Validate::isLoadedObject()`
+1. **CSRF** : `$this->isTokenValid()`
+2. **Format UUID v4** : strict, via `UuidHelper`
+3. **Propriété de l'abonnement** : `ownershipRefusal()` vérifie que l'abonnement appartient au client connecté (Ciklik injoignable : message d'indisponibilité, rien n'est envoyé)
+4. **Existence du produit** : `Validate::isLoadedObject()`
 
 ### Données envoyées à l'API Ciklik
 

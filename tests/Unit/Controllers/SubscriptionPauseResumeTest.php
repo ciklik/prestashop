@@ -127,7 +127,7 @@ class SubscriptionPauseResumeTest extends TestCase
         $controller = $this->runAction('newdate', [new Response(502, ['Content-Type' => 'text/html'], '<html>Bad Gateway</html>')]);
 
         $this->assertSame([], $controller->success);
-        $this->assertSame(['Unable to update the subscription. Please try again later.'], $controller->errors);
+        $this->assertSame(['Your renewal date could not be changed. Please try again later.'], $controller->errors);
     }
 
     /**

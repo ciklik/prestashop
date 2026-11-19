@@ -47,6 +47,11 @@
   demande, ne répond pas ou renvoie une réponse illisible. Le client voit « Votre abonnement n'a pas pu être suspendu »
   (ou réactivé), l'abonnement reste dans son état et la cause est journalisée. La date du prochain paiement, le report
   d'une livraison et le changement d'adresse n'annoncent plus non plus de réussite sur une réponse illisible.
+- Ciklik injoignable (connexion refusée, délai dépassé) : « Mes abonnements » et ses actions (date, report, adresse,
+  fréquence, produits) affichent un message traduit au lieu d'une page d'erreur, rien n'est annoncé comme fait et la
+  cause est journalisée ; la fiche produit, le paiement, le retour de paiement et la fiche commande du back-office
+  s'affichent sans les éléments Ciklik, l'enregistrement d'un produit aboutit (« Renvoyer à Ciklik »). Thème qui surcharge `views/templates/front/account.tpl` : `$subscriptions_unavailable` masque « Vous
+  n'avez pas d'abonnement » quand la liste n'a pas pu être lue.
 - Thème qui surcharge `views/templates/front/actions/changeInterval.tpl` : la liste vient désormais de
   `$subscription->frequency_choices` (clé = valeur à envoyer). Une ancienne surcharge continue de fonctionner, mais un
   choix qui ne vaut pas pour tous les produits est refusé.

@@ -291,12 +291,28 @@ class Ciklik extends PaymentModule
         $idProduct = (int) $params['form_data']['id'];
 
         if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
-            CiklikSubscribable::handle($idProduct);
+            $this->syncSubscribable($idProduct);
 
             return;
         }
 
         $this->saveProductFrequencies($idProduct);
+    }
+
+    /**
+     * Envoi du produit à Ciklik après son enregistrement, sans jamais faire échouer l'enregistrement : Ciklik
+     * injoignable (Guzzle 7 lève ConnectException), l'envoi est marqué en échec par handle() et la fiche propose
+     * « Renvoyer à Ciklik »
+     *
+     * @param int $idProduct
+     */
+    private function syncSubscribable($idProduct)
+    {
+        try {
+            CiklikSubscribable::handle((int) $idProduct);
+        } catch (Throwable $e) {
+            PrestaShopLogger::addLog('Ciklik - envoi du produit ' . (int) $idProduct . ' à Ciklik échoué : exception ' . get_class($e), 3);
+        }
     }
 
     /**
@@ -337,14 +353,14 @@ class Ciklik extends PaymentModule
     public function hookActionObjectProductUpdateAfter(array $params)
     {
         if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
-            CiklikSubscribable::handle((int) $params['object']->id);
+            $this->syncSubscribable((int) $params['object']->id);
         }
     }
 
     public function hookActionObjectProductAddAfter(array $params)
     {
         if (!Configuration::get(self::CONFIG_USE_FREQUENCY_MODE)) {
-            CiklikSubscribable::handle((int) $params['object']->id);
+            $this->syncSubscribable((int) $params['object']->id);
         }
     }
 
@@ -354,7 +370,7 @@ class Ciklik extends PaymentModule
             if (isset($params['id_product'])) {
                 CiklikSubscribable::deleteByIdProduct((int) $params['id_product']);
             } else {
-                CiklikSubscribable::handle((int) $params['object']->id);
+                $this->syncSubscribable((int) $params['object']->id);
             }
         }
     }
@@ -424,7 +440,14 @@ class Ciklik extends PaymentModule
         $paymentOptions = [];
 
         if (CiklikSubscribable::cartHasSubscribable($cart)) {
-            $shopData = (new Shop($this->context->link))->whoIAm();
+            try {
+                $shopData = (new Shop($this->context->link))->whoIAm();
+            } catch (Throwable $e) {
+                // Ciklik injoignable (Guzzle 7 lève ConnectException) : pas de moyen de paiement Ciklik, pas d'erreur
+                // fatale, cause journalisée
+                PrestaShopLogger::addLog('Ciklik payment options - Ciklik unreachable - exception ' . get_class($e), 2, null, 'Ciklik', null, true);
+                $shopData = null;
+            }
 
             if ($shopData instanceof ShopData && count($shopData->paymentMethods)) {
                 $language = new Language($this->context->cart->id_lang);
@@ -827,9 +850,15 @@ class Ciklik extends PaymentModule
             // Si le client a un UUID Ciklik valide
             if (array_key_exists('ciklik_uuid', $ciklik_customer)
                 && !is_null($ciklik_customer['ciklik_uuid'])) {
-                // Récupère tous les abonnements actifs du client
-                $subscriptionsData = (new Subscription($this->context->link))
-                    ->getAll(['query' => ['filter' => ['customer_id' => $ciklik_customer['ciklik_uuid']]]]);
+                // Récupère tous les abonnements actifs du client ; Ciklik
+                // injoignable (Guzzle 7 lève ConnectException) : pas d'upsell,
+                // sans journal (une ligne par fiche produit vue)
+                try {
+                    $subscriptionsData = (new Subscription($this->context->link))
+                        ->getAll(['query' => ['filter' => ['customer_id' => $ciklik_customer['ciklik_uuid']]]]);
+                } catch (Throwable $e) {
+                    $subscriptionsData = null;
+                }
 
                 // Si des abonnements sont trouvés, on les stocke
                 if (!empty($subscriptionsData)) {

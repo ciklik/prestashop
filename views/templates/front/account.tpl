@@ -164,7 +164,7 @@
             {/foreach}
             </tbody>
         </table>
-    {else}
+    {elseif empty($subscriptions_unavailable)}
         <div class="alert alert-info">{l s='You have no subscription.' mod='ciklik'}</div>
     {/if}
 {/block}
