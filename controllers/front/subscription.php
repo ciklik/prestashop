@@ -484,6 +484,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         $result = CiklikSubscriptionFrequency::change(
             $subscriptionApi,
             $subscriptionUuid,
+            $subscriptionData->active,
             $subscriptionData->contents,
             $subscriptionData->external_fingerprint,
             $useFrequencyMode,
@@ -494,6 +495,8 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             $this->success[] = $useFrequencyMode
                 ? $this->module->l('Your new frequency has been saved.', 'subscription')
                 : $this->module->l('Your subscription content has been updated successfully.', 'subscription');
+        } elseif (CiklikSubscriptionFrequency::ERROR_INACTIVE === $result['error']) {
+            $this->errors[] = $this->module->l('This subscription is inactive: its frequency cannot be changed.', 'subscription');
         } elseif (CiklikSubscriptionFrequency::ERROR_INVALID_CHOICE === $result['error']) {
             $this->errors[] = $this->module->l('Invalid combination.', 'subscription');
         } elseif (CiklikSubscriptionFrequency::ERROR_NO_MATCH === $result['error']) {

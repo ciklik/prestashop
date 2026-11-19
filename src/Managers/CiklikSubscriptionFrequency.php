@@ -28,6 +28,9 @@ if (!defined('_PS_VERSION_')) {
  */
 class CiklikSubscriptionFrequency
 {
+    /** Abonnement désactivé : sa fréquence ne se modifie pas */
+    const ERROR_INACTIVE = 'inactive';
+
     /** Choix absent de ceux proposés pour l'abonnement */
     const ERROR_INVALID_CHOICE = 'invalid_choice';
 
@@ -66,11 +69,12 @@ class CiklikSubscriptionFrequency
     }
 
     /**
-     * Change la fréquence d'un abonnement chez Ciklik, si la valeur postée est
-     * un des choix proposés.
+     * Change la fréquence d'un abonnement actif chez Ciklik, si la valeur
+     * postée est un des choix proposés.
      *
      * @param Subscription $api
      * @param string $uuid
+     * @param bool $active Abonnement actif (SubscriptionData::$active)
      * @param array $contents Lignes de SubscriptionData::$contents
      * @param CartFingerprintData $fingerprint Empreinte de l'abonnement
      * @param bool $useFrequencyMode
@@ -80,8 +84,12 @@ class CiklikSubscriptionFrequency
      *
      * @return array{success: bool, error: string|null, choice: array|null, response: array|null}
      */
-    public static function change(Subscription $api, $uuid, array $contents, CartFingerprintData $fingerprint, $useFrequencyMode, $value, $matcher = null)
+    public static function change(Subscription $api, $uuid, $active, array $contents, CartFingerprintData $fingerprint, $useFrequencyMode, $value, $matcher = null)
     {
+        if (true !== $active) {
+            return self::result(self::ERROR_INACTIVE, null);
+        }
+
         $choices = self::getChoices($contents, $useFrequencyMode);
         if (!isset($choices[(int) $value])) {
             return self::result(self::ERROR_INVALID_CHOICE, null);

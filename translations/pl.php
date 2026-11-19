@@ -652,3 +652,5 @@ $_MODULE['<{ciklik}prestashop>manage_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Ta cz
 $_MODULE['<{ciklik}prestashop>manage_bdbf67b5231abe7e342cd0ddf84326f1'] = 'Częstotliwość została zmieniona. Data następnego zamówienia pozostaje bez zmian.';
 $_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Ta częstotliwość nie jest dostępna dla wszystkich produktów Twojej subskrypcji.';
 $_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'Nie udało się zmienić subskrypcji. Spróbuj ponownie później.';
+$_MODULE['<{ciklik}prestashop>manage_819510706408719c8a3de819e2f41b7f'] = 'Ta subskrypcja jest nieaktywna: aktywuj ją ponownie przed zmianą częstotliwości.';
+$_MODULE['<{ciklik}prestashop>subscription_ad78b5d54b07add131ee95239d281ab1'] = 'Ta subskrypcja jest nieaktywna: nie można zmienić jej częstotliwości.';

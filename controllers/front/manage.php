@@ -356,6 +356,10 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             $this->ajaxFailAndDie($this->module->l('Access denied', 'manage'), 403);
         }
 
+        if (true !== $subscription->active) {
+            $this->ajaxFailAndDie($this->module->l('This subscription is inactive: reactivate it before changing its frequency.', 'manage'), 400);
+        }
+
         // Mode de création de l'abonnement, comme les choix affichés
         $useFrequencyMode = $subscription->frequency_mode;
 
@@ -364,7 +368,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         }
 
         try {
-            $result = CiklikSubscriptionFrequency::change($api, $uuid, $subscription->contents, $subscription->external_fingerprint, $useFrequencyMode, $value);
+            $result = CiklikSubscriptionFrequency::change($api, $uuid, $subscription->active, $subscription->contents, $subscription->external_fingerprint, $useFrequencyMode, $value);
         } catch (Throwable $e) {
             $result = ['success' => false, 'error' => CiklikSubscriptionFrequency::ERROR_API, 'response' => null];
         }

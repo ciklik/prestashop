@@ -652,3 +652,5 @@ $_MODULE['<{ciklik}prestashop>manage_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'This 
 $_MODULE['<{ciklik}prestashop>manage_bdbf67b5231abe7e342cd0ddf84326f1'] = 'The frequency has been updated. The next order date is unchanged.';
 $_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'This frequency is not available for every product of the subscription.';
 $_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'Unable to update the subscription. Please try again later.';
+$_MODULE['<{ciklik}prestashop>manage_819510706408719c8a3de819e2f41b7f'] = 'This subscription is inactive: reactivate it before changing its frequency.';
+$_MODULE['<{ciklik}prestashop>subscription_ad78b5d54b07add131ee95239d281ab1'] = 'This subscription is inactive: its frequency cannot be changed.';

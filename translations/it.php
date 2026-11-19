@@ -652,3 +652,5 @@ $_MODULE['<{ciklik}prestashop>manage_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Quest
 $_MODULE['<{ciklik}prestashop>manage_bdbf67b5231abe7e342cd0ddf84326f1'] = 'La frequenza è stata modificata. La data del prossimo ordine resta invariata.';
 $_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Questa frequenza non è disponibile per tutti i prodotti del suo abbonamento.';
 $_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'Impossibile modificare l\'abbonamento. Riprova più tardi.';
+$_MODULE['<{ciklik}prestashop>manage_819510706408719c8a3de819e2f41b7f'] = 'Questo abbonamento è disattivato: riattivalo prima di modificarne la frequenza.';
+$_MODULE['<{ciklik}prestashop>subscription_ad78b5d54b07add131ee95239d281ab1'] = 'Questo abbonamento è disattivato: la sua frequenza non può essere modificata.';

@@ -41,7 +41,7 @@
                             {include file="module:ciklik/views/templates/hook/displayPendingPayment.tpl" ciklik_pending_payments=[$pending_payments[$subscription->uuid]]}
                         {/if}
 
-                        {if $enable_change_interval === '1'}
+                        {if $enable_change_interval === '1' && $subscription->active}
                             {include file="module:ciklik/views/templates/front/actions/changeInterval.tpl" subscription=$subscription }
                         {/if}
                         {if !empty($subscription->contents) && $subscription->active}
