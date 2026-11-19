@@ -1,5 +1,21 @@
 # Guide de mise à jour — module Ciklik
 
+## 1.29.0 : recherche de points relais Chronopost
+
+- Rien à faire pour garder le comportement actuel : la recherche de points relais Chronopost reste éteinte.
+- Pour l'activer : configuration du module, bloc « Points relais » (affiché quand le module Chronopost est installé),
+  « Recherche de points relais Chronopost » sur Oui (clé `CIKLIK_CHRONOPOST_SEARCH_ENABLED`, par boutique en
+  multiboutique). Une modification de `CiklikRelaySearch.php` faite à la main pour l'activer n'est plus nécessaire.
+- Les versions récentes du module Chronopost (plusieurs contrats) sont prises en charge : le contrat utilisé est celui
+  de l'offre relais du transporteur de l'abonnement, sinon celui d'une autre offre relais, sinon le premier contrat
+  configuré. Les anciennes versions (contrat unique) restent prises en charge. Comptes « Petits pros » : pas de
+  recherche.
+- La requête de recherche suit celle de la carte du module Chronopost : code produit de l'offre, commerces seulement
+  pour les offres ToShop, mode de dépôt réglé dans le module sinon, service France pour la France et Monaco.
+- Après activation, faire une recherche depuis « Mes abonnements » sur un abonnement livré en point relais. En cas
+  d'échec, le client voit « La recherche de points relais est momentanément indisponible » et le journal de PrestaShop porte une ligne
+  `CiklikRelaySearch[chronopost]` (sans identifiants) : éteindre le réglage.
+
 ## 1.28.0 : aide au paramétrage des abonnements
 
 - Rien à faire : la mise à jour crée un onglet caché du back-office (`AdminCiklikProductTransform`), sans table ni hook.
