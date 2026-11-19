@@ -101,6 +101,39 @@ class AdminConfigureCiklikController extends ModuleAdminController
         if (Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE)) {
             $this->fields_options['ciklik_cart_footer'] = $this->getCartFooterOptionsBlock();
         }
+
+        // Bloc « Points relais », commun PS 1.7 / 8 / 9 : seulement quand le
+        // module Chronopost est installé, seul transporteur concerné
+        if (Module::isInstalled('chronopost')) {
+            $this->fields_options['ciklik_relay_search'] = $this->getRelaySearchOptionsBlock();
+        }
+    }
+
+    /**
+     * Options de la recherche de points relais par adresse (espace client et
+     * back-office) propres à un transporteur.
+     *
+     * @return array
+     */
+    public function getRelaySearchOptionsBlock()
+    {
+        return [
+            'title' => $this->l('Pickup points'),
+            'icon' => 'icon-map-marker',
+            'fields' => [
+                Ciklik::CONFIG_CHRONOPOST_SEARCH_ENABLED => [
+                    'type' => 'bool',
+                    'title' => $this->l('Chronopost pickup point search'),
+                    'desc' => $this->l('Lets customers and employees search Chronopost pickup points by address, with the contract set up in the Chronopost module (not available for small business accounts). When disabled, only pickup points already used by the customer are offered.'),
+                    'validation' => 'isBool',
+                    'cast' => 'intval',
+                    'required' => false,
+                ],
+            ],
+            'submit' => [
+                'title' => $this->l('Save'),
+            ],
+        ];
     }
 
     /**

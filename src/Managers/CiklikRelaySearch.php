@@ -70,12 +70,34 @@ class CiklikRelaySearch
     const COLISSIMO_ENDPOINT = 'https://ws.colissimo.fr/pointretrait-ws-cxf/rest/v2/pointretrait/findRDVPointRetraitAcheminement';
 
     /**
-     * Recherche Chronopost désactivée : route et parseur vérifiés, mais aucun
-     * appel réussi n'a été observé avec un contrat réel. Le back-office et
-     * l'espace client s'en tiennent aux relais connus (côté client : ceux
-     * qui portent un nom, soit aucun pour Chronopost).
+     * Offres point relais du module Chronopost, telles que nommées dans sa
+     * configuration (CHRONOPOST_<OFFRE>_ID, CHRONOPOST_<OFFRE>_ACCOUNT), avec
+     * leur code produit, dans l'ordre de préférence quand le transporteur
+     * n'est pas connu. Sert aussi à reconnaître les transporteurs relais
+     * ({@see DeliveryModuleManager::getChronoRelaisIDs()}) : liste alignée sur
+     * celle du module Chronopost.
      */
-    const CHRONOPOST_SEARCH_ENABLED = false;
+    const CHRONOPOST_RELAY_OFFERS = [
+        'CHRONORELAIS' => '86',
+        'CHRONORELAIS_AMBIENT' => '5Q',
+        'RELAISEUROPE' => '49',
+        'RELAISDOM' => '4P',
+        'TOSHOPDIRECT' => '5X',
+        'TOSHOPDIRECT_EUROPE' => '6B',
+    ];
+
+    /**
+     * Offres « ToShop » : le module Chronopost n'y recherche que des
+     * commerces (type « C »).
+     */
+    const CHRONOPOST_SHOP_ONLY_OFFERS = ['TOSHOPDIRECT', 'TOSHOPDIRECT_EUROPE'];
+
+    /**
+     * Type de compte « Petits pros » du module Chronopost
+     * (CHRONOPOST_GENERAL_ACCOUNTTYPE) : le module y substitue son propre
+     * contrat à ceux de la configuration, la recherche n'est pas proposée.
+     */
+    const CHRONOPOST_ACCOUNT_TYPE_SMALL_BUSINESS = '3';
 
     /**
      * La recherche est-elle disponible pour ce module transporteur, et pour
@@ -103,7 +125,7 @@ class CiklikRelaySearch
 
                 return function_exists('curl_init') && null !== self::getDpdfranceEndpoint();
             case 'chronopost':
-                return self::CHRONOPOST_SEARCH_ENABLED
+                return self::isChronopostSearchEnabled()
                     && extension_loaded('soap')
                     && null !== self::getChronopostCredentials();
             default:
@@ -121,13 +143,15 @@ class CiklikRelaySearch
      * @param array $address ['zipcode' => string, 'city' => string, 'country_iso' => string]
      * @param CarrierHttpClient|null $httpClient Client HTTP des services REST (Colissimo, DPD) ;
      *                                           injecté par les tests, créé sinon
+     * @param int|null $carrierReference id_reference du transporteur, quand il est connu :
+     *                                   choisit le contrat Chronopost de son offre
      *
      * @return array Liste normalisée : relay_id, name, address1, address2,
      *               zipcode, city, country_iso, latitude, longitude, + extras
      *
      * @throws \Exception si la recherche échoue (message générique, détail loggé)
      */
-    public static function searchRelays($module, array $address, $httpClient = null)
+    public static function searchRelays($module, array $address, $httpClient = null, $carrierReference = null)
     {
         $zipcode = isset($address['zipcode']) ? trim((string) $address['zipcode']) : '';
         $city = isset($address['city']) ? trim((string) $address['city']) : '';
@@ -147,11 +171,11 @@ class CiklikRelaySearch
             case 'dpdfrance':
                 return self::searchDpdfrance($zipcode, $city, $countryIso, $httpClient);
             case 'chronopost':
-                if (!self::CHRONOPOST_SEARCH_ENABLED) {
+                if (!self::isChronopostSearchEnabled()) {
                     throw new \Exception('Search is not available for this carrier');
                 }
 
-                return self::searchChronopost($zipcode, $city, $countryIso);
+                return self::searchChronopost($zipcode, $city, $countryIso, $carrierReference);
             default:
                 throw new \Exception('Search is not available for this carrier');
         }
@@ -540,39 +564,208 @@ class CiklikRelaySearch
     }
 
     /**
-     * Credentials Chronopost depuis la configuration du module voisin :
-     * numéro de contrat et mot de passe (code Chronotrace), les mêmes que
-     * ceux que le module envoie à PointRelaisServiceWS pour sa propre carte.
+     * Recherche Chronopost activée par le marchand (réglage du module, éteint
+     * par défaut) : sans essai concluant sur son contrat, le back-office et
+     * l'espace client s'en tiennent aux relais connus.
      *
-     * @return array|null ['account' => string, 'password' => string]
+     * @return bool
      */
-    private static function getChronopostCredentials()
+    public static function isChronopostSearchEnabled(): bool
     {
+        return (bool) \Configuration::get(\Ciklik::CONFIG_CHRONOPOST_SEARCH_ENABLED);
+    }
+
+    /**
+     * Credentials Chronopost depuis la configuration du module voisin :
+     * numéro de contrat et mot de passe, ceux que le module envoie à
+     * PointRelaisServiceWS pour sa propre carte.
+     *
+     * Module récent (multi-contrats) : liste JSON CHRONOPOST_GENERAL_ACCOUNTS
+     * (account, subaccount, password, accountname) et contrat de chaque offre
+     * dans CHRONOPOST_<OFFRE>_ACCOUNT. Le contrat retenu est celui de l'offre
+     * relais du transporteur, sinon celui d'une offre relais, sinon le
+     * premier de la liste (celui de la carte du module). Ancien module, sans
+     * liste : CHRONOPOST_GENERAL_ACCOUNT et CHRONOPOST_GENERAL_PASSWORD.
+     * Liste illisible ou sans contrat complet : aucun.
+     *
+     * @param int|null $carrierReference id_reference du transporteur, quand il est connu
+     *
+     * @return array|null ['account' => string, 'password' => string, 'subaccount' => string]
+     */
+    private static function getChronopostCredentials($carrierReference = null)
+    {
+        if (self::CHRONOPOST_ACCOUNT_TYPE_SMALL_BUSINESS === (string) \Configuration::get('CHRONOPOST_GENERAL_ACCOUNTTYPE')) {
+            return null;
+        }
+
+        $rawContracts = \Configuration::get('CHRONOPOST_GENERAL_ACCOUNTS');
+
+        // Module multi-contrats : la liste fait foi, même vide ou illisible.
+        // Sa mise à jour y recopie l'ancien contrat et laisse les anciennes
+        // clés, qu'il ne relit plus : elles peuvent être périmées.
+        if (is_string($rawContracts) && '' !== trim($rawContracts)) {
+            $contracts = self::parseChronopostContracts($rawContracts);
+
+            if ([] === $contracts) {
+                return null;
+            }
+
+            foreach (self::getChronopostRelayAccounts(self::getChronopostRelayOffer($carrierReference)) as $account) {
+                foreach ($contracts as $contract) {
+                    if ($contract['account'] === $account) {
+                        return $contract;
+                    }
+                }
+            }
+
+            return $contracts[0];
+        }
+
         $account = \Configuration::get('CHRONOPOST_GENERAL_ACCOUNT');
         $password = \Configuration::get('CHRONOPOST_GENERAL_PASSWORD');
 
-        if ($account && $password) {
-            return ['account' => (string) $account, 'password' => (string) $password];
+        if (self::isConfigValue($account) && self::isConfigValue($password)
+            && '' !== trim((string) $account) && '' !== (string) $password) {
+            return ['account' => trim((string) $account), 'password' => (string) $password, 'subaccount' => ''];
         }
 
         return null;
     }
 
     /**
-     * Recherche Chronopost : recherchePointChronopostInter (SOAP,
-     * PointRelaisServiceWS), mêmes valeurs que le module (points relais,
-     * date du jour, jours fériés tolérés).
+     * Contrats exploitables de la liste JSON CHRONOPOST_GENERAL_ACCOUNTS
+     * (numéro et mot de passe renseignés), dans leur ordre. JSON invalide :
+     * aucun. Le sous-compte est repris tel quel ; la recherche de relais ne
+     * l'utilise pas (le module Chronopost non plus).
+     *
+     * @param string $raw
      *
      * @return array
-     *
-     * @throws \Exception
      */
-    private static function searchChronopost($zipcode, $city, $countryIso)
+    private static function parseChronopostContracts(string $raw): array
     {
-        $credentials = self::getChronopostCredentials();
+        $decoded = json_decode($raw, true);
 
-        if (null === $credentials || !extension_loaded('soap')) {
-            throw new \Exception('Search is not available for this carrier');
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        $contracts = [];
+        foreach ($decoded as $entry) {
+            if (!is_array($entry)
+                || !isset($entry['account'], $entry['password'])
+                || !self::isConfigValue($entry['account'])
+                || !self::isConfigValue($entry['password'])) {
+                continue;
+            }
+
+            $account = trim((string) $entry['account']);
+            $password = (string) $entry['password'];
+            if ('' === $account || '' === $password) {
+                continue;
+            }
+
+            $contracts[] = [
+                'account' => $account,
+                'password' => $password,
+                'subaccount' => isset($entry['subaccount']) && self::isConfigValue($entry['subaccount'])
+                    ? trim((string) $entry['subaccount'])
+                    : '',
+            ];
+        }
+
+        return $contracts;
+    }
+
+    /**
+     * Valeur de configuration utilisable comme identifiant : texte ou entier
+     * (jamais un booléen, un nombre décimal ou une structure).
+     *
+     * @param mixed $value
+     *
+     * @return bool
+     */
+    private static function isConfigValue($value): bool
+    {
+        return is_string($value) || is_int($value);
+    }
+
+    /**
+     * Offre relais Chronopost du transporteur : celle dont
+     * CHRONOPOST_<OFFRE>_ID vaut son id_reference.
+     *
+     * @param int|null $carrierReference
+     *
+     * @return string|null Code de l'offre (clé de CHRONOPOST_RELAY_OFFERS)
+     */
+    public static function getChronopostRelayOffer($carrierReference = null)
+    {
+        if ((int) $carrierReference <= 0) {
+            return null;
+        }
+
+        foreach (array_keys(self::CHRONOPOST_RELAY_OFFERS) as $offer) {
+            if ((int) \Configuration::get('CHRONOPOST_' . $offer . '_ID') === (int) $carrierReference) {
+                return $offer;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Numéros de contrat des offres relais (CHRONOPOST_<OFFRE>_ACCOUNT), par
+     * préférence : d'abord celui de l'offre du transporteur, puis ceux des
+     * autres offres relais.
+     *
+     * @param string|null $carrierOffer Offre du transporteur, quand elle est connue
+     *
+     * @return string[]
+     */
+    private static function getChronopostRelayAccounts($carrierOffer = null): array
+    {
+        $offers = array_keys(self::CHRONOPOST_RELAY_OFFERS);
+        if (null !== $carrierOffer && in_array($carrierOffer, $offers, true)) {
+            $offers = array_merge([$carrierOffer], array_diff($offers, [$carrierOffer]));
+        }
+
+        $accounts = [];
+        foreach ($offers as $offer) {
+            $account = \Configuration::get('CHRONOPOST_' . $offer . '_ACCOUNT');
+            if (self::isConfigValue($account) && '' !== trim((string) $account)) {
+                $accounts[] = trim((string) $account);
+            }
+        }
+
+        return array_values(array_unique($accounts));
+    }
+
+    /**
+     * Requête de recherche Chronopost, construite comme celle de la carte du
+     * module Chronopost : recherchePointChronopost en France et à Monaco
+     * (cherché en France), recherchePointChronopostInter ailleurs ; code
+     * produit de l'offre ; commerces seulement pour les offres ToShop, sinon
+     * le mode de dépôt réglé dans le module (points relais par défaut).
+     * Pure, sans appel réseau.
+     *
+     * @param array $credentials ['account' => string, 'password' => string]
+     * @param string $zipcode
+     * @param string $city
+     * @param string $countryIso Pays ISO alpha-2 en majuscules
+     * @param string|null $offer Offre relais du transporteur, quand elle est connue
+     * @param string $shippingDate Date d'expédition (jj/mm/aaaa)
+     *
+     * @return array ['method' => string, 'params' => array]
+     */
+    public static function chronopostSearchRequest(array $credentials, $zipcode, $city, $countryIso, $offer, $shippingDate): array
+    {
+        $productCodes = self::CHRONOPOST_RELAY_OFFERS;
+
+        if (null !== $offer && in_array($offer, self::CHRONOPOST_SHOP_ONLY_OFFERS, true)) {
+            $type = 'C';
+        } else {
+            $dropMode = \Configuration::get('CHRONOPOST_MAP_DROPMODE');
+            $type = is_string($dropMode) && preg_match('/^[A-Z]$/', $dropMode) ? $dropMode : 'P';
         }
 
         $params = [
@@ -582,22 +775,60 @@ class CiklikRelaySearch
             'zipCode' => $zipcode,
             'city' => $city,
             'countryCode' => $countryIso,
-            'type' => 'P',
+            'type' => $type,
+            'productCode' => null !== $offer && isset($productCodes[$offer]) ? $productCodes[$offer] : '',
             'service' => 'L',
             'weight' => '0',
-            'shippingDate' => date('d/m/Y'),
+            'shippingDate' => $shippingDate,
             'maxPointChronopost' => (string) self::MAX_RESULTS,
             'maxDistanceSearch' => '40',
             'holidayTolerant' => '1',
-            'language' => 'FR',
         ];
+
+        if (in_array($countryIso, ['FR', 'FX', 'MC'], true)) {
+            $params['countryCode'] = 'MC' === $countryIso ? 'FR' : $countryIso;
+
+            return ['method' => 'recherchePointChronopost', 'params' => $params];
+        }
+
+        $params['language'] = 'FR';
+
+        return ['method' => 'recherchePointChronopostInter', 'params' => $params];
+    }
+
+    /**
+     * Recherche Chronopost (SOAP, PointRelaisServiceWS), requête de
+     * {@see chronopostSearchRequest()}.
+     *
+     * @param int|null $carrierReference id_reference du transporteur, quand il est connu
+     *
+     * @return array
+     *
+     * @throws \Exception
+     */
+    private static function searchChronopost($zipcode, $city, $countryIso, $carrierReference = null)
+    {
+        $credentials = self::getChronopostCredentials($carrierReference);
+
+        if (null === $credentials || !extension_loaded('soap')) {
+            throw new \Exception('Search is not available for this carrier');
+        }
+
+        $request = self::chronopostSearchRequest(
+            $credentials,
+            $zipcode,
+            $city,
+            $countryIso,
+            self::getChronopostRelayOffer($carrierReference),
+            date('d/m/Y')
+        );
 
         try {
             // Mêmes bornes que Mondial Relay : connexion, socket et cache WSDL
-            $response = self::withSocketTimeout(self::SEARCH_TIMEOUT, function () use ($params) {
+            $response = self::withSocketTimeout(self::SEARCH_TIMEOUT, function () use ($request) {
                 $client = new \SoapClient(self::CHRONOPOST_WSDL, self::soapClientOptions(self::CHRONOPOST_ENDPOINT));
 
-                return $client->recherchePointChronopostInter($params);
+                return $client->__soapCall($request['method'], [$request['params']]);
             });
         } catch (\Throwable $e) {
             // Ne pas journaliser le message brut : il peut contenir des extraits

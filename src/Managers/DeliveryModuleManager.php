@@ -1595,14 +1595,9 @@ class DeliveryModuleManager
         // Liste alignée sur Chronopost::getChronoRelaisIDs() du module officiel :
         // les transporteurs ToShop/Shop2Shop y sont traités comme des relais
         // (lecture de chrono_cart_relais pour le recipientRef de l'étiquette).
-        return [
-            (int) \Configuration::get('CHRONOPOST_CHRONORELAIS_AMBIENT_ID'),
-            (int) \Configuration::get('CHRONOPOST_CHRONORELAIS_ID'),
-            (int) \Configuration::get('CHRONOPOST_RELAISEUROPE_ID'),
-            (int) \Configuration::get('CHRONOPOST_RELAISDOM_ID'),
-            (int) \Configuration::get('CHRONOPOST_TOSHOPDIRECT_ID'),
-            (int) \Configuration::get('CHRONOPOST_TOSHOPDIRECT_EUROPE_ID'),
-        ];
+        return array_map(function ($offer) {
+            return (int) \Configuration::get('CHRONOPOST_' . $offer . '_ID');
+        }, array_keys(CiklikRelaySearch::CHRONOPOST_RELAY_OFFERS));
     }
 
     public static function isRelais($idCarrier)
