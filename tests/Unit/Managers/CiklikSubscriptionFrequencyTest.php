@@ -75,9 +75,14 @@ class CiklikSubscriptionFrequencyTest extends TestCase
             ['frequency_id' => '2', 'display_name' => 'Fréquence : Tous les 2 mois', 'interval' => 'month', 'interval_count' => '2'],
         ];
 
+        // Le second produit propose aussi une fréquence que le premier n'a pas
+        $secondChoices = array_merge($choices, [
+            ['frequency_id' => '3', 'display_name' => 'Fréquence : Trimestriel', 'interval' => 'month', 'interval_count' => '3'],
+        ]);
+
         return [
             ['external_id' => '12:0', 'quantity' => 2, 'other_combinations' => $choices],
-            ['external_id' => '13:0', 'quantity' => 1, 'other_combinations' => []],
+            ['external_id' => '13:0', 'quantity' => 1, 'other_combinations' => $secondChoices],
         ];
     }
 
@@ -104,11 +109,61 @@ class CiklikSubscriptionFrequencyTest extends TestCase
         return json_decode((string) $this->history[0]['request']->getBody(), true);
     }
 
-    public function testChoicesAreThoseOfTheFirstLineKeyedByTheValueOfTheMode()
+    public function testChoicesAreKeyedByTheValueOfTheMode()
     {
         $this->assertSame([1, 2], array_keys(CiklikSubscriptionFrequency::getChoices($this->frequencyContents(), true)));
         $this->assertSame([102, 103], array_keys(CiklikSubscriptionFrequency::getChoices($this->combinationContents(), false)));
         $this->assertSame([], CiklikSubscriptionFrequency::getChoices([], true));
+    }
+
+    /**
+     * Mode fréquences, plusieurs produits : seules les fréquences proposées
+     * pour chaque produit, dans l'ordre et avec les libellés du premier
+     */
+    public function testFrequencyModeChoicesAreTheIntersectionOfAllLines()
+    {
+        $contents = $this->frequencyContents();
+        $contents[0]['other_combinations'][] = ['frequency_id' => '4', 'display_name' => 'Fréquence : Annuel', 'interval' => 'year', 'interval_count' => '1'];
+        $contents[] = ['external_id' => '14:0', 'quantity' => 1, 'other_combinations' => [
+            ['frequency_id' => '2', 'display_name' => 'Fréquence : Tous les 2 mois', 'interval' => 'month', 'interval_count' => '2'],
+            ['frequency_id' => '4', 'display_name' => 'Fréquence : Annuel', 'interval' => 'year', 'interval_count' => '1'],
+        ]];
+
+        $choices = CiklikSubscriptionFrequency::getChoices($contents, true);
+
+        $this->assertSame([2], array_keys($choices));
+        $this->assertSame('Fréquence : Tous les 2 mois', $choices[2]['display_name']);
+    }
+
+    /**
+     * Un produit sans fréquence proposée : aucun choix pour l'abonnement
+     */
+    public function testFrequencyModeLineWithoutChoiceLeavesNoChoice()
+    {
+        $contents = $this->frequencyContents();
+        $contents[1]['other_combinations'] = [];
+
+        $this->assertSame([], CiklikSubscriptionFrequency::getChoices($contents, true));
+    }
+
+    /**
+     * Mode déclinaisons : identifiants propres à chaque produit, choix de la
+     * première ligne (la correspondance de chaque ligne est vérifiée au changement)
+     */
+    public function testCombinationModeChoicesAreThoseOfTheFirstLine()
+    {
+        $this->assertSame([102, 103], array_keys(CiklikSubscriptionFrequency::getChoices($this->combinationContents(), false)));
+    }
+
+    /**
+     * Fréquence d'un seul produit (hors intersection) : refusée sans appel à Ciklik
+     */
+    public function testFrequencyOutsideTheIntersectionIsRefused()
+    {
+        $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, true, $this->frequencyContents(), $this->fingerprint(), true, '3');
+
+        $this->assertSame(CiklikSubscriptionFrequency::ERROR_INVALID_CHOICE, $result['error']);
+        $this->assertCount(0, $this->history);
     }
 
     public function testFrequencyModeSendsFingerprintAndIntervalWithoutNextBilling()

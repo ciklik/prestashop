@@ -46,18 +46,20 @@ class DisplayOrderSubscriptionInfoHookController
             return '';
         }
 
-        $orderData = (new PrestaShop\Module\Ciklik\Api\Order($this->context->link))->getOneByPsOrderId((int) $params['id_order']);
-
+        $orderData = null;
         $subscription = null;
         $frequencyChoices = [];
         $frequencyMode = false;
 
-        // Abonnement, mode et fréquences proposées lus dans la boutique de la
-        // commande, comme l'action « Modifier la fréquence » qui les valide
+        // Commande, abonnement, mode et fréquences proposées lus dans la
+        // boutique de la commande (jeton d'API compris), comme les actions du
+        // bloc qui les valident
         $shopContext = new ShopContextSwitch();
         $shopContext->switchTo((int) $order->id_shop);
 
         try {
+            $orderData = (new PrestaShop\Module\Ciklik\Api\Order($this->context->link))->getOneByPsOrderId((int) $params['id_order']);
+
             if (
                 $orderData !== null
                 && ($ciklikSubscriptionData = (new PrestaShop\Module\Ciklik\Api\Subscription($this->context->link))->getOne($orderData->subscription_uuid))
@@ -124,6 +126,7 @@ class DisplayOrderSubscriptionInfoHookController
             'ciklik_order_url' => 'https://app.ciklik.co/app/resources/checkout-orders/' . $orderData->ciklik_order_id,
             'manageActionUrl' => $this->context->link->getModuleLink('ciklik', 'manage'),
             'manageAjaxToken' => sha1(_COOKIE_KEY_ . 'ciklik_manage'),
+            'ciklik_manage_order_id' => (int) $order->id,
             'ciklik_frequency_choices' => $frequencyChoices,
             'ciklik_frequency_mode' => $frequencyMode,
             // Fréquence actuelle, marquée dans la liste en mode fréquences

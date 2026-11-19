@@ -9,6 +9,7 @@ namespace PrestaShop\Module\Ciklik\Data;
 
 use PrestaShop\Module\Ciklik\Managers\CiklikCombination;
 use PrestaShop\Module\Ciklik\Managers\CiklikFrequency;
+use PrestaShop\Module\Ciklik\Managers\CiklikSubscriptionFrequency;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -76,6 +77,14 @@ class SubscriptionData
      */
     public $frequency_mode;
 
+    /**
+     * Fréquences proposées au changement, indexées par la valeur à poster
+     * (voir CiklikSubscriptionFrequency::getChoices)
+     *
+     * @var array
+     */
+    public $frequency_choices;
+
     private function __construct(string $uuid,
         bool $active,
         string $display_content,
@@ -103,6 +112,7 @@ class SubscriptionData
             $contents,
             '1' === (string) \Configuration::get(\Ciklik::CONFIG_USE_FREQUENCY_MODE)
         );
+        $this->frequency_choices = CiklikSubscriptionFrequency::getChoices($contents, $this->frequency_mode);
     }
 
     public static function create(array $data): SubscriptionData

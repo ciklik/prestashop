@@ -26,39 +26,19 @@
                 <input type="hidden" name="token" value="{$token|escape:'html':'UTF-8'}">
                 <div class="form-group mb-3">
                 <label class="form-label" for="product_combination-{$subscription->uuid|escape:'html':'UTF-8'}">{l s='Choose' mod='ciklik'}</label>
-                {if $subscription->frequency_mode}
-                    <select class="form-control form-select" name="product_combination" id="product_combination-{$subscription->uuid|escape:'html':'UTF-8'}" required>
-                        {if !empty($subscription->contents)}
-                            {assign var=content value=$subscription->contents[0]}
-                            {if !empty($content.other_combinations)}
-                                {foreach from=$content.other_combinations item=combination}
-                                    <option value="{$combination.frequency_id|escape:'html':'UTF-8'}">
-                                        {$combination.display_name|escape:'html':'UTF-8'}
-                                    </option>
-                                {/foreach}
-                            {/if}
-                        {else}
-                            <option value="">{l s='No other combination available' mod='ciklik'}</option>
-                        {/if}
-                    </select>
-                    <input type="hidden" name="use_frequency_mode" value="1">
-                {else}
-                    <select class="form-control form-select" name="product_combination" id="product_combination-{$subscription->uuid|escape:'html':'UTF-8'}" required>
-                        {if !empty($subscription->contents)}
-                            {assign var=content value=$subscription->contents[0]}
-                            {if !empty($content.other_combinations)}
-                                {foreach from=$content.other_combinations item=combination}
-                                    <option value="{$combination.id_product_attribute|escape:'html':'UTF-8'}">
-                                        {$combination.display_name|escape:'html':'UTF-8'}
-                                    </option>
-                                {/foreach}
-                            {/if}
-                        {else}
-                            <option value="">{l s='No other combination available' mod='ciklik'}</option>
-                        {/if}
-                    </select>
-                    <input type="hidden" name="use_frequency_mode" value="0">
-                {/if}
+                {* Choix valables pour tous les produits de l'abonnement (CiklikSubscriptionFrequency::getChoices) *}
+                <select class="form-control form-select" name="product_combination" id="product_combination-{$subscription->uuid|escape:'html':'UTF-8'}" required>
+                    {if !empty($subscription->frequency_choices)}
+                        {foreach from=$subscription->frequency_choices key=choiceValue item=combination}
+                            <option value="{$choiceValue|intval}">
+                                {$combination.display_name|escape:'html':'UTF-8'}
+                            </option>
+                        {/foreach}
+                    {else}
+                        <option value="">{l s='No other combination available' mod='ciklik'}</option>
+                    {/if}
+                </select>
+                <input type="hidden" name="use_frequency_mode" value="{if $subscription->frequency_mode}1{else}0{/if}">
 
                 </div>
                 </form>

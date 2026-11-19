@@ -315,6 +315,8 @@ $(function () {
     var manageUrl = '{$manageActionUrl|escape:"javascript":"UTF-8"}';
     var ajaxToken = '{$manageAjaxToken|escape:"javascript":"UTF-8"}';
     var subscriptionUuid = '{$subscription->uuid|escape:"javascript":"UTF-8"}';
+    // Commande consultée : le serveur en redérive client, boutique et abonnement
+    var orderId = {$ciklik_manage_order_id|intval};
     var frequencyMode = {if $ciklik_frequency_mode}true{else}false{/if};
     var currentSuffix = ' ({l s="current" mod="ciklik" js=1})';
     var labelActive = '{l s="Active" mod="ciklik" js=1}';
@@ -339,6 +341,7 @@ $(function () {
 
         data.ajax_token = ajaxToken;
         data.subscriptionUuid = subscriptionUuid;
+        data.id_order = orderId;
         data.ajax = true;
 
         $.ajax({
@@ -451,7 +454,7 @@ $(function () {
     $('#ciklik-btn-confirm-frequency').on('click', function () {
         var frequency = $('#ciklik-new-frequency').val();
         if (!frequency) return;
-        doManageAction({ action: 'changeFrequency', id_order: {$ciklik_relay_order_id|intval}, frequency: frequency }, $(this));
+        doManageAction({ action: 'changeFrequency', frequency: frequency }, $(this));
     });
 
     $('#ciklik-toggle-technical').on('click', function (e) {

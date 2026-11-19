@@ -1,6 +1,8 @@
 # Guide de mise à jour — module Ciklik
 
-## 1.29.0 : recherche de points relais Chronopost
+## 1.29.0 : recherche de points relais Chronopost, changement de fréquence en back-office
+
+### Recherche de points relais Chronopost
 
 - Rien à faire pour garder le comportement actuel : la recherche de points relais Chronopost reste éteinte.
 - Pour l'activer : configuration du module, bloc « Points relais » (affiché quand le module Chronopost est installé),
@@ -19,6 +21,31 @@
 - Après activation, faire une recherche depuis « Mes abonnements » sur un abonnement livré en point relais. En cas
   d'échec, le client voit « La recherche de points relais est momentanément indisponible » et le journal de PrestaShop porte une ligne
   `CiklikRelaySearch[chronopost]` (sans identifiants) : éteindre le réglage.
+
+### Changement de fréquence et actions du back-office
+
+- Rien à faire. Sur la fiche commande du back-office, le bloc Ciklik propose « Modifier la fréquence » de l'abonnement,
+  avec les mêmes choix que « Mes abonnements », même si l'option client est désactivée. La date de la prochaine
+  commande ne change pas.
+- Abonnement désactivé : le changement de fréquence est désormais masqué et refusé, en back-office comme dans « Mes
+  abonnements ». Réactiver l'abonnement avant de changer sa fréquence.
+- Mode fréquences, abonnement à plusieurs produits : seules les fréquences proposées pour chacun des produits sont
+  proposées (auparavant, celles du premier produit) ; un autre choix est refusé. Un produit sans fréquence ne laisse
+  aucun choix.
+- Mode déclinaisons : chaque produit passe à sa déclinaison à la nouvelle fréquence, au prix de cette déclinaison ; le
+  changement est refusé si un produit n'en a pas, ou s'il est personnalisé.
+- Le mode d'un abonnement est lu dans son contenu : un abonnement créé en mode déclinaisons le reste si la boutique
+  passe en mode fréquences, et inversement.
+- Droits du back-office : désactiver, réactiver, changer la date du prochain paiement et changer la fréquence demandent
+  le droit de modifier les commandes (Paramètres avancés > Équipe > Permissions, onglet Commandes), comme le
+  changement de point relais. L'abonnement doit être celui de la commande consultée et appartenir à son client, sinon
+  « Accès refusé ». Chaque action et chaque échec sont journalisés (`CiklikSubscription`, avec l'employé).
+- Messages d'erreur : dans « Mes abonnements », un refus de Ciklik affiche un message générique traduit, plus le texte
+  brut de l'API ; la cause (code HTTP, champs en erreur) est écrite dans le journal de PrestaShop. En back-office, le
+  motif de Ciklik reste affiché à l'employé.
+- Thème qui surcharge `views/templates/front/actions/changeInterval.tpl` : la liste vient désormais de
+  `$subscription->frequency_choices` (clé = valeur à envoyer). Une ancienne surcharge continue de fonctionner, mais un
+  choix qui ne vaut pas pour tous les produits est refusé.
 
 ## 1.28.0 : aide au paramétrage des abonnements
 
