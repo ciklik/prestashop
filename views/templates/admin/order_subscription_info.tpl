@@ -323,6 +323,7 @@ $(function () {
     var labelInactive = '{l s="Inactive" mod="ciklik" js=1}';
     var labelDeactivate = '<i class="material-icons">pause</i> {l s="Deactivate subscription" mod="ciklik" js=1}';
     var labelActivate = '<i class="material-icons">play_arrow</i> {l s="Activate subscription" mod="ciklik" js=1}';
+    var labelError = '{l s="An error occurred while updating the subscription." mod="ciklik" js=1}';
 
     function showSuccess(msg) {
         $('.ciklik-manage-danger').hide();
@@ -403,9 +404,9 @@ $(function () {
         .fail(function (xhr) {
             try {
                 var jsondata = JSON.parse(xhr.responseText);
-                showError(jsondata.message);
+                showError(jsondata.message || labelError);
             } catch (e) {
-                showError('An error occurred');
+                showError(labelError);
             }
         })
         .always(function () {

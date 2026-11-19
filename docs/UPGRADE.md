@@ -43,6 +43,10 @@
 - Messages d'erreur : dans « Mes abonnements », un refus de Ciklik affiche un message générique traduit, plus le texte
   brut de l'API ; la cause (code HTTP, champs en erreur) est écrite dans le journal de PrestaShop. En back-office, le
   motif de Ciklik reste affiché à l'employé.
+- Pause et réactivation dans « Mes abonnements » : le message de réussite ne s'affiche plus quand Ciklik refuse la
+  demande, ne répond pas ou renvoie une réponse illisible. Le client voit « Votre abonnement n'a pas pu être suspendu »
+  (ou réactivé), l'abonnement reste dans son état et la cause est journalisée. La date du prochain paiement, le report
+  d'une livraison et le changement d'adresse n'annoncent plus non plus de réussite sur une réponse illisible.
 - Thème qui surcharge `views/templates/front/actions/changeInterval.tpl` : la liste vient désormais de
   `$subscription->frequency_choices` (clé = valeur à envoyer). Une ancienne surcharge continue de fonctionner, mais un
   choix qui ne vaut pas pour tous les produits est refusé.
