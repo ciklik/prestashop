@@ -101,6 +101,44 @@ class CiklikApiResponseHandler
     }
 
     /**
+     * Résumé d'un échec de l'API pour le journal de PrestaShop : code HTTP,
+     * réponse illisible, noms des champs en erreur. Jamais le texte des
+     * erreurs, qui peut citer une donnée du client ou une URL.
+     *
+     * @param mixed $response Réponse formatée par handleResponse() ou buildErrorResponse()
+     *
+     * @return string
+     */
+    public static function failureSummary($response)
+    {
+        if (!is_array($response)) {
+            return 'réponse absente';
+        }
+
+        $code = isset($response['httpCode']) ? (int) $response['httpCode'] : 0;
+        $parts = [$code > 0 ? 'HTTP ' . $code : 'sans réponse HTTP'];
+
+        if ($code >= 200 && $code < 300 && empty($response['status'])) {
+            $parts[] = 'réponse illisible (JSON invalide)';
+        }
+
+        $fields = [];
+        if (isset($response['errors']) && is_array($response['errors'])) {
+            foreach (array_keys($response['errors']) as $field) {
+                if (is_string($field) && 1 === preg_match('/^[A-Za-z0-9_.]{1,64}$/', $field)) {
+                    $fields[] = $field;
+                }
+            }
+        }
+
+        if (!empty($fields)) {
+            $parts[] = 'champs : ' . implode(', ', $fields);
+        }
+
+        return implode(', ', $parts);
+    }
+
+    /**
      * Refus connu de l'API sur le champ « product » ({@see KNOWN_PRODUCT_REFUSALS}).
      *
      * @param mixed $response Réponse formatée

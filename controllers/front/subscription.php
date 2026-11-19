@@ -319,10 +319,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         );
 
         if (!empty($result['errors'])) {
-            foreach ($result['errors'] as $key => $error) {
-                $errorMessage = is_array($error) ? $error[0] : $error;
-                $this->errors[] = Tools::htmlentitiesUTF8($errorMessage);
-            }
+            $this->errors[] = $this->apiFailureMessage('next billing change', $uuid, $result);
         } else {
             $this->success[] = $this->module->l('Your subscription renewal date has been updated.', 'subscription');
         }
@@ -384,10 +381,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         $result = $subscriptionApi->update($uuid, ['next_billing' => $newDate->format('Y-m-d')]);
 
         if (!empty($result['errors'])) {
-            foreach ($result['errors'] as $error) {
-                $errorMessage = is_array($error) ? $error[0] : $error;
-                $this->errors[] = Tools::htmlentitiesUTF8($errorMessage);
-            }
+            $this->errors[] = $this->apiFailureMessage('skip', $uuid, $result);
         } else {
             $this->success[] = sprintf(
                 $this->module->l('Your next delivery has been postponed to %s.', 'subscription'),
@@ -432,10 +426,8 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             ['metadata' => ['prestashop_fingerprint' => $sub->external_fingerprint->encodeDatas()]]
         );
 
-        if (count($result['errors'])) {
-            foreach ($result['errors'] as $key => $error) {
-                $this->errors[] = Tools::htmlentitiesUTF8($error[0]);
-            }
+        if (!empty($result['errors'])) {
+            $this->errors[] = $this->apiFailureMessage('address change', $uuid, $result);
         } else {
             $this->success[] = $this->module->l('Your new address has been saved.', 'subscription');
         }
@@ -502,11 +494,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         } elseif (CiklikSubscriptionFrequency::ERROR_NO_MATCH === $result['error']) {
             $this->errors[] = $this->module->l('This frequency is not available for every product of the subscription.', 'subscription');
         } else {
-            // Motif du refus de Ciklik, échappé, ou message générique
-            $this->errors[] = CiklikApiResponseHandler::customerErrorMessage(
-                $result['response'],
-                $this->module->l('Unable to update the subscription. Please try again later.', 'subscription')
-            );
+            $this->errors[] = $this->apiFailureMessage('frequency change', $subscriptionUuid, $result['response']);
         }
 
         $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
@@ -622,9 +610,8 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
     /**
      * Message d'un refus de l'API pour le client : refus connus du champ
-     * « product » traduits par le module ; texte de l'API, rédigé en
-     * français, pour un client francophone seulement ; message générique
-     * traduit ($fallback) sinon.
+     * « product » traduits par le module, message générique traduit
+     * ($fallback) sinon. Le texte brut de l'API n'est jamais montré au client.
      *
      * @param array $result Réponse de l'API
      * @param string $fallback Message générique du module
@@ -642,7 +629,36 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
                 'unknown_product' => $this->module->l('This product cannot be added to your subscription.', 'subscription'),
                 'other_tenant' => $this->module->l('This product is not available for subscription.', 'subscription'),
             ],
-            $this->context->language && 'fr' === strtolower((string) $this->context->language->iso_code)
+            false
+        );
+    }
+
+    /**
+     * Refus de Ciklik sur une modification de l'abonnement : cause
+     * journalisée (code HTTP, champs en erreur, sans le texte de l'API),
+     * message générique traduit pour le client.
+     *
+     * @param string $operation Libellé du journal
+     * @param string $uuid
+     * @param array|null $result Réponse de l'API
+     *
+     * @return string
+     */
+    private function apiFailureMessage($operation, $uuid, $result)
+    {
+        PrestaShopLogger::addLog(
+            'Ciklik subscription ' . $operation . ' refused (customer account) - subscription ' . $uuid
+                . ' - ' . CiklikApiResponseHandler::failureSummary($result),
+            2,
+            null,
+            'CiklikSubscription',
+            null,
+            true
+        );
+
+        return $this->apiRefusalMessage(
+            is_array($result) ? $result : [],
+            $this->module->l('Unable to update the subscription. Please try again later.', 'subscription')
         );
     }
 

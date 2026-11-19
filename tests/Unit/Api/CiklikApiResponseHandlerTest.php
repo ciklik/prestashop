@@ -201,4 +201,42 @@ class CiklikApiResponseHandlerTest extends TestCase
             ])
         );
     }
+
+    /**
+     * Résumé d'un échec pour le journal : code HTTP et noms des champs en
+     * erreur, jamais le texte de l'API (qui peut citer une donnée du client)
+     */
+    public function testFailureSummaryGivesHttpCodeAndFieldNamesOnly()
+    {
+        $summary = CiklikApiResponseHandler::failureSummary([
+            'status' => false,
+            'httpCode' => 422,
+            'errors' => ['next_billing' => ['La date du 12/03 de Jean Dupont est invalide']],
+        ]);
+
+        $this->assertSame('HTTP 422, champs : next_billing', $summary);
+    }
+
+    /**
+     * Réponse 2xx non décodable : signalée comme illisible
+     */
+    public function testFailureSummaryFlagsUnreadableSuccessResponse()
+    {
+        $this->assertSame(
+            'HTTP 200, réponse illisible (JSON invalide)',
+            CiklikApiResponseHandler::failureSummary(['status' => false, 'httpCode' => 200, 'errors' => []])
+        );
+    }
+
+    /**
+     * Erreur réseau construite par le client, réponse absente : aucun texte repris
+     */
+    public function testFailureSummaryWithoutHttpResponse()
+    {
+        $this->assertSame(
+            'sans réponse HTTP',
+            CiklikApiResponseHandler::failureSummary(['status' => false, 'httpCode' => 0, 'errors' => ['cURL error 28 https://api.test/?token=abc']])
+        );
+        $this->assertSame('réponse absente', CiklikApiResponseHandler::failureSummary(null));
+    }
 }

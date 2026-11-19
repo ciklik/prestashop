@@ -6,8 +6,10 @@
  */
 
 use PrestaShop\Module\Ciklik\Api\CiklikApiResponseHandler;
+use PrestaShop\Module\Ciklik\Api\Order as CiklikOrderApi;
 use PrestaShop\Module\Ciklik\Api\Subscription;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
+use PrestaShop\Module\Ciklik\Helpers\OrderSubscriptionGuard;
 use PrestaShop\Module\Ciklik\Helpers\RelaySearchQuota;
 use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
 use PrestaShop\Module\Ciklik\Managers\CiklikDeliveryOverride;
@@ -105,24 +107,9 @@ class CiklikManageModuleFrontController extends ModuleFrontController
      */
     private function handleDeactivate()
     {
-        $uuid = $this->getValidatedUuid();
-        $response = null;
+        list($uuid, , $api) = $this->resolveOrderSubscription();
 
-        try {
-            $response = (new Subscription($this->context->link))->update($uuid, [
-                'active' => false,
-            ]);
-        } catch (Throwable $e) {
-            $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage')
-            );
-        }
-
-        if (!$response['status']) {
-            $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage')
-            );
-        }
+        $this->updateSubscription($api, $uuid, 'deactivate', ['active' => false]);
 
         $this->ajaxRenderAndExit(json_encode([
             'success' => true,
@@ -138,24 +125,9 @@ class CiklikManageModuleFrontController extends ModuleFrontController
      */
     private function handleActivate()
     {
-        $uuid = $this->getValidatedUuid();
-        $response = null;
+        list($uuid, , $api) = $this->resolveOrderSubscription();
 
-        try {
-            $response = (new Subscription($this->context->link))->update($uuid, [
-                'active' => true,
-            ]);
-        } catch (Throwable $e) {
-            $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage')
-            );
-        }
-
-        if (!$response['status']) {
-            $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage')
-            );
-        }
+        $this->updateSubscription($api, $uuid, 'activate', ['active' => true]);
 
         $this->ajaxRenderAndExit(json_encode([
             'success' => true,
@@ -171,8 +143,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
      */
     private function handleChangeNextBilling()
     {
-        $uuid = $this->getValidatedUuid();
-        $response = null;
+        list($uuid, , $api) = $this->resolveOrderSubscription();
         $nextBilling = Tools::getValue('next_billing');
 
         // Validation du format YYYY-MM-DD
@@ -197,21 +168,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             );
         }
 
-        try {
-            $response = (new Subscription($this->context->link))->update($uuid, [
-                'next_billing' => $nextBilling,
-            ]);
-        } catch (Throwable $e) {
-            $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage')
-            );
-        }
-
-        if (!$response['status']) {
-            $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage')
-            );
-        }
+        $this->updateSubscription($api, $uuid, 'next billing change', ['next_billing' => $nextBilling]);
 
         $this->ajaxRenderAndExit(json_encode([
             'success' => true,
@@ -220,6 +177,70 @@ class CiklikManageModuleFrontController extends ModuleFrontController
                 'next_billing' => $nextBilling,
             ],
         ]));
+    }
+
+    /**
+     * Envoie une modification de l'abonnement à Ciklik et la journalise ;
+     * arrête la requête sur un refus.
+     *
+     * @param Subscription $api
+     * @param string $uuid
+     * @param string $operation Libellé du journal
+     * @param array $data
+     */
+    private function updateSubscription(Subscription $api, $uuid, $operation, array $data)
+    {
+        try {
+            $response = $api->update($uuid, $data);
+        } catch (Throwable $e) {
+            $this->failApiUpdate($operation, $uuid, null, 'exception ' . get_class($e));
+        }
+
+        if (empty($response['status']) || !empty($response['errors'])) {
+            $this->failApiUpdate($operation, $uuid, $response, CiklikApiResponseHandler::failureSummary($response));
+        }
+
+        $this->logSubscriptionAction('Ciklik subscription ' . $operation . ' - subscription ' . $uuid, 1);
+    }
+
+    /**
+     * Refus ou erreur de Ciklik sur une modification : cause journalisée, et
+     * motif de Ciklik montré à l'employé (échappé : le message s'affiche en HTML).
+     *
+     * @param string $operation
+     * @param string $uuid
+     * @param array|null $response
+     * @param string $cause Motif court, sans donnée du client
+     */
+    private function failApiUpdate($operation, $uuid, $response, $cause)
+    {
+        $this->logSubscriptionAction('Ciklik subscription ' . $operation . ' failed - subscription ' . $uuid . ' - ' . $cause, 3);
+
+        $apiMessage = null !== $response ? CiklikApiResponseHandler::customerErrorMessage($response, '') : '';
+        $this->ajaxFailAndDie(
+            $this->module->l('An error occurred while updating the subscription.', 'manage') . ('' !== $apiMessage ? ' ' . $apiMessage : ''),
+            400
+        );
+    }
+
+    /**
+     * Journal des actions du back-office sur un abonnement : employé, sans
+     * donnée du client
+     *
+     * @param string $message
+     * @param int $severity
+     */
+    private function logSubscriptionAction($message, $severity)
+    {
+        PrestaShopLogger::addLog(
+            $message,
+            $severity,
+            null,
+            'CiklikSubscription',
+            null,
+            true,
+            $this->employee ? (int) $this->employee->id : null
+        );
     }
 
     /**
@@ -321,40 +342,8 @@ class CiklikManageModuleFrontController extends ModuleFrontController
      */
     private function handleChangeFrequency()
     {
-        $this->assertEmployeeCanEditOrders();
-
-        list($idCustomer, $idShop) = $this->resolveOrderContext();
-        $uuid = $this->getValidatedUuid();
+        list($uuid, $subscription, $api) = $this->resolveOrderSubscription();
         $value = (int) Tools::getValue('frequency');
-
-        // Jeton d'API, mode et fréquences proposées de la boutique de la commande
-        if ($idShop > 0 && Shop::isFeatureActive()) {
-            Shop::setContext(Shop::CONTEXT_SHOP, $idShop);
-        }
-
-        $api = new Subscription($this->context->link);
-        $subscription = null;
-
-        try {
-            $response = $api->getOne($uuid);
-            if (!empty($response['status']) && !empty($response['body']['external_fingerprint'])) {
-                $subscription = SubscriptionData::create($response['body']);
-            }
-        } catch (Throwable $e) {
-            $subscription = null;
-        }
-
-        if (null === $subscription) {
-            $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage')
-            );
-        }
-
-        // L'abonnement doit être celui du client de la commande : l'UUID vient
-        // de la requête, le client de la commande dont l'accès a été vérifié
-        if ((int) $subscription->external_fingerprint->id_customer !== $idCustomer) {
-            $this->ajaxFailAndDie($this->module->l('Access denied', 'manage'), 403);
-        }
 
         if (true !== $subscription->active) {
             $this->ajaxFailAndDie($this->module->l('This subscription is inactive: reactivate it before changing its frequency.', 'manage'), 400);
@@ -370,7 +359,7 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         try {
             $result = CiklikSubscriptionFrequency::change($api, $uuid, $subscription->active, $subscription->contents, $subscription->external_fingerprint, $useFrequencyMode, $value);
         } catch (Throwable $e) {
-            $result = ['success' => false, 'error' => CiklikSubscriptionFrequency::ERROR_API, 'response' => null];
+            $this->failApiUpdate('frequency change', $uuid, null, 'exception ' . get_class($e));
         }
 
         if (CiklikSubscriptionFrequency::ERROR_INVALID_CHOICE === $result['error']) {
@@ -382,23 +371,13 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         }
 
         if (!$result['success']) {
-            // Motif du refus de Ciklik, échappé : le message s'affiche en HTML
-            $apiMessage = CiklikApiResponseHandler::customerErrorMessage($result['response'], '');
-            $this->ajaxFailAndDie(
-                $this->module->l('An error occurred while updating the subscription.', 'manage') . ('' !== $apiMessage ? ' ' . $apiMessage : ''),
-                400
-            );
+            $this->failApiUpdate('frequency change', $uuid, $result['response'], CiklikApiResponseHandler::failureSummary($result['response']));
         }
 
-        PrestaShopLogger::addLog(
+        $this->logSubscriptionAction(
             'Ciklik frequency change - subscription ' . $uuid . ' - '
                 . ($useFrequencyMode ? 'frequency_id ' : 'id_product_attribute ') . $value,
-            1,
-            null,
-            'CiklikSubscription',
-            $idCustomer,
-            true,
-            (int) $this->employee->id
+            1
         );
 
         $body = isset($result['response']['body']) && is_array($result['response']['body']) ? $result['response']['body'] : [];
@@ -411,6 +390,63 @@ class CiklikManageModuleFrontController extends ModuleFrontController
                 'frequency' => $value,
             ],
         ]));
+    }
+
+    /**
+     * Abonnement visé par une action du back-office, avec les contrôles
+     * communs à toutes les actions : droit de modifier les commandes, commande
+     * consultée et sa boutique, abonnement lié à cette commande chez Ciklik et
+     * appartenant à son client. Arrête la requête sinon, cause journalisée.
+     *
+     * @return array{0: string, 1: SubscriptionData, 2: Subscription} [uuid, abonnement, API]
+     */
+    private function resolveOrderSubscription()
+    {
+        $this->assertEmployeeCanEditOrders();
+
+        list($idCustomer, $idShop, $order) = $this->resolveOrderContext();
+        $uuid = $this->getValidatedUuid();
+
+        // Jeton d'API, mode et fréquences proposées de la boutique de la commande
+        if ($idShop > 0 && Shop::isFeatureActive()) {
+            Shop::setContext(Shop::CONTEXT_SHOP, $idShop);
+        }
+
+        try {
+            $orderData = (new CiklikOrderApi($this->context->link))->getOneByPsOrderId((int) $order->id);
+            // Commande renvoyée par Ciklik : celle demandée, sinon aucune
+            $orderSubscriptionUuid = null !== $orderData && (int) $orderData->prestashop_order_id === (int) $order->id
+                ? $orderData->subscription_uuid
+                : null;
+        } catch (Throwable $e) {
+            $orderSubscriptionUuid = null;
+        }
+
+        $api = new Subscription($this->context->link);
+        $guard = OrderSubscriptionGuard::resolve(
+            $orderSubscriptionUuid,
+            $uuid,
+            $idCustomer,
+            function ($uuid) use ($api) {
+                return $api->getOne($uuid);
+            },
+            [SubscriptionData::class, 'create']
+        );
+
+        if (OrderSubscriptionGuard::OK !== $guard['status']) {
+            $this->logSubscriptionAction(
+                'Ciklik subscription action refused - order ' . (int) $order->id . ' - subscription ' . $uuid . ' - ' . $guard['cause'],
+                OrderSubscriptionGuard::LOAD_FAILED === $guard['status'] || OrderSubscriptionGuard::ORDER_UNKNOWN === $guard['status'] ? 3 : 2
+            );
+
+            if (OrderSubscriptionGuard::NOT_ORDER_SUBSCRIPTION === $guard['status'] || OrderSubscriptionGuard::OTHER_CUSTOMER === $guard['status']) {
+                $this->ajaxFailAndDie($this->module->l('Access denied', 'manage'), 403);
+            }
+
+            $this->ajaxFailAndDie($this->module->l('An error occurred while updating the subscription.', 'manage'));
+        }
+
+        return [$uuid, $guard['subscription'], $api];
     }
 
     /**

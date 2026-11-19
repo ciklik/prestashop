@@ -41,10 +41,15 @@ class CiklikSubscriptionFrequency
     const ERROR_API = 'api';
 
     /**
-     * Choix proposés : ceux de la première ligne (other_combinations de
-     * SubscriptionData), comme la fenêtre de Mes abonnements, indexés par la
-     * valeur postée (frequency_id en mode fréquences, id_product_attribute
-     * en mode déclinaisons).
+     * Choix proposés, indexés par la valeur postée (frequency_id en mode
+     * fréquences, id_product_attribute en mode déclinaisons).
+     *
+     * Mode fréquences : la fréquence vaut pour tout l'abonnement, seules les
+     * fréquences proposées pour chaque produit sont retenues (ordre et
+     * libellés de la première ligne). Un produit sans fréquence proposée ne
+     * laisse aucun choix.
+     * Mode déclinaisons : choix de la première ligne ; la déclinaison de
+     * chaque ligne à la nouvelle fréquence est vérifiée au changement.
      *
      * @param array $contents Lignes de SubscriptionData::$contents
      * @param bool $useFrequencyMode
@@ -53,12 +58,36 @@ class CiklikSubscriptionFrequency
      */
     public static function getChoices(array $contents, $useFrequencyMode)
     {
-        $first = reset($contents);
         $key = $useFrequencyMode ? 'frequency_id' : 'id_product_attribute';
+        $lines = $useFrequencyMode ? array_values($contents) : array_slice(array_values($contents), 0, 1);
+        $choices = null;
+
+        foreach ($lines as $line) {
+            $lineChoices = self::lineChoices($line, $key);
+            $choices = null === $choices ? $lineChoices : array_intersect_key($choices, $lineChoices);
+
+            if (empty($choices)) {
+                return [];
+            }
+        }
+
+        return $choices ?: [];
+    }
+
+    /**
+     * Choix d'une ligne de contenu, indexés par $key
+     *
+     * @param mixed $line
+     * @param string $key
+     *
+     * @return array
+     */
+    private static function lineChoices($line, $key)
+    {
         $choices = [];
 
-        if (is_array($first) && !empty($first['other_combinations']) && is_array($first['other_combinations'])) {
-            foreach ($first['other_combinations'] as $choice) {
+        if (is_array($line) && !empty($line['other_combinations']) && is_array($line['other_combinations'])) {
+            foreach ($line['other_combinations'] as $choice) {
                 if (!empty($choice[$key])) {
                     $choices[(int) $choice[$key]] = $choice;
                 }
