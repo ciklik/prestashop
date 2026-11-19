@@ -71,8 +71,9 @@ class DisplayOrderSubscriptionInfoHookController
                 }
             }
 
-            // Choix de Mes abonnements, proposés même si l'option client est désactivée
-            $frequencyMode = '1' === (string) Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE);
+            // Choix de Mes abonnements, proposés même si l'option client est
+            // désactivée, dans le mode de création de l'abonnement
+            $frequencyMode = $subscription ? $subscription->frequency_mode : false;
             $frequencyChoices = $subscription ? CiklikSubscriptionFrequency::getChoices($subscription->contents, $frequencyMode) : [];
         } finally {
             $shopContext->restore();

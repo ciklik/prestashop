@@ -69,6 +69,13 @@ class SubscriptionData
      */
     public $customizations;
 
+    /**
+     * Mode de l'abonnement, lu dans son contenu (voir usesFrequencyMode)
+     *
+     * @var bool
+     */
+    public $frequency_mode;
+
     private function __construct(string $uuid,
         bool $active,
         string $display_content,
@@ -92,6 +99,10 @@ class SubscriptionData
         $this->external_fingerprint = $external_fingerprint;
         $this->contents = $contents;
         $this->upsells = $upsells;
+        $this->frequency_mode = self::usesFrequencyMode(
+            $contents,
+            '1' === (string) \Configuration::get(\Ciklik::CONFIG_USE_FREQUENCY_MODE)
+        );
     }
 
     public static function create(array $data): SubscriptionData
@@ -137,8 +148,9 @@ class SubscriptionData
         foreach ($contents as $item) {
             $otherCombinations = [];
 
-            // Si l'option de fréquence est activée, on récupère les fréquences disponibles
-            if (\Configuration::get(\Ciklik::CONFIG_USE_FREQUENCY_MODE) === '1') {
+            // Format de la ligne, pas mode actif de la boutique : un abonnement
+            // créé en mode déclinaisons le reste si la boutique change de mode
+            if (self::isFrequencyModeExternalId((string) $item['external_id'])) {
                 // Récupère les fréquences disponibles pour ce produit
                 $parts = explode(':', $item['external_id']);
                 $id_product = $parts[0];
@@ -167,6 +179,40 @@ class SubscriptionData
         }
 
         return $processedContents;
+    }
+
+    /**
+     * Ligne créée en mode fréquences (« id_product:id_product_attribute »),
+     * sinon en mode déclinaisons (id_product_attribute seul).
+     *
+     * @param string $externalId
+     *
+     * @return bool
+     */
+    public static function isFrequencyModeExternalId(string $externalId): bool
+    {
+        return false !== strpos($externalId, ':');
+    }
+
+    /**
+     * Mode d'un abonnement : celui de sa création, lu sur sa première ligne
+     * (celle dont les choix de fréquence sont proposés). Le mode actif de la
+     * boutique ne sert qu'à défaut de contenu.
+     *
+     * @param array $contents Lignes de contenu de l'API
+     * @param bool $default Mode actif de la boutique
+     *
+     * @return bool
+     */
+    public static function usesFrequencyMode(array $contents, bool $default): bool
+    {
+        $first = reset($contents);
+
+        if (!is_array($first) || !isset($first['external_id']) || '' === (string) $first['external_id']) {
+            return $default;
+        }
+
+        return self::isFrequencyModeExternalId((string) $first['external_id']);
     }
 
     /**

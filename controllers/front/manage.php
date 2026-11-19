@@ -333,7 +333,6 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         }
 
         $api = new Subscription($this->context->link);
-        $useFrequencyMode = '1' === (string) Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE);
         $subscription = null;
 
         try {
@@ -356,6 +355,9 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         if ((int) $subscription->external_fingerprint->id_customer !== $idCustomer) {
             $this->ajaxFailAndDie($this->module->l('Access denied', 'manage'), 403);
         }
+
+        // Mode de création de l'abonnement, comme les choix affichés
+        $useFrequencyMode = $subscription->frequency_mode;
 
         if ($useFrequencyMode && $value === (int) $subscription->external_fingerprint->frequency_id) {
             $this->ajaxFailAndDie($this->module->l('This is already the frequency of the subscription.', 'manage'), 400);

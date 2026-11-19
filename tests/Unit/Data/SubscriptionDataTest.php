@@ -117,4 +117,56 @@ class SubscriptionDataTest extends TestCase
         $this->assertFalse(SubscriptionData::targetsCustomizedLine($withStandardToo, '11:42'));
         $this->assertFalse(SubscriptionData::targetsCustomizedLine(array_reverse($withStandardToo), '11:42'));
     }
+
+    /**
+     * Abonnement créé en mode déclinaisons (id de déclinaison seul), boutique
+     * passée depuis en mode fréquences : il garde le mode déclinaisons, sinon
+     * l'id de déclinaison est lu comme un id de produit et aucune fréquence
+     * n'est proposée
+     */
+    public function testAttributeModeSubscriptionKeepsItsModeInFrequencyShop()
+    {
+        $contents = [['external_id' => '42', 'external_id_with_customizations' => '42']];
+
+        $this->assertFalse(SubscriptionData::usesFrequencyMode($contents, true));
+    }
+
+    /**
+     * Abonnement créé en mode fréquences, boutique passée en mode déclinaisons
+     */
+    public function testFrequencyModeSubscriptionKeepsItsModeInAttributeShop()
+    {
+        $contents = [['external_id' => '11:42'], ['external_id' => '12:0']];
+
+        $this->assertTrue(SubscriptionData::usesFrequencyMode($contents, false));
+    }
+
+    /**
+     * Sans contenu lisible, le mode actif de la boutique
+     */
+    public function testShopModeWithoutContent()
+    {
+        $this->assertTrue(SubscriptionData::usesFrequencyMode([], true));
+        $this->assertFalse(SubscriptionData::usesFrequencyMode([], false));
+        $this->assertTrue(SubscriptionData::usesFrequencyMode([['quantity' => 1]], true));
+    }
+
+    /**
+     * @dataProvider externalIdModeProvider
+     */
+    public function testExternalIdMode(string $externalId, bool $frequencyMode)
+    {
+        $this->assertSame($frequencyMode, SubscriptionData::isFrequencyModeExternalId($externalId));
+    }
+
+    public function externalIdModeProvider(): array
+    {
+        return [
+            'mode fréquences' => ['11:42', true],
+            'mode fréquences sans déclinaison' => ['11:0', true],
+            'mode fréquences personnalisé' => ['11:42_' . self::HASH, true],
+            'mode déclinaisons' => ['42', false],
+            'mode déclinaisons personnalisé' => ['42_' . self::HASH, false],
+        ];
+    }
 }
