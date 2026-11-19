@@ -26,7 +26,7 @@
                 <input type="hidden" name="token" value="{$token|escape:'html':'UTF-8'}">
                 <div class="form-group mb-3">
                 <label class="form-label" for="product_combination-{$subscription->uuid|escape:'html':'UTF-8'}">{l s='Choose' mod='ciklik'}</label>
-                {if $use_frequency_mode === '1'}
+                {if $subscription->frequency_mode}
                     <select class="form-control form-select" name="product_combination" id="product_combination-{$subscription->uuid|escape:'html':'UTF-8'}" required>
                         {if !empty($subscription->contents)}
                             {assign var=content value=$subscription->contents[0]}

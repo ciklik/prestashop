@@ -465,9 +465,6 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             return;
         }
 
-        // Mode lu dans la configuration, comme la fenêtre qui a proposé les choix
-        $useFrequencyMode = '1' === (string) Configuration::get(Ciklik::CONFIG_USE_FREQUENCY_MODE);
-
         // Récupérer l'abonnement actuel
         $subscriptionApi = new Subscription($this->context->link);
         $currentSubscription = $subscriptionApi->getOne($subscriptionUuid);
@@ -480,6 +477,9 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
             return;
         }
+
+        // Mode de création de l'abonnement, comme la fenêtre qui a proposé les choix
+        $useFrequencyMode = $subscriptionData->frequency_mode;
 
         $result = CiklikSubscriptionFrequency::change(
             $subscriptionApi,
