@@ -930,6 +930,16 @@ class ModuleFrontController
     public $auth = false;
     public $module;
     public $context;
+    public $errors = [];
+    public $success = [];
+
+    /** @var array URL des redirections avec messages */
+    public $redirections = [];
+
+    public function redirectWithNotifications($url)
+    {
+        $this->redirections[] = $url;
+    }
 }
 
 /**

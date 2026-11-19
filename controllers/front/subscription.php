@@ -240,26 +240,36 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
         $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
     }
 
+    /**
+     * Client de l'API des abonnements (remplacé dans les tests)
+     *
+     * @return Subscription
+     */
+    protected function subscriptionApi()
+    {
+        return new Subscription($this->context->link);
+    }
+
     private function stop()
     {
-        $uuid = UuidHelper::getFromRequest('uuid');
-        if (null === $uuid) {
-            $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
-
-            return;
-        }
-
-        (new Subscription($this->context->link))->update(
-            $uuid,
-            ['active' => false]
-        );
-
-        $this->success[] = $this->module->l('Your subscription has been paused.', 'subscription');
-        $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
+        $this->setActive(false);
     }
 
     private function resume()
     {
+        $this->setActive(true);
+    }
+
+    /**
+     * Met en pause ou réactive l'abonnement. Le succès n'est annoncé que si
+     * Ciklik accepte la demande : sur un refus, une réponse illisible ou une
+     * API injoignable, message d'erreur et abonnement inchangé (Mes
+     * abonnements relit son état chez Ciklik).
+     *
+     * @param bool $active
+     */
+    private function setActive($active)
+    {
         $uuid = UuidHelper::getFromRequest('uuid');
         if (null === $uuid) {
             $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
@@ -267,12 +277,31 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             return;
         }
 
-        (new Subscription($this->context->link))->update(
-            $uuid,
-            ['active' => true]
-        );
+        $cause = null;
+        try {
+            $result = $this->subscriptionApi()->update($uuid, ['active' => $active]);
+        } catch (Throwable $e) {
+            // Guzzle 7 lève ConnectException hors du client quand Ciklik est injoignable
+            $result = null;
+            $cause = 'exception ' . get_class($e);
+        }
 
-        $this->success[] = $this->module->l('Your subscription has been resumed.', 'subscription');
+        if (!$this->apiAccepted($result)) {
+            $this->errors[] = $this->apiFailureMessage(
+                $active ? 'resume' : 'pause',
+                $uuid,
+                $result,
+                $active
+                    ? $this->module->l('Your subscription could not be resumed. Please try again later.', 'subscription')
+                    : $this->module->l('Your subscription could not be paused. Please try again later.', 'subscription'),
+                $cause
+            );
+        } elseif ($active) {
+            $this->success[] = $this->module->l('Your subscription has been resumed.', 'subscription');
+        } else {
+            $this->success[] = $this->module->l('Your subscription has been paused.', 'subscription');
+        }
+
         $this->redirectWithNotifications($this->context->link->getModuleLink('ciklik', 'account'));
     }
 
@@ -313,12 +342,12 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $result = (new Subscription($this->context->link))->update(
+        $result = $this->subscriptionApi()->update(
             $uuid,
             ['next_billing' => $date->format('Y-m-d')]
         );
 
-        if (!empty($result['errors'])) {
+        if (!$this->apiAccepted($result)) {
             $this->errors[] = $this->apiFailureMessage('next billing change', $uuid, $result);
         } else {
             $this->success[] = $this->module->l('Your subscription renewal date has been updated.', 'subscription');
@@ -380,7 +409,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         $result = $subscriptionApi->update($uuid, ['next_billing' => $newDate->format('Y-m-d')]);
 
-        if (!empty($result['errors'])) {
+        if (!$this->apiAccepted($result)) {
             $this->errors[] = $this->apiFailureMessage('skip', $uuid, $result);
         } else {
             $this->success[] = sprintf(
@@ -426,7 +455,7 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             ['metadata' => ['prestashop_fingerprint' => $sub->external_fingerprint->encodeDatas()]]
         );
 
-        if (!empty($result['errors'])) {
+        if (!$this->apiAccepted($result)) {
             $this->errors[] = $this->apiFailureMessage('address change', $uuid, $result);
         } else {
             $this->success[] = $this->module->l('Your new address has been saved.', 'subscription');
@@ -641,14 +670,16 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
      * @param string $operation Libellé du journal
      * @param string $uuid
      * @param array|null $result Réponse de l'API
+     * @param string|null $fallback Message du client propre à l'action, générique sinon
+     * @param string|null $cause Cause du journal quand l'appel n'a pas abouti (classe de l'exception)
      *
      * @return string
      */
-    private function apiFailureMessage($operation, $uuid, $result)
+    private function apiFailureMessage($operation, $uuid, $result, $fallback = null, $cause = null)
     {
         PrestaShopLogger::addLog(
             'Ciklik subscription ' . $operation . ' refused (customer account) - subscription ' . $uuid
-                . ' - ' . CiklikApiResponseHandler::failureSummary($result),
+                . ' - ' . (null !== $cause ? $cause : CiklikApiResponseHandler::failureSummary($result)),
             2,
             null,
             'CiklikSubscription',
@@ -658,8 +689,22 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
 
         return $this->apiRefusalMessage(
             is_array($result) ? $result : [],
-            $this->module->l('Unable to update the subscription. Please try again later.', 'subscription')
+            null !== $fallback ? $fallback : $this->module->l('Unable to update the subscription. Please try again later.', 'subscription')
         );
+    }
+
+    /**
+     * Ciklik a-t-il accepté la modification ? Réponse 2xx lisible et sans
+     * erreur : une page d'erreur de proxy (502 en HTML) n'a pas de champ
+     * errors et passait pour un succès.
+     *
+     * @param array|null $result Réponse de l'API
+     *
+     * @return bool
+     */
+    private function apiAccepted($result)
+    {
+        return is_array($result) && !empty($result['status']) && empty($result['errors']);
     }
 
     /**
