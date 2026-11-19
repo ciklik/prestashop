@@ -632,3 +632,8 @@ $_MODULE['<{ciklik}prestashop>adminciklikproducttransformcontroller_aab3366d9c78
 $_MODULE['<{ciklik}prestashop>product_transform_panel_8dfb564884294445d1da53809ffd33ca'] = 'Select a single shop (not all shops or a group) before using these actions.';
 $_MODULE['<{ciklik}prestashop>product_transform_panel_e170456cfde0fb225de9b8619352fe42'] = 'The last synchronization of this product with Ciklik failed.';
 $_MODULE['<{ciklik}prestashop>product_transform_panel_c11ff540ae4e7a576c66c35ff36a655b'] = 'Resend to Ciklik';
+
+// Recherche de points relais en back-office
+$_MODULE['<{ciklik}prestashop>manage_b1f03074036e323bcd65b2d70082c906'] = 'Please enter a valid zip code and city.';
+$_MODULE['<{ciklik}prestashop>manage_7d764d86865c1ccc03d9df498831eff3'] = 'Too many searches for now. Please try again later or use manual entry.';
+$_MODULE['<{ciklik}prestashop>manage_7752ac1a95236463d6cbbfce6ea385f7'] = 'Pickup point search is temporarily unavailable. Please try again later.';

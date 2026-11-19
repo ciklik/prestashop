@@ -632,3 +632,8 @@ $_MODULE['<{ciklik}prestashop>adminciklikproducttransformcontroller_aab3366d9c78
 $_MODULE['<{ciklik}prestashop>product_transform_panel_8dfb564884294445d1da53809ffd33ca'] = 'Seleccione una sola tienda (ni todas las tiendas ni un grupo) antes de usar estas acciones.';
 $_MODULE['<{ciklik}prestashop>product_transform_panel_e170456cfde0fb225de9b8619352fe42'] = 'La última sincronización de este producto con Ciklik falló.';
 $_MODULE['<{ciklik}prestashop>product_transform_panel_c11ff540ae4e7a576c66c35ff36a655b'] = 'Reenviar a Ciklik';
+
+// Recherche de points relais en back-office
+$_MODULE['<{ciklik}prestashop>manage_b1f03074036e323bcd65b2d70082c906'] = 'Introduzca un código postal y una ciudad válidos.';
+$_MODULE['<{ciklik}prestashop>manage_7d764d86865c1ccc03d9df498831eff3'] = 'Demasiadas búsquedas por ahora. Inténtelo de nuevo más tarde o utilice la entrada manual.';
+$_MODULE['<{ciklik}prestashop>manage_7752ac1a95236463d6cbbfce6ea385f7'] = 'La búsqueda de puntos de recogida no está disponible temporalmente. Inténtelo de nuevo más tarde.';

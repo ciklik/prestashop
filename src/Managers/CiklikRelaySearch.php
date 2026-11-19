@@ -136,6 +136,56 @@ class CiklikRelaySearch
         }
     }
 
+    /** Longueur maximale du code postal saisi pour une recherche */
+    const SEARCH_ZIPCODE_MAX_LENGTH = 12;
+
+    /** Longueur maximale de la ville saisie pour une recherche */
+    const SEARCH_CITY_MAX_LENGTH = 64;
+
+    /**
+     * Adresse saisie pour une recherche, en back-office comme dans l'espace
+     * client : code postal obligatoire, ville facultative, bornés et validés
+     * par les validateurs de PrestaShop avant tout appel au transporteur.
+     *
+     * @param string $zipcode Code postal, déjà nettoyé des espaces de bord
+     * @param string $city Ville, déjà nettoyée des espaces de bord
+     *
+     * @return bool
+     */
+    public static function isValidSearchAddress($zipcode, $city)
+    {
+        $zipcode = (string) $zipcode;
+        $city = (string) $city;
+
+        return '' !== $zipcode
+            && \Tools::strlen($zipcode) <= self::SEARCH_ZIPCODE_MAX_LENGTH
+            && (bool) \Validate::isPostCode($zipcode)
+            && \Tools::strlen($city) <= self::SEARCH_CITY_MAX_LENGTH
+            && ('' === $city || (bool) \Validate::isCityName($city));
+    }
+
+    /**
+     * id_reference d'un transporteur (celui d'une commande en back-office),
+     * qui choisit le contrat Chronopost de son offre.
+     *
+     * @param int $idCarrier
+     *
+     * @return int|null null si le transporteur est introuvable
+     */
+    public static function carrierReferenceOf($idCarrier)
+    {
+        if ((int) $idCarrier <= 0) {
+            return null;
+        }
+
+        $carrier = new \Carrier((int) $idCarrier);
+        if (!\Validate::isLoadedObject($carrier) || (int) $carrier->id_reference <= 0) {
+            return null;
+        }
+
+        return (int) $carrier->id_reference;
+    }
+
     /**
      * Recherche des relais autour d'une adresse.
      *

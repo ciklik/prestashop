@@ -254,4 +254,42 @@ class RelaySearchQuotaTest extends TestCase
         $this->assertStringContainsString('RELEASE_LOCK', end(\Db::$queryLog));
         $this->assertStringContainsString('(TypeError)', \PrestaShopLogger::$logs[0]['message']);
     }
+
+    /**
+     * Recherche du back-office : compteur propre à l'employé, rangé hors de
+     * la plage des identifiants clients (aucun partage avec le client de même
+     * numéro), sous le même plafond boutique
+     */
+    public function testConsumeForEmployeeUsesItsOwnCounter()
+    {
+        \Db::setMockGetRow(['window_start' => '5000', 'count' => '4']);
+        \Db::setMockGetValueResults(['1', '12', '1']);
+
+        $this->assertSame(RelaySearchQuota::GRANTED, RelaySearchQuota::consumeForEmployee(7, 1, 5100));
+
+        $key = RelaySearchQuota::EMPLOYEE_KEY_OFFSET + 7;
+        $this->assertStringContainsString('id_customer = ' . $key . ' AND id_shop = 1', \Db::$queryLog[1]);
+        $this->assertStringContainsString('VALUES (' . $key . ', 1, 5000, 5)', \Db::$executeCalls[0]);
+        $this->assertLessThanOrEqual(4294967295, RelaySearchQuota::EMPLOYEE_KEY_OFFSET + 99999999);
+    }
+
+    /**
+     * Employé inconnu : refus, sans requête
+     */
+    public function testConsumeForEmployeeRefusesUnknownEmployee()
+    {
+        $this->assertSame(RelaySearchQuota::UNAVAILABLE, RelaySearchQuota::consumeForEmployee(0, 1, 5100));
+        $this->assertSame([], \Db::$queryLog);
+    }
+
+    /**
+     * Compteur inaccessible : l'employé est nommé dans le journal, pas un client
+     */
+    public function testConsumeForEmployeeLogsEmployee()
+    {
+        \Db::setMockGetValueResults(['0']);
+
+        $this->assertSame(RelaySearchQuota::UNAVAILABLE, RelaySearchQuota::consumeForEmployee(7, 1, 5100));
+        $this->assertStringContainsString('employee 7', \PrestaShopLogger::$logs[0]['message']);
+    }
 }

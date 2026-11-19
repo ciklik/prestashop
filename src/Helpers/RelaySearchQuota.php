@@ -55,6 +55,14 @@ class RelaySearchQuota
     const LOCK_TIMEOUT = 2;
 
     /**
+     * Décalage des compteurs d'employés (recherches du back-office) dans la
+     * colonne id_customer : hors de la plage des identifiants clients, sous
+     * le maximum d'un entier non signé de 32 bits. Le plafond boutique compte
+     * aussi ces recherches, qui consomment le même compte transporteur.
+     */
+    const EMPLOYEE_KEY_OFFSET = 4000000000;
+
+    /**
      * Décision pure, sans accès à la base : le client peut-il consommer un
      * appel maintenant, et quel compteur persister ?
      *
@@ -129,11 +137,43 @@ class RelaySearchQuota
      */
     public static function consume(int $idCustomer, int $idShop, $now = null): string
     {
-        $now = null === $now ? time() : (int) $now;
-
         if ($idCustomer <= 0) {
             return self::UNAVAILABLE;
         }
+
+        return self::consumeKey($idCustomer, $idShop, $now, 'customer ' . $idCustomer);
+    }
+
+    /**
+     * Consomme un appel pour un employé du back-office (recherche depuis la
+     * fiche commande), sur son propre compteur et sous le plafond boutique.
+     *
+     * @param int $idEmployee
+     * @param int $idShop
+     * @param int|null $now Horodatage courant (tests), time() sinon
+     *
+     * @return string self::GRANTED, self::LIMITED ou self::UNAVAILABLE
+     */
+    public static function consumeForEmployee(int $idEmployee, int $idShop, $now = null): string
+    {
+        if ($idEmployee <= 0) {
+            return self::UNAVAILABLE;
+        }
+
+        return self::consumeKey(self::EMPLOYEE_KEY_OFFSET + $idEmployee, $idShop, $now, 'employee ' . $idEmployee);
+    }
+
+    /**
+     * @param int $key Valeur de la colonne id_customer du compteur
+     * @param int $idShop
+     * @param int|null $now
+     * @param string $who Titulaire du compteur, pour le journal
+     *
+     * @return string
+     */
+    private static function consumeKey(int $key, int $idShop, $now, string $who): string
+    {
+        $now = null === $now ? time() : (int) $now;
 
         $lockName = self::lockName($idShop);
         $locked = false;
@@ -150,14 +190,14 @@ class RelaySearchQuota
             );
 
             if (!$locked) {
-                self::logUnavailable('verrou non obtenu', $idCustomer);
+                self::logUnavailable('verrou non obtenu', $who);
 
                 return self::UNAVAILABLE;
             }
 
             $row = $db->getRow(
                 'SELECT window_start, `count` FROM `' . $table . '`'
-                . ' WHERE id_customer = ' . (int) $idCustomer . ' AND id_shop = ' . (int) $idShop,
+                . ' WHERE id_customer = ' . (int) $key . ' AND id_shop = ' . (int) $idShop,
                 false
             );
             $shopTotal = $db->getValue(
@@ -176,12 +216,12 @@ class RelaySearchQuota
             // remplacement du compteur en une requête
             $saved = $db->execute(
                 'REPLACE INTO `' . $table . '` (id_customer, id_shop, window_start, `count`) VALUES ('
-                . (int) $idCustomer . ', ' . (int) $idShop . ', '
+                . (int) $key . ', ' . (int) $idShop . ', '
                 . (int) $decision['window_start'] . ', ' . (int) $decision['count'] . ')'
             );
 
             if (!$saved) {
-                self::logUnavailable('écriture refusée', $idCustomer);
+                self::logUnavailable('écriture refusée', $who);
 
                 return self::UNAVAILABLE;
             }
@@ -195,7 +235,7 @@ class RelaySearchQuota
 
             return self::GRANTED;
         } catch (\Throwable $e) {
-            self::logUnavailable(get_class($e), $idCustomer);
+            self::logUnavailable(get_class($e), $who);
 
             return self::UNAVAILABLE;
         } finally {
@@ -211,16 +251,16 @@ class RelaySearchQuota
 
     /**
      * @param string $detail Cause, sans donnée de requête
-     * @param int $idCustomer
+     * @param string $who Titulaire du compteur (« customer 12 », « employee 3 »)
      */
-    private static function logUnavailable($detail, $idCustomer)
+    private static function logUnavailable($detail, $who)
     {
         \PrestaShopLogger::addLog(
-            'RelaySearchQuota - compteur inaccessible (' . $detail . ') - customer ' . (int) $idCustomer,
+            'RelaySearchQuota - compteur inaccessible (' . $detail . ') - ' . $who,
             3,
             null,
             'RelaySearchQuota',
-            (int) $idCustomer,
+            null,
             true
         );
     }
