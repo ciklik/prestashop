@@ -652,3 +652,5 @@ $_MODULE['<{ciklik}prestashop>manage_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Esta 
 $_MODULE['<{ciklik}prestashop>manage_bdbf67b5231abe7e342cd0ddf84326f1'] = 'La frecuencia se ha modificado. La fecha del próximo pedido no cambia.';
 $_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Esta frecuencia no está disponible para todos los productos de su suscripción.';
 $_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'No se ha podido modificar la suscripción. Inténtelo de nuevo más tarde.';
+$_MODULE['<{ciklik}prestashop>manage_819510706408719c8a3de819e2f41b7f'] = 'Esta suscripción está desactivada: reactívela antes de cambiar su frecuencia.';
+$_MODULE['<{ciklik}prestashop>subscription_ad78b5d54b07add131ee95239d281ab1'] = 'Esta suscripción está desactivada: su frecuencia no se puede cambiar.';

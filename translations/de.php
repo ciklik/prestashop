@@ -652,3 +652,5 @@ $_MODULE['<{ciklik}prestashop>manage_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Diese
 $_MODULE['<{ciklik}prestashop>manage_bdbf67b5231abe7e342cd0ddf84326f1'] = 'Die Häufigkeit wurde geändert. Das Datum der nächsten Bestellung bleibt unverändert.';
 $_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 'Diese Häufigkeit ist nicht für alle Produkte Ihres Abonnements verfügbar.';
 $_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'Das Abonnement konnte nicht geändert werden. Bitte versuchen Sie es später erneut.';
+$_MODULE['<{ciklik}prestashop>manage_819510706408719c8a3de819e2f41b7f'] = 'Dieses Abonnement ist deaktiviert: Reaktivieren Sie es, bevor Sie seine Häufigkeit ändern.';
+$_MODULE['<{ciklik}prestashop>subscription_ad78b5d54b07add131ee95239d281ab1'] = 'Dieses Abonnement ist deaktiviert: Seine Häufigkeit kann nicht geändert werden.';

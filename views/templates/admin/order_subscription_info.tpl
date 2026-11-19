@@ -77,7 +77,8 @@
                         </button>
                     {/if}
 
-                    <button type="button" id="ciklik-btn-change-frequency" class="btn btn-outline-primary btn-sm ml-2 ms-2">
+                    {* Abonnement désactivé : fréquence non modifiable, bouton masqué *}
+                    <button type="button" id="ciklik-btn-change-frequency" class="btn btn-outline-primary btn-sm ml-2 ms-2"{if !$subscription->active} style="display:none"{/if}>
                         <i class="material-icons">autorenew</i> {l s='Change frequency' mod='ciklik'}
                     </button>
                 </div>
@@ -357,6 +358,7 @@ $(function () {
                         .removeClass('btn-outline-success').addClass('btn-outline-danger')
                         .html(labelDeactivate);
                     $('#ciklik-btn-change-date').show();
+                    $('#ciklik-btn-change-frequency').show();
                     bindDeactivate();
                 } else {
                     $status.removeClass('badge-success').addClass('badge-danger').text(labelInactive);
@@ -365,6 +367,8 @@ $(function () {
                         .html(labelActivate);
                     $('#ciklik-btn-change-date').hide();
                     $('#ciklik-change-date-form').hide();
+                    $('#ciklik-btn-change-frequency').hide();
+                    $('#ciklik-change-frequency-form').hide();
                     bindActivate();
                 }
             }

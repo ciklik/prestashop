@@ -115,7 +115,7 @@ class CiklikSubscriptionFrequencyTest extends TestCase
     {
         $fingerprint = $this->fingerprint(1);
 
-        $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, $this->frequencyContents(), $fingerprint, true, '2');
+        $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, true, $this->frequencyContents(), $fingerprint, true, '2');
 
         $this->assertTrue($result['success']);
         $this->assertSame('Tous les 2 mois', $result['response']['body']['display_interval']);
@@ -135,6 +135,27 @@ class CiklikSubscriptionFrequencyTest extends TestCase
         $this->assertSame(1, $fingerprint->frequency_id);
     }
 
+    /**
+     * Abonnement désactivé : refusé sans appel à Ciklik, dans les deux modes
+     */
+    public function testInactiveSubscriptionIsRefusedWithoutCallingCiklik()
+    {
+        $cases = [
+            [$this->frequencyContents(), true, '2'],
+            [$this->combinationContents(), false, '103'],
+        ];
+
+        foreach ($cases as list($contents, $useFrequencyMode, $value)) {
+            $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, false, $contents, $this->fingerprint(), $useFrequencyMode, $value, function () {
+                return ['id_product_attribute' => 103, 'interval' => 'month', 'interval_count' => 3];
+            });
+
+            $this->assertFalse($result['success']);
+            $this->assertSame(CiklikSubscriptionFrequency::ERROR_INACTIVE, $result['error']);
+            $this->assertCount(0, $this->history);
+        }
+    }
+
     public function testChoiceNotProposedIsRefusedWithoutCallingCiklik()
     {
         // Fréquence absente, valeur vide, identifiant de fréquence posté en mode déclinaisons
@@ -142,7 +163,7 @@ class CiklikSubscriptionFrequencyTest extends TestCase
             list($useFrequencyMode, $value) = $case;
             $contents = $useFrequencyMode ? $this->frequencyContents() : $this->combinationContents();
 
-            $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, $contents, $this->fingerprint(), $useFrequencyMode, $value);
+            $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, true, $contents, $this->fingerprint(), $useFrequencyMode, $value);
 
             $this->assertSame(CiklikSubscriptionFrequency::ERROR_INVALID_CHOICE, $result['error']);
             $this->assertCount(0, $this->history);
@@ -158,7 +179,7 @@ class CiklikSubscriptionFrequencyTest extends TestCase
             return ['id_product_attribute' => $externalId + 2, 'interval' => 'month', 'interval_count' => 3];
         };
 
-        $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, $this->combinationContents(), $this->fingerprint(), false, '103', $matcher);
+        $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, true, $this->combinationContents(), $this->fingerprint(), false, '103', $matcher);
 
         $this->assertTrue($result['success']);
         $this->assertSame([['23', 101], ['23', 201]], $calls);
@@ -175,7 +196,7 @@ class CiklikSubscriptionFrequencyTest extends TestCase
             return 101 === $externalId ? ['id_product_attribute' => 103, 'interval' => 'month', 'interval_count' => 3] : null;
         };
 
-        $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, $this->combinationContents(), $this->fingerprint(), false, '103', $matcher);
+        $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, true, $this->combinationContents(), $this->fingerprint(), false, '103', $matcher);
 
         $this->assertFalse($result['success']);
         $this->assertSame(CiklikSubscriptionFrequency::ERROR_NO_MATCH, $result['error']);
@@ -191,7 +212,7 @@ class CiklikSubscriptionFrequencyTest extends TestCase
             return ['id_product_attribute' => $externalId + 2, 'interval' => 'month', 'interval_count' => 3];
         };
 
-        $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, $contents, $this->fingerprint(), false, '103', $matcher);
+        $result = CiklikSubscriptionFrequency::change($this->api([$this->ok()]), self::UUID, true, $contents, $this->fingerprint(), false, '103', $matcher);
 
         $this->assertSame(CiklikSubscriptionFrequency::ERROR_NO_MATCH, $result['error']);
         $this->assertCount(0, $this->history);
@@ -200,13 +221,13 @@ class CiklikSubscriptionFrequencyTest extends TestCase
     public function testCiklikRefusalOrServerErrorIsNotASuccess()
     {
         $refusal = new Response(422, [], json_encode(['message' => 'Invalid', 'errors' => ['interval' => ['Unité inconnue']]]));
-        $result = CiklikSubscriptionFrequency::change($this->api([$refusal]), self::UUID, $this->frequencyContents(), $this->fingerprint(), true, '2');
+        $result = CiklikSubscriptionFrequency::change($this->api([$refusal]), self::UUID, true, $this->frequencyContents(), $this->fingerprint(), true, '2');
 
         $this->assertSame(CiklikSubscriptionFrequency::ERROR_API, $result['error']);
         $this->assertSame(['interval' => ['Unité inconnue']], $result['response']['errors']);
 
         // Réponse non JSON d'un serveur en erreur
-        $result = CiklikSubscriptionFrequency::change($this->api([new Response(502, [], 'Bad gateway')]), self::UUID, $this->frequencyContents(), $this->fingerprint(), true, '2');
+        $result = CiklikSubscriptionFrequency::change($this->api([new Response(502, [], 'Bad gateway')]), self::UUID, true, $this->frequencyContents(), $this->fingerprint(), true, '2');
 
         $this->assertFalse($result['success']);
         $this->assertSame(CiklikSubscriptionFrequency::ERROR_API, $result['error']);
