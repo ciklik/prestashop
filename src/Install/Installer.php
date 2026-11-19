@@ -110,7 +110,10 @@ class Installer
             && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_CART_ALERT_FREQ_ENABLED, '0')
             // Consentement à l'abonnement au paiement : désactivé par défaut,
             // l'activation reste un choix volontaire du marchand en back-office.
-            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_ENABLE_SUBSCRIPTION_CONSENT, '0');
+            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_ENABLE_SUBSCRIPTION_CONSENT, '0')
+            // Recherche de relais Chronopost : éteinte par défaut, activée par le
+            // marchand après un essai sur son contrat.
+            && (bool) \Configuration::updateGlobalValue(\Ciklik::CONFIG_CHRONOPOST_SEARCH_ENABLED, '0');
     }
 
     /**
@@ -152,6 +155,7 @@ class Installer
             \Ciklik::CONFIG_CART_ALERT_FREQ_ENABLED,
             \Ciklik::CONFIG_CART_ALERT_FREQ_MESSAGE,
             \Ciklik::CONFIG_ENABLE_SUBSCRIPTION_CONSENT,
+            \Ciklik::CONFIG_CHRONOPOST_SEARCH_ENABLED,
         ];
 
         foreach ($keys as $key) {

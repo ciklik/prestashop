@@ -45,7 +45,7 @@ class Ciklik extends PaymentModule
 {
     use Account;
 
-    const VERSION = '1.28.0';
+    const VERSION = '1.29.0';
     const CONFIG_API_TOKEN = 'CIKLIK_API_TOKEN';
     const CONFIG_MODE = 'CIKLIK_MODE';
     const CONFIG_HOST = 'CIKLIK_HOST';
@@ -86,6 +86,7 @@ class Ciklik extends PaymentModule
     const CONFIG_CART_ALERT_FREQ_ENABLED = 'CIKLIK_CART_ALERT_FREQ_ENABLED';
     const CONFIG_CART_ALERT_FREQ_MESSAGE = 'CIKLIK_CART_ALERT_FREQ_MESSAGE';
     const CONFIG_ENABLE_SUBSCRIPTION_CONSENT = 'CIKLIK_ENABLE_SUBSCRIPTION_CONSENT';
+    const CONFIG_CHRONOPOST_SEARCH_ENABLED = 'CIKLIK_CHRONOPOST_SEARCH_ENABLED';
     /**
      * @var Monolog\Logger
      */
@@ -118,7 +119,7 @@ class Ciklik extends PaymentModule
         // Doit rester un littéral : le validateur PrestaShop Addons lit ce champ
         // par regex et refuse toute expression non-littérale (self::VERSION, etc.).
         // À garder synchronisé avec la constante VERSION ci-dessus.
-        $this->version = '1.28.0';
+        $this->version = '1.29.0';
         $this->author = 'Ciklik';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';

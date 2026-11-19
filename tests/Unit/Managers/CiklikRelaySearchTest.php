@@ -12,6 +12,7 @@ namespace PrestaShop\Module\Ciklik\Tests\Unit\Managers;
 use PHPUnit\Framework\TestCase;
 use PrestaShop\Module\Ciklik\Helpers\CarrierHttpClient;
 use PrestaShop\Module\Ciklik\Managers\CiklikRelaySearch;
+use PrestaShop\Module\Ciklik\Managers\DeliveryModuleManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -258,16 +259,45 @@ class CiklikRelaySearchTest extends TestCase
     }
 
     /**
-     * Recherche Chronopost désactivée dans cette version, même avec un
-     * contrat configuré : jamais vue fonctionner avec un contrat réel
+     * Credentials Chronopost résolus par la classe (méthode privée : jamais
+     * exposés hors de la recherche)
      */
-    public function testChronopostSearchIsDisabled()
+    private static function chronopostCredentials($carrierReference = null)
     {
-        $this->assertFalse(CiklikRelaySearch::CHRONOPOST_SEARCH_ENABLED);
-        $this->assertFalse(CiklikRelaySearch::supportsSearch('chronopost'));
+        $method = new \ReflectionMethod(CiklikRelaySearch::class, 'getChronopostCredentials');
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
-        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNT', '19869502');
-        \Configuration::updateValue('CHRONOPOST_GENERAL_PASSWORD', '255582');
+        return $method->invoke(null, $carrierReference);
+    }
+
+    /**
+     * Configuration du module Chronopost multi-contrats : deux contrats,
+     * l'offre Chrono Relais (transporteur 7) sur le second
+     */
+    private function configureChronopostContracts()
+    {
+        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNTTYPE', '1');
+        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNTS', json_encode([
+            ['account' => '11111111', 'subaccount' => '', 'password' => '111111', 'accountname' => 'Contrat domicile'],
+            ['account' => '22222222', 'subaccount' => '001', 'password' => '222222', 'accountname' => 'Contrat relais'],
+        ]));
+        \Configuration::updateValue('CHRONOPOST_CHRONO13_ACCOUNT', '11111111');
+        \Configuration::updateValue('CHRONOPOST_CHRONO13_ID', '5');
+        \Configuration::updateValue('CHRONOPOST_CHRONORELAIS_ACCOUNT', '22222222');
+        \Configuration::updateValue('CHRONOPOST_CHRONORELAIS_ID', '7');
+    }
+
+    /**
+     * Recherche Chronopost éteinte par défaut, même avec un contrat
+     * configuré : la page s'en tient aux relais connus
+     */
+    public function testChronopostSearchIsDisabledByDefault()
+    {
+        $this->configureChronopostContracts();
+
+        $this->assertFalse(CiklikRelaySearch::isChronopostSearchEnabled());
         $this->assertFalse(CiklikRelaySearch::supportsSearch('chronopost'));
         $this->assertFalse(CiklikRelaySearch::supportsSearch('chronopost', 'FR'));
 
@@ -278,6 +308,264 @@ class CiklikRelaySearchTest extends TestCase
             $message = $e->getMessage();
         }
         $this->assertSame('Search is not available for this carrier', $message);
+    }
+
+    /**
+     * Réglage allumé : recherche proposée quand un contrat est trouvé,
+     * jamais sans contrat
+     */
+    public function testChronopostSearchEnabledBySetting()
+    {
+        if (!extension_loaded('soap')) {
+            $this->markTestSkipped('ext-soap requise');
+        }
+
+        \Configuration::updateValue(\Ciklik::CONFIG_CHRONOPOST_SEARCH_ENABLED, '1');
+        $this->assertTrue(CiklikRelaySearch::isChronopostSearchEnabled());
+        $this->assertFalse(CiklikRelaySearch::supportsSearch('chronopost'));
+
+        $this->configureChronopostContracts();
+        $this->assertTrue(CiklikRelaySearch::supportsSearch('chronopost'));
+        $this->assertTrue(CiklikRelaySearch::supportsSearch('chronopost', 'FR'));
+
+        \Configuration::updateValue(\Ciklik::CONFIG_CHRONOPOST_SEARCH_ENABLED, '0');
+        $this->assertFalse(CiklikRelaySearch::supportsSearch('chronopost'));
+    }
+
+    /**
+     * Ancien module : CHRONOPOST_GENERAL_ACCOUNT et CHRONOPOST_GENERAL_PASSWORD
+     */
+    public function testChronopostLegacyCredentials()
+    {
+        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNT', '19869502');
+        \Configuration::updateValue('CHRONOPOST_GENERAL_PASSWORD', '255582');
+
+        $this->assertSame(
+            ['account' => '19869502', 'password' => '255582', 'subaccount' => ''],
+            self::chronopostCredentials()
+        );
+
+        \Configuration::updateValue('CHRONOPOST_GENERAL_PASSWORD', '');
+        $this->assertNull(self::chronopostCredentials());
+    }
+
+    /**
+     * Module multi-contrats : contrat de l'offre relais du transporteur,
+     * sous-compte compris, même quand l'ancien format est encore présent
+     */
+    public function testChronopostRelayOfferContract()
+    {
+        $this->configureChronopostContracts();
+        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNT', '19869502');
+        \Configuration::updateValue('CHRONOPOST_GENERAL_PASSWORD', '255582');
+
+        $expected = ['account' => '22222222', 'password' => '222222', 'subaccount' => '001'];
+        $this->assertSame($expected, self::chronopostCredentials(7));
+        // Transporteur inconnu : contrat d'une offre relais, pas le premier de la liste
+        $this->assertSame($expected, self::chronopostCredentials());
+        $this->assertSame($expected, self::chronopostCredentials(999));
+    }
+
+    /**
+     * Le contrat de l'offre du transporteur passe avant celui des autres
+     * offres relais
+     */
+    public function testChronopostCarrierOfferContractComesFirst()
+    {
+        $this->configureChronopostContracts();
+        \Configuration::updateValue('CHRONOPOST_TOSHOPDIRECT_ACCOUNT', '11111111');
+        \Configuration::updateValue('CHRONOPOST_TOSHOPDIRECT_ID', '9');
+
+        $this->assertSame('11111111', self::chronopostCredentials(9)['account']);
+        $this->assertSame('22222222', self::chronopostCredentials(7)['account']);
+        $this->assertSame('22222222', self::chronopostCredentials()['account']);
+    }
+
+    /**
+     * Contrat de l'offre relais absent de la liste (ou aucune offre relais
+     * configurée) : premier contrat, celui de la carte du module Chronopost
+     */
+    public function testChronopostRelayContractMissingFromListFallsBackToFirstContract()
+    {
+        $this->configureChronopostContracts();
+        \Configuration::updateValue('CHRONOPOST_CHRONORELAIS_ACCOUNT', '99999999');
+
+        $first = ['account' => '11111111', 'password' => '111111', 'subaccount' => ''];
+        $this->assertSame($first, self::chronopostCredentials(7));
+
+        \Configuration::updateValue('CHRONOPOST_CHRONORELAIS_ACCOUNT', '');
+        $this->assertSame($first, self::chronopostCredentials(7));
+    }
+
+    /**
+     * Entrées incomplètes ou mal typées ignorées ; numéro de contrat en
+     * entier accepté
+     */
+    public function testChronopostIncompleteContractsAreIgnored()
+    {
+        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNTS', json_encode([
+            ['account' => '22222222', 'password' => ''],
+            ['account' => '', 'password' => '111111'],
+            'texte',
+            ['account' => ['22222222'], 'password' => '222222'],
+            ['account' => true, 'password' => true],
+            ['account' => 33333333, 'password' => '333333'],
+        ]));
+        \Configuration::updateValue('CHRONOPOST_CHRONORELAIS_ACCOUNT', '22222222');
+
+        $this->assertSame(
+            ['account' => '33333333', 'password' => '333333', 'subaccount' => ''],
+            self::chronopostCredentials(7)
+        );
+    }
+
+    /**
+     * Liste présente mais sans contrat complet : aucun contrat, les
+     * anciennes clés (laissées par la mise à jour du module Chronopost, qu'il
+     * ne relit plus) ne sont pas utilisées
+     */
+    public function testChronopostLegacyKeysIgnoredOnceContractListExists()
+    {
+        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNT', '19869502');
+        \Configuration::updateValue('CHRONOPOST_GENERAL_PASSWORD', '255582');
+
+        foreach (['[]', json_encode([['account' => '22222222', 'password' => '']])] as $raw) {
+            \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNTS', $raw);
+            $this->assertNull(self::chronopostCredentials(7), $raw);
+        }
+
+        // Liste vide ou absente : ancien module, anciennes clés
+        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNTS', '');
+        $this->assertSame('19869502', self::chronopostCredentials(7)['account']);
+    }
+
+    /**
+     * JSON invalide : aucun contrat, sans erreur ni journal (rien du
+     * contenu de la configuration ne doit être écrit), même avec les
+     * anciennes clés encore présentes
+     */
+    public function testChronopostInvalidJsonGivesNoCredentials()
+    {
+        \PrestaShopLogger::resetLogs();
+        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNT', '19869502');
+        \Configuration::updateValue('CHRONOPOST_GENERAL_PASSWORD', '255582');
+        \Configuration::updateValue('CHRONOPOST_CHRONORELAIS_ACCOUNT', '22222222');
+
+        foreach (['[{"account":"22222222","password":"222222"', 'null', '"texte"', '42', '{}'] as $raw) {
+            \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNTS', $raw);
+            $this->assertNull(self::chronopostCredentials(7), $raw);
+        }
+        $this->assertSame([], \PrestaShopLogger::$logs);
+    }
+
+    /**
+     * Compte « Petits pros » : le module Chronopost remplace les contrats
+     * configurés par le sien, la recherche n'est pas proposée (nouveau
+     * comme ancien format)
+     */
+    public function testChronopostSmallBusinessAccountGivesNoCredentials()
+    {
+        $this->configureChronopostContracts();
+        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNTTYPE', '3');
+        $this->assertNull(self::chronopostCredentials(7));
+
+        \Configuration::resetMocks();
+        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNTTYPE', '3');
+        \Configuration::updateValue('CHRONOPOST_GENERAL_ACCOUNT', '19869502');
+        \Configuration::updateValue('CHRONOPOST_GENERAL_PASSWORD', '255582');
+        $this->assertNull(self::chronopostCredentials(7));
+    }
+
+    /**
+     * Réglage allumé sans contrat : recherche refusée, sans appel
+     */
+    public function testChronopostSearchWithoutContractIsRefused()
+    {
+        \Configuration::updateValue(\Ciklik::CONFIG_CHRONOPOST_SEARCH_ENABLED, '1');
+
+        $message = null;
+        try {
+            CiklikRelaySearch::searchRelays('chronopost', ['zipcode' => '75001', 'city' => 'Paris', 'country_iso' => 'FR'], null, 7);
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+        }
+        $this->assertSame('Search is not available for this carrier', $message);
+    }
+
+    /**
+     * Offre relais du transporteur reconnue par son id_reference
+     */
+    public function testChronopostRelayOfferOfCarrier()
+    {
+        $this->configureChronopostContracts();
+        \Configuration::updateValue('CHRONOPOST_TOSHOPDIRECT_ID', '9');
+
+        $this->assertSame('CHRONORELAIS', CiklikRelaySearch::getChronopostRelayOffer(7));
+        $this->assertSame('TOSHOPDIRECT', CiklikRelaySearch::getChronopostRelayOffer(9));
+        // Offre domicile, transporteur inconnu ou absent : aucune offre relais
+        $this->assertNull(CiklikRelaySearch::getChronopostRelayOffer(5));
+        $this->assertNull(CiklikRelaySearch::getChronopostRelayOffer(999));
+        $this->assertNull(CiklikRelaySearch::getChronopostRelayOffer(null));
+        $this->assertNull(CiklikRelaySearch::getChronopostRelayOffer(0));
+    }
+
+    /**
+     * Transporteurs relais Chronopost : les six offres relais du module
+     */
+    public function testChronoRelaisIdsCoverTheSixRelayOffers()
+    {
+        $ids = [];
+        foreach (['CHRONORELAIS' => 7, 'CHRONORELAIS_AMBIENT' => 8, 'RELAISEUROPE' => 10, 'RELAISDOM' => 11, 'TOSHOPDIRECT' => 12, 'TOSHOPDIRECT_EUROPE' => 13] as $offer => $id) {
+            \Configuration::updateValue('CHRONOPOST_' . $offer . '_ID', (string) $id);
+            $ids[] = $id;
+        }
+
+        $relayIds = DeliveryModuleManager::getChronoRelaisIDs();
+        sort($relayIds);
+        $this->assertSame($ids, $relayIds);
+    }
+
+    /**
+     * Requête construite comme celle de la carte du module Chronopost :
+     * méthode France ou internationale, code produit de l'offre, commerces
+     * seulement pour ToShop, mode de dépôt du module sinon
+     */
+    public function testChronopostSearchRequest()
+    {
+        $credentials = ['account' => '22222222', 'password' => '222222', 'subaccount' => ''];
+
+        $request = CiklikRelaySearch::chronopostSearchRequest($credentials, '75001', 'Paris', 'FR', 'CHRONORELAIS', '19/11/2026');
+        $this->assertSame('recherchePointChronopost', $request['method']);
+        $this->assertSame('22222222', $request['params']['accountNumber']);
+        $this->assertSame('222222', $request['params']['password']);
+        $this->assertSame('FR', $request['params']['countryCode']);
+        $this->assertSame('86', $request['params']['productCode']);
+        $this->assertSame('P', $request['params']['type']);
+        $this->assertSame('19/11/2026', $request['params']['shippingDate']);
+        $this->assertArrayNotHasKey('language', $request['params']);
+
+        $request = CiklikRelaySearch::chronopostSearchRequest($credentials, '98000', 'Monaco', 'MC', 'CHRONORELAIS', '19/11/2026');
+        $this->assertSame('recherchePointChronopost', $request['method']);
+        $this->assertSame('FR', $request['params']['countryCode']);
+
+        $request = CiklikRelaySearch::chronopostSearchRequest($credentials, '1000', 'Bruxelles', 'BE', 'RELAISEUROPE', '19/11/2026');
+        $this->assertSame('recherchePointChronopostInter', $request['method']);
+        $this->assertSame('BE', $request['params']['countryCode']);
+        $this->assertSame('49', $request['params']['productCode']);
+
+        $request = CiklikRelaySearch::chronopostSearchRequest($credentials, '75001', 'Paris', 'FR', 'TOSHOPDIRECT', '19/11/2026');
+        $this->assertSame('C', $request['params']['type']);
+        $this->assertSame('5X', $request['params']['productCode']);
+
+        // Offre inconnue : pas de code produit ; mode de dépôt du module
+        \Configuration::updateValue('CHRONOPOST_MAP_DROPMODE', 'T');
+        $request = CiklikRelaySearch::chronopostSearchRequest($credentials, '75001', 'Paris', 'FR', null, '19/11/2026');
+        $this->assertSame('', $request['params']['productCode']);
+        $this->assertSame('T', $request['params']['type']);
+
+        \Configuration::updateValue('CHRONOPOST_MAP_DROPMODE', 'P;X');
+        $request = CiklikRelaySearch::chronopostSearchRequest($credentials, '75001', 'Paris', 'FR', null, '19/11/2026');
+        $this->assertSame('P', $request['params']['type']);
     }
 
     /**
