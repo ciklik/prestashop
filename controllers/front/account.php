@@ -29,6 +29,9 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
      */
     public $authRedirection = 'my-account';
 
+    /** @var string|null Message de la liste illisible, posé par fetchSubscriptions() */
+    private $unavailableMessage;
+
     /**
      * {@inheritdoc}
      */
@@ -177,8 +180,26 @@ class CiklikAccountModuleFrontController extends ModuleFrontController
             null,
             true
         );
-        $this->errors[] = $this->module->l('Your subscriptions are temporarily unavailable. Please try again later.', 'account');
+        $this->unavailableMessage = $this->module->l('Your subscriptions are temporarily unavailable. Please try again later.', 'account');
+        $this->errors[] = $this->unavailableMessage;
 
         return null;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * Ciklik arrêté : l'action qui renvoie ici a déjà annoncé son échec, la
+     * liste illisible ne s'annonce pas en plus. Seule, elle garde son message.
+     */
+    protected function prepareNotifications()
+    {
+        $notifications = parent::prepareNotifications();
+
+        if (null !== $this->unavailableMessage && count($notifications['error']) > 1) {
+            $notifications['error'] = array_values(array_diff($notifications['error'], [$this->unavailableMessage]));
+        }
+
+        return $notifications;
     }
 }

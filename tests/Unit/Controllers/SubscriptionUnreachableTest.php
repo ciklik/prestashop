@@ -50,11 +50,12 @@ class SubscriptionUnreachableTest extends TestCase
         \PrestaShopLogger::resetLogs();
         \Address::$customers = [];
         $this->history = [];
+        unset($_SESSION['notifications']);
     }
 
     protected function tearDown(): void
     {
-        unset($_SERVER['REQUEST_METHOD']);
+        unset($_SERVER['REQUEST_METHOD'], $_SESSION['notifications']);
     }
 
     public function unreachableProvider(): array
@@ -344,6 +345,85 @@ class SubscriptionUnreachableTest extends TestCase
         $this->assertSame([], \PrestaShopLogger::$logs);
     }
 
+    /**
+     * Ciklik arrêté : l'action échoue, puis la liste de Mes abonnements aussi.
+     * Un seul message, celui de l'action.
+     *
+     * @dataProvider stoppedProvider
+     */
+    public function testCiklikStoppedShowsOnlyTheActionMessage(string $action, array $request, array $responses, string $message)
+    {
+        \Tools::$requestValues = ['uuid' => self::UUID] + $request;
+        \Address::$customers = [12 => 7];
+        $this->runPost($action, $responses);
+
+        $account = $this->accountController([$this->unreachable('cURL error 7: Connection refused', 'GET')]);
+        $this->assertNull($this->fetchSubscriptions($account));
+
+        $this->assertSame([$message], $this->notifications($account)['error']);
+    }
+
+    public function stoppedProvider(): array
+    {
+        $refused = 'cURL error 7: Connection refused';
+
+        return [
+            'contrôle de propriété' => ['skip', [], [$this->unreachable($refused, 'GET')], 'Unable to update the subscription. Please try again later.'],
+            'délai dépassé sur l\'écriture' => ['updateaddress', ['changeAddressForm' => '12'], [$this->subscription(7), $this->fullSubscription(), $this->unreachable('cURL error 28: Operation timed out', 'PUT')], 'Your new address could not be saved. Please try again later.'],
+        ];
+    }
+
+    /**
+     * Liste illisible sans action en échec : son message reste affiché
+     */
+    public function testAccountListUnavailableAlone()
+    {
+        $account = $this->accountController([$this->unreachable('cURL error 7: Connection refused', 'GET')]);
+        $this->fetchSubscriptions($account);
+
+        $this->assertSame(['Your subscriptions are temporarily unavailable. Please try again later.'], $this->notifications($account)['error']);
+    }
+
+    /**
+     * Action refusée par un Ciklik qui répond, liste lue : le message de l'action reste affiché
+     */
+    public function testRefusedActionWithListReadKeepsTheActionMessage()
+    {
+        \Tools::$requestValues = ['uuid' => self::UUID, 'next_billing' => date('Y-m-d', strtotime('+10 days'))];
+        $this->runPost('newdate', [$this->subscription(7), new Response(422, [], '{"errors":{"next_billing":["Date refusée"]}}')]);
+
+        $account = $this->accountController([new Response(200, [], '{"data":[]}')]);
+        $this->assertSame([], $this->fetchSubscriptions($account));
+
+        $this->assertSame(['Your renewal date could not be changed. Please try again later.'], $this->notifications($account)['error']);
+    }
+
+    /**
+     * Requête complète : contrôle de propriété puis action, comme postProcess()
+     */
+    private function runPost(string $action, array $responses)
+    {
+        $controller = $this->controller($responses);
+        \Tools::$requestValues['action'] = $action;
+
+        try {
+            $controller->postProcess();
+        } catch (\RuntimeException $e) {
+            if ('exit' !== $e->getMessage()) {
+                throw $e;
+            }
+        }
+
+        $this->assertSame([self::ACCOUNT], $controller->redirections);
+
+        return $controller;
+    }
+
+    private function notifications($controller)
+    {
+        return $this->invoke($controller, 'prepareNotifications', []);
+    }
+
     private function assertFailure($controller, string $message, string $operation, string $error)
     {
         $this->assertSame([], $controller->success);
@@ -392,6 +472,12 @@ class SubscriptionUnreachableTest extends TestCase
             protected function subscriptionApi()
             {
                 return $this->api;
+            }
+
+            // Jeton du client vérifié par SubscriptionRequestGuardTest
+            public function isTokenValid()
+            {
+                return true;
             }
 
             protected function ajaxRenderAndExit($value = null, $responseCode = null, $controller = null, $method = null)

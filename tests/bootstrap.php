@@ -936,9 +936,27 @@ class ModuleFrontController
     /** @var array URL des redirections avec messages */
     public $redirections = [];
 
+    /**
+     * Comme PrestaShop : messages gardés en session pour la page suivante
+     */
     public function redirectWithNotifications($url)
     {
         $this->redirections[] = $url;
+        $_SESSION['notifications'] = json_encode(['error' => $this->errors, 'success' => $this->success]);
+    }
+
+    /**
+     * Comme PrestaShop : messages de la page, puis ceux laissés en session par la redirection
+     */
+    protected function prepareNotifications()
+    {
+        $notifications = ['error' => $this->errors, 'success' => $this->success];
+        if (isset($_SESSION['notifications'])) {
+            $notifications = array_merge_recursive($notifications, json_decode($_SESSION['notifications'], true));
+            unset($_SESSION['notifications']);
+        }
+
+        return $notifications;
     }
 }
 
