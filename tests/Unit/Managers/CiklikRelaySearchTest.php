@@ -569,6 +569,125 @@ class CiklikRelaySearchTest extends TestCase
     }
 
     /**
+     * Ville saisie : envoyée. Ville vide : champ absent de la requête, comme
+     * dans la carte du module Chronopost (une ville vide est refusée par le
+     * service, code 700), en France comme à l'international
+     */
+    public function testChronopostSearchRequestOmitsEmptyCity()
+    {
+        $credentials = ['account' => '22222222', 'password' => '222222', 'subaccount' => ''];
+
+        $request = CiklikRelaySearch::chronopostSearchRequest($credentials, '75011', 'Paris', 'FR', null, '20/11/2026');
+        $this->assertSame('Paris', $request['params']['city']);
+
+        $request = CiklikRelaySearch::chronopostSearchRequest($credentials, '75011', '', 'FR', null, '20/11/2026');
+        $this->assertArrayNotHasKey('city', $request['params']);
+        $this->assertSame('75011', $request['params']['zipCode']);
+
+        $request = CiklikRelaySearch::chronopostSearchRequest($credentials, '1000', '', 'BE', null, '20/11/2026');
+        $this->assertSame('recherchePointChronopostInter', $request['method']);
+        $this->assertArrayNotHasKey('city', $request['params']);
+    }
+
+    /**
+     * Code postal seul : une seule recherche, sans ville
+     */
+    public function testChronopostZipcodeOnlySearch()
+    {
+        $calls = [];
+        $items = CiklikRelaySearch::chronopostSearchByZipcodeFirst('75011', '', function ($city) use (&$calls) {
+            $calls[] = $city;
+
+            return [$this->relayItem('A', '75011')];
+        });
+
+        $this->assertSame([''], $calls);
+        $this->assertSame('A', $items[0]['relay_id']);
+    }
+
+    /**
+     * Ville cohérente avec le code postal : une seule recherche, avec la ville
+     */
+    public function testChronopostSearchKeepsCityMatchingZipcode()
+    {
+        $calls = [];
+        $items = CiklikRelaySearch::chronopostSearchByZipcodeFirst('75011', 'Paris', function ($city) use (&$calls) {
+            $calls[] = $city;
+
+            return [$this->relayItem('B', '75012'), $this->relayItem('A', '75011')];
+        });
+
+        $this->assertSame(['Paris'], $calls);
+        $this->assertSame('B', $items[0]['relay_id']);
+    }
+
+    /**
+     * Le service cherche autour de la ville quand il la reconnaît, même
+     * contraire au code postal (ville restée d'une ancienne adresse) : aucun
+     * relais du code postal, le code postal fait foi et la recherche est
+     * refaite sans ville
+     */
+    public function testChronopostSearchFallsBackToZipcodeWhenCityDisagrees()
+    {
+        $calls = [];
+        $items = CiklikRelaySearch::chronopostSearchByZipcodeFirst('13001', 'Paris', function ($city) use (&$calls) {
+            $calls[] = $city;
+
+            return '' === $city
+                ? [$this->relayItem('M', '13001')]
+                : [$this->relayItem('P', '75004')];
+        });
+
+        $this->assertSame(['Paris', ''], $calls);
+        $this->assertSame('M', $items[0]['relay_id']);
+
+        // Aucun résultat avec la ville : recherche refaite sans ville
+        $calls = [];
+        $items = CiklikRelaySearch::chronopostSearchByZipcodeFirst('59650', 'Lile', function ($city) use (&$calls) {
+            $calls[] = $city;
+
+            return '' === $city ? [$this->relayItem('V', '59650')] : [];
+        });
+
+        $this->assertSame(['Lile', ''], $calls);
+        $this->assertSame('V', $items[0]['relay_id']);
+    }
+
+    /**
+     * Repli sans ville vide ou en échec : les relais trouvés avec la ville
+     * restent proposés ; codes postaux comparés sans espaces ni casse
+     */
+    public function testChronopostZipcodeFallbackKeepsCityResultsWhenItFindsNothing()
+    {
+        $items = CiklikRelaySearch::chronopostSearchByZipcodeFirst('01000', 'Bourg', function ($city) {
+            return '' === $city ? [] : [$this->relayItem('B', '01440')];
+        });
+        $this->assertSame('B', $items[0]['relay_id']);
+
+        $items = CiklikRelaySearch::chronopostSearchByZipcodeFirst('01000', 'Bourg', function ($city) {
+            if ('' === $city) {
+                throw new \Exception('Carrier API error');
+            }
+
+            return [$this->relayItem('B', '01440')];
+        });
+        $this->assertSame('B', $items[0]['relay_id']);
+
+        $calls = [];
+        CiklikRelaySearch::chronopostSearchByZipcodeFirst('1012 ab', 'Amsterdam', function ($city) use (&$calls) {
+            $calls[] = $city;
+
+            return [$this->relayItem('N', '1012AB')];
+        });
+        $this->assertSame(['Amsterdam'], $calls);
+    }
+
+    private function relayItem(string $id, string $zipcode): array
+    {
+        return ['relay_id' => $id, 'zipcode' => $zipcode];
+    }
+
+    /**
      * pointCHRResult : relais actifs normalises au contrat commun, relais
      * inactifs et entrees sans identifiant ecartes, resultat unique accepte
      */
