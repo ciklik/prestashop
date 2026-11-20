@@ -823,7 +823,6 @@ class CiklikRelaySearch
             'password' => $credentials['password'],
             'address' => '',
             'zipCode' => $zipcode,
-            'city' => $city,
             'countryCode' => $countryIso,
             'type' => $type,
             'productCode' => null !== $offer && isset($productCodes[$offer]) ? $productCodes[$offer] : '',
@@ -834,6 +833,12 @@ class CiklikRelaySearch
             'maxDistanceSearch' => '40',
             'holidayTolerant' => '1',
         ];
+
+        // Ville vide refusée par le service (code 700) : sans ville, il
+        // cherche autour du code postal, comme la carte du module Chronopost
+        if ('' !== (string) $city) {
+            $params['city'] = $city;
+        }
 
         if (in_array($countryIso, ['FR', 'FX', 'MC'], true)) {
             $params['countryCode'] = 'MC' === $countryIso ? 'FR' : $countryIso;
@@ -864,30 +869,84 @@ class CiklikRelaySearch
             throw new \Exception('Search is not available for this carrier');
         }
 
-        $request = self::chronopostSearchRequest(
-            $credentials,
-            $zipcode,
-            $city,
-            $countryIso,
-            self::getChronopostRelayOffer($carrierReference),
-            date('d/m/Y')
-        );
+        $offer = self::getChronopostRelayOffer($carrierReference);
+        $shippingDate = date('d/m/Y');
 
-        try {
-            // Mêmes bornes que Mondial Relay : connexion, socket et cache WSDL
-            $response = self::withSocketTimeout(self::SEARCH_TIMEOUT, function () use ($request) {
-                $client = new \SoapClient(self::CHRONOPOST_WSDL, self::soapClientOptions(self::CHRONOPOST_ENDPOINT));
+        return self::chronopostSearchByZipcodeFirst($zipcode, $city, function ($city) use ($credentials, $zipcode, $countryIso, $offer, $shippingDate) {
+            $request = self::chronopostSearchRequest($credentials, $zipcode, $city, $countryIso, $offer, $shippingDate);
 
-                return $client->__soapCall($request['method'], [$request['params']]);
-            });
-        } catch (\Throwable $e) {
-            // Ne pas journaliser le message brut : il peut contenir des extraits
-            // de requête (credentials). La classe suffit au diagnostic.
-            self::logSearchError('chronopost', get_class($e));
-            throw new \Exception('Carrier API error');
+            try {
+                // Mêmes bornes que Mondial Relay : connexion, socket et cache WSDL
+                $response = self::withSocketTimeout(self::SEARCH_TIMEOUT, function () use ($request) {
+                    $client = new \SoapClient(self::CHRONOPOST_WSDL, self::soapClientOptions(self::CHRONOPOST_ENDPOINT));
+
+                    return $client->__soapCall($request['method'], [$request['params']]);
+                });
+            } catch (\Throwable $e) {
+                // Ne pas journaliser le message brut : il peut contenir des extraits
+                // de requête (credentials). La classe suffit au diagnostic.
+                self::logSearchError('chronopost', get_class($e));
+                throw new \Exception('Carrier API error');
+            }
+
+            return self::parseChronopostResponse(isset($response->return) ? $response->return : null);
+        });
+    }
+
+    /**
+     * Le code postal fait foi. Quand le service reconnaît la ville, il
+     * cherche autour d'elle, même contraire au code postal (ville restée
+     * d'une ancienne adresse) : sans aucun relais du code postal parmi les
+     * résultats, la recherche est refaite sur le code postal seul, dont les
+     * relais remplacent ceux de la ville s'il en trouve.
+     *
+     * @param string $zipcode
+     * @param string $city Ville saisie, éventuellement vide
+     * @param callable $search Recherche pour une ville ('' : code postal seul),
+     *                         rend la liste normalisée ou lève une exception
+     *
+     * @return array
+     *
+     * @throws \Exception si la première recherche échoue
+     */
+    public static function chronopostSearchByZipcodeFirst($zipcode, $city, callable $search): array
+    {
+        $items = $search((string) $city);
+
+        if ('' === (string) $city || self::containsZipcode($items, (string) $zipcode)) {
+            return $items;
         }
 
-        return self::parseChronopostResponse(isset($response->return) ? $response->return : null);
+        try {
+            $zipcodeItems = $search('');
+        } catch (\Exception $e) {
+            return $items;
+        }
+
+        return [] !== $zipcodeItems ? $zipcodeItems : $items;
+    }
+
+    /**
+     * Un des relais porte-t-il ce code postal (sans espaces ni casse) ?
+     *
+     * @param array $items Liste normalisée
+     * @param string $zipcode
+     *
+     * @return bool
+     */
+    private static function containsZipcode(array $items, string $zipcode): bool
+    {
+        $normalize = function ($value) {
+            return strtoupper(str_replace(' ', '', (string) $value));
+        };
+
+        foreach ($items as $item) {
+            if (isset($item['zipcode']) && $normalize($item['zipcode']) === $normalize($zipcode)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

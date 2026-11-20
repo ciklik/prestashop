@@ -14,6 +14,9 @@
   recherche.
 - La requête de recherche suit celle de la carte du module Chronopost : code produit de l'offre, commerces seulement
   pour les offres ToShop, mode de dépôt réglé dans le module sinon, service France pour la France et Monaco.
+- La ville est facultative : avec le code postal seul, la recherche se fait autour du code postal. La ville est
+  préremplie depuis l'adresse de livraison de l'abonnement ; si elle ne correspond pas au code postal saisi (aucun
+  relais de ce code postal trouvé autour d'elle), le code postal l'emporte.
 - Recherche depuis la fiche commande du back-office : mêmes contrôles que dans « Mes abonnements » (code postal
   obligatoire de 12 caractères au plus, ville de 64 caractères au plus, validés par PrestaShop) et même plafond, compté
   par employé (20 recherches par heure, dans le plafond de 1 000 par boutique). Le contrat Chronopost utilisé est celui
