@@ -9,6 +9,7 @@ use PrestaShop\Module\Ciklik\Api\CiklikApiResponseHandler;
 use PrestaShop\Module\Ciklik\Api\Order as CiklikOrderApi;
 use PrestaShop\Module\Ciklik\Api\Subscription;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
+use PrestaShop\Module\Ciklik\Helpers\ManageActionToken;
 use PrestaShop\Module\Ciklik\Helpers\OrderSubscriptionGuard;
 use PrestaShop\Module\Ciklik\Helpers\RelaySearchQuota;
 use PrestaShop\Module\Ciklik\Helpers\UuidHelper;
@@ -61,10 +62,9 @@ class CiklikManageModuleFrontController extends ModuleFrontController
             );
         }
 
-        // Vérification du token CSRF
-        $token = Tools::getValue('ajax_token');
-        $expectedToken = sha1(_COOKIE_KEY_ . 'ciklik_manage');
-        if (!$token || !hash_equals($expectedToken, $token)) {
+        // Vérification du token CSRF, propre à l'employé (même calcul que
+        // le bloc de la fiche commande qui le pose)
+        if (!ManageActionToken::isValid($this->employee, Tools::getValue('ajax_token'))) {
             $this->ajaxFailAndDie(
                 $this->module->l('Invalid security token', 'manage'),
                 403
