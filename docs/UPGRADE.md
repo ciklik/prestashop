@@ -1,6 +1,6 @@
 # Guide de mise à jour — module Ciklik
 
-## 1.29.0 : recherche de points relais Chronopost, changement de fréquence en back-office
+## 1.29.0 : recherche de points relais Chronopost, changement de fréquence en back-office, configuration déclarée
 
 ### Recherche de points relais Chronopost
 
@@ -58,6 +58,23 @@
 - Thème qui surcharge `views/templates/front/actions/changeInterval.tpl` : la liste vient désormais de
   `$subscription->frequency_choices` (clé = valeur à envoyer). Une ancienne surcharge continue de fonctionner, mais un
   choix qui ne vaut pas pour tous les produits est refusé.
+
+### Lecture des déclinaisons et configuration déclarée à Ciklik
+
+- Rien à faire. La mise à jour ajoute à la clé webservice du module (« Ciklik Webservice ») le droit de lecture des
+  déclinaisons (ressource `combinations`, méthodes GET et HEAD). Ciklik y lit le nom et la référence d'une déclinaison
+  quand un produit est ajouté à un abonnement depuis son administration. Les autres droits de la clé ne sont pas
+  modifiés, y compris ceux ajoutés à la main.
+- Si le droit n'a pas pu être ajouté (fichiers du module remplacés sans passer par la mise à jour, base en lecture
+  seule), le journal de PrestaShop porte une ligne `Ciklik upgrade 1.29.0` ; enregistrer la page de configuration du
+  module refait l'ajout (il le refait aussi si le droit a été retiré à la main). Sans ce droit, les déclinaisons sont
+  proposées par leur seul identifiant.
+- À la mise à jour et à chaque enregistrement de la configuration, le module déclare à Ciklik ses réglages (métadonnée
+  `module_config` de `PUT /whoiam`) : mode fréquences, base de la remise de fréquence, options de « Mes abonnements »,
+  engagement, versions de PrestaShop et de PHP, multiboutique, droit `combinations`. Aucun jeton, aucune clé, aucun
+  texte libre n'y figure. En multiboutique, ce sont les réglages du contexte de l'enregistrement. Un échec de l'appel
+  ne bloque ni la mise à jour ni l'enregistrement.
+- Vérification : dans Paramètres avancés, Webservice, la clé « Ciklik Webservice » porte `combinations` en lecture.
 
 ## 1.28.0 : aide au paramétrage des abonnements
 
