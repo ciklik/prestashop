@@ -7,6 +7,7 @@
 
 use PrestaShop\Module\Ciklik\Data\CartSubscriptionData;
 use PrestaShop\Module\Ciklik\Data\SubscriptionData;
+use PrestaShop\Module\Ciklik\Helpers\ManageActionToken;
 use PrestaShop\Module\Ciklik\Helpers\ShopContextSwitch;
 use PrestaShop\Module\Ciklik\Managers\CiklikRelaySearch;
 use PrestaShop\Module\Ciklik\Managers\CiklikSubscriptionFrequency;
@@ -131,7 +132,7 @@ class DisplayOrderSubscriptionInfoHookController
             'subscription' => $subscription,
             'ciklik_order_url' => 'https://app.ciklik.co/app/resources/checkout-orders/' . $orderData->ciklik_order_id,
             'manageActionUrl' => $this->context->link->getModuleLink('ciklik', 'manage'),
-            'manageAjaxToken' => sha1(_COOKIE_KEY_ . 'ciklik_manage'),
+            'manageAjaxToken' => ManageActionToken::forEmployee($this->context->employee),
             'ciklik_manage_order_id' => (int) $order->id,
             'ciklik_frequency_choices' => $frequencyChoices,
             'ciklik_frequency_mode' => $frequencyMode,
