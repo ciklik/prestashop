@@ -8,6 +8,7 @@
 use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Data\ShopData;
+use PrestaShop\Module\Ciklik\Helpers\ModuleConfigDeclaration;
 use PrestaShop\Module\Ciklik\Install\Installer;
 use PrestaShop\Module\Ciklik\Install\WebservicePermissions;
 
@@ -748,12 +749,14 @@ class AdminConfigureCiklikController extends ModuleAdminController
             Tab::resetStaticCache();
         }
 
-        // Signaler à la plateforme Ciklik que le module supporte le fingerprint JSON
-        // Uniquement lors de la soumission du formulaire (pas au chargement de la page)
-        if (Tools::isSubmit('submitOptionsconfiguration')) {
+        // Signaler à la plateforme Ciklik que le module supporte le fingerprint JSON, et lui déclarer la configuration
+        // enregistrée. Uniquement lors de la soumission du formulaire (pas au chargement de la page)
+        // Employé autorisé à modifier la configuration, enregistrement accepté (pas d'adresse refusée par Ciklik)
+        if (Tools::isSubmit('submitOptionsconfiguration') && $this->access('edit') && empty($this->errors)) {
             // Rattrapage du droit combinations si le script de mise à jour 1.29.0 n'a pas tourné (idempotent)
+            $webserviceCombinations = false;
             try {
-                WebservicePermissions::ensureCombinations();
+                $webserviceCombinations = WebservicePermissions::ensureCombinations();
             } catch (Throwable $e) {
                 PrestaShopLogger::addLog('Ciklik configuration - droit combinations : ' . $e->getMessage(), 2);
             }
@@ -761,13 +764,14 @@ class AdminConfigureCiklikController extends ModuleAdminController
             $token = Configuration::get(Ciklik::CONFIG_API_TOKEN);
             if (!empty($token)) {
                 try {
-                    (new Shop($this->context->link))->metadata([
+                    (new Shop($this->context->link))->metadata(array_merge([
                         'supports_json_fingerprint' => '1',
                         'supports_payment_updates' => '1',
                         'module_version' => Ciklik::VERSION,
-                    ]);
-                } catch (Exception $e) {
+                    ], ModuleConfigDeclaration::metadata($webserviceCombinations)));
+                } catch (Throwable $e) {
                     // Ne pas bloquer la sauvegarde si l'appel échoue
+                    PrestaShopLogger::addLog('Ciklik configuration - déclaration à Ciklik : ' . $e->getMessage(), 2);
                 }
             }
         }
