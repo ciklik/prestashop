@@ -214,6 +214,8 @@ class Installer
         $permissions = [
             'addresses' => ['GET' => 1, 'HEAD' => 1],
             'carts' => ['GET' => 1, 'HEAD' => 1],
+            // Noms et références des déclinaisons, lus par Ciklik à l'ajout d'un produit à un abonnement
+            'combinations' => ['GET' => 1, 'HEAD' => 1],
             'countries' => ['GET' => 1, 'HEAD' => 1],
             'customers' => ['GET' => 1, 'HEAD' => 1],
             'order_carriers' => ['GET' => 1, 'HEAD' => 1],

@@ -9,6 +9,7 @@ use PrestaShop\Module\Ciklik\Addons\Account;
 use PrestaShop\Module\Ciklik\Api\Shop;
 use PrestaShop\Module\Ciklik\Data\ShopData;
 use PrestaShop\Module\Ciklik\Install\Installer;
+use PrestaShop\Module\Ciklik\Install\WebservicePermissions;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -750,6 +751,13 @@ class AdminConfigureCiklikController extends ModuleAdminController
         // Signaler à la plateforme Ciklik que le module supporte le fingerprint JSON
         // Uniquement lors de la soumission du formulaire (pas au chargement de la page)
         if (Tools::isSubmit('submitOptionsconfiguration')) {
+            // Rattrapage du droit combinations si le script de mise à jour 1.29.0 n'a pas tourné (idempotent)
+            try {
+                WebservicePermissions::ensureCombinations();
+            } catch (Throwable $e) {
+                PrestaShopLogger::addLog('Ciklik configuration - droit combinations : ' . $e->getMessage(), 2);
+            }
+
             $token = Configuration::get(Ciklik::CONFIG_API_TOKEN);
             if (!empty($token)) {
                 try {
