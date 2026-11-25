@@ -187,6 +187,31 @@ class CiklikRelaySearch
     }
 
     /**
+     * id_reference qui choisit le contrat Chronopost d'une recherche du
+     * back-office : celui posté par le bloc (transporteur de l'abonnement,
+     * source de vérité des prochains prélèvements) quand il désigne une offre
+     * relais Chronopost de la boutique courante, sinon celui du transporteur
+     * de la commande.
+     *
+     * @param mixed $postedReference id_reference posté par le formulaire
+     * @param int $idOrderCarrier Transporteur de la commande consultée
+     *
+     * @return int|null
+     */
+    public static function searchCarrierReference($postedReference, $idOrderCarrier)
+    {
+        $reference = is_scalar($postedReference) && preg_match('/^[0-9]{1,10}$/', (string) $postedReference)
+            ? (int) $postedReference
+            : 0;
+
+        if ($reference > 0 && null !== self::getChronopostRelayOffer($reference)) {
+            return $reference;
+        }
+
+        return self::carrierReferenceOf($idOrderCarrier);
+    }
+
+    /**
      * Recherche des relais autour d'une adresse.
      *
      * @param string $module Nom du module transporteur (minuscules)
@@ -195,13 +220,16 @@ class CiklikRelaySearch
      *                                           injecté par les tests, créé sinon
      * @param int|null $carrierReference id_reference du transporteur, quand il est connu :
      *                                   choisit le contrat Chronopost de son offre
+     * @param callable|null $beforeRetry Appelé avant un second appel au transporteur
+     *                                   (Chronopost, code postal seul) : il le compte
+     *                                   dans le plafond et rend false pour l'empêcher
      *
      * @return array Liste normalisée : relay_id, name, address1, address2,
      *               zipcode, city, country_iso, latitude, longitude, + extras
      *
      * @throws \Exception si la recherche échoue (message générique, détail loggé)
      */
-    public static function searchRelays($module, array $address, $httpClient = null, $carrierReference = null)
+    public static function searchRelays($module, array $address, $httpClient = null, $carrierReference = null, $beforeRetry = null)
     {
         $zipcode = isset($address['zipcode']) ? trim((string) $address['zipcode']) : '';
         $city = isset($address['city']) ? trim((string) $address['city']) : '';
@@ -225,7 +253,7 @@ class CiklikRelaySearch
                     throw new \Exception('Search is not available for this carrier');
                 }
 
-                return self::searchChronopost($zipcode, $city, $countryIso, $carrierReference);
+                return self::searchChronopost($zipcode, $city, $countryIso, $carrierReference, $beforeRetry);
             default:
                 throw new \Exception('Search is not available for this carrier');
         }
@@ -856,12 +884,13 @@ class CiklikRelaySearch
      * {@see chronopostSearchRequest()}.
      *
      * @param int|null $carrierReference id_reference du transporteur, quand il est connu
+     * @param callable|null $beforeRetry Voir {@see chronopostSearchByZipcodeFirst()}
      *
      * @return array
      *
      * @throws \Exception
      */
-    private static function searchChronopost($zipcode, $city, $countryIso, $carrierReference = null)
+    private static function searchChronopost($zipcode, $city, $countryIso, $carrierReference = null, $beforeRetry = null)
     {
         $credentials = self::getChronopostCredentials($carrierReference);
 
@@ -890,7 +919,7 @@ class CiklikRelaySearch
             }
 
             return self::parseChronopostResponse(isset($response->return) ? $response->return : null);
-        });
+        }, $beforeRetry);
     }
 
     /**
@@ -904,16 +933,24 @@ class CiklikRelaySearch
      * @param string $city Ville saisie, éventuellement vide
      * @param callable $search Recherche pour une ville ('' : code postal seul),
      *                         rend la liste normalisée ou lève une exception
+     * @param callable|null $beforeRetry Appelé avant la recherche sur le code postal
+     *                                   seul, second appel au transporteur : il le
+     *                                   compte dans le plafond de recherches et
+     *                                   rend false pour l'empêcher (plafond atteint)
      *
      * @return array
      *
      * @throws \Exception si la première recherche échoue
      */
-    public static function chronopostSearchByZipcodeFirst($zipcode, $city, callable $search): array
+    public static function chronopostSearchByZipcodeFirst($zipcode, $city, callable $search, $beforeRetry = null): array
     {
         $items = $search((string) $city);
 
         if ('' === (string) $city || self::containsZipcode($items, (string) $zipcode)) {
+            return $items;
+        }
+
+        if (is_callable($beforeRetry) && true !== call_user_func($beforeRetry)) {
             return $items;
         }
 

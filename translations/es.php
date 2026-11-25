@@ -662,3 +662,7 @@ $_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 
 $_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'No se ha podido modificar la suscripción. Inténtelo de nuevo más tarde.';
 $_MODULE['<{ciklik}prestashop>manage_819510706408719c8a3de819e2f41b7f'] = 'Esta suscripción está desactivada: reactívela antes de cambiar su frecuencia.';
 $_MODULE['<{ciklik}prestashop>subscription_ad78b5d54b07add131ee95239d281ab1'] = 'Esta suscripción está desactivada: su frecuencia no se puede cambiar.';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_485115c849e2941a8608587cab909927'] = 'Puntos de recogida';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_867c94f90e36b8d919ec926e4489658c'] = 'Búsqueda de puntos de recogida Chronopost';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_e8e68fe1983996443e7087bf7238cd2e'] = 'Permite a los clientes y empleados buscar puntos de recogida Chronopost por dirección, con el contrato configurado en el módulo Chronopost (no disponible para cuentas de pequeñas empresas). Si está desactivada, solo se ofrecen los puntos de recogida ya utilizados por el cliente.';
+$_MODULE['<{ciklik}prestashop>validation_17cd92240a66e1c44e3dd40fd4fe4d21'] = 'Su pago se está confirmando. No pague una segunda vez.';

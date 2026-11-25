@@ -1155,8 +1155,13 @@ class CiklikSubscriptionModuleFrontController extends ModuleFrontController
             } else {
                 try {
                     // Transporteur de l'abonnement : choisit le contrat de son offre
-                    // quand le module transporteur en a plusieurs (Chronopost)
-                    $results = CiklikRelaySearch::searchRelays($module, $prefill, null, (int) $relayContext['carrier']->id_reference);
+                    // quand le module transporteur en a plusieurs (Chronopost).
+                    // Une seconde recherche sur le code postal seul compte dans
+                    // le même plafond.
+                    $quotaShop = (int) $relayContext['id_shop'];
+                    $results = CiklikRelaySearch::searchRelays($module, $prefill, null, (int) $relayContext['carrier']->id_reference, function () use ($idCustomer, $quotaShop) {
+                        return RelaySearchQuota::GRANTED === RelaySearchQuota::consume((int) $idCustomer, $quotaShop);
+                    });
                 } catch (Throwable $e) {
                     $searchError = $this->module->l('Pickup point search is temporarily unavailable. Please try again later.', 'subscription');
                 }

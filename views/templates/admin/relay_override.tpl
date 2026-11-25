@@ -145,6 +145,7 @@ $(function () {
     var relayAjaxToken = '{$manageAjaxToken|escape:"javascript":"UTF-8"}';
     var relayOrderId = {$ciklik_relay_order_id|default:0|intval};
     var relayCarrierModule = '{$ciklik_relay_module|escape:"javascript":"UTF-8"}';
+    var relayCarrierReference = {$ciklik_relay_carrier_reference|default:0|intval};
 
     function relayShowError(msg) {
         $('.ciklik-relay-success').hide();
@@ -315,6 +316,7 @@ $(function () {
                 ajax_token: relayAjaxToken,
                 id_order: relayOrderId,
                 carrier_module: relayCarrierModule,
+                carrier_reference: relayCarrierReference,
                 zipcode: zipcode,
                 city: $('#ciklik-relay-search-city').val(),
                 country_iso: $('#ciklik-relay-search-country').val()
