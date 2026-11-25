@@ -662,3 +662,7 @@ $_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 
 $_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'Nie udało się zmienić subskrypcji. Spróbuj ponownie później.';
 $_MODULE['<{ciklik}prestashop>manage_819510706408719c8a3de819e2f41b7f'] = 'Ta subskrypcja jest nieaktywna: aktywuj ją ponownie przed zmianą częstotliwości.';
 $_MODULE['<{ciklik}prestashop>subscription_ad78b5d54b07add131ee95239d281ab1'] = 'Ta subskrypcja jest nieaktywna: nie można zmienić jej częstotliwości.';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_485115c849e2941a8608587cab909927'] = 'Punkty odbioru';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_867c94f90e36b8d919ec926e4489658c'] = 'Wyszukiwanie punktów odbioru Chronopost';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_e8e68fe1983996443e7087bf7238cd2e'] = 'Umożliwia klientom i pracownikom wyszukiwanie punktów odbioru Chronopost według adresu, z umową skonfigurowaną w module Chronopost (niedostępne dla kont małych firm). Po wyłączeniu proponowane są tylko punkty odbioru już używane przez klienta.';
+$_MODULE['<{ciklik}prestashop>validation_17cd92240a66e1c44e3dd40fd4fe4d21'] = 'Twoja płatność jest w trakcie potwierdzania. Nie płać po raz drugi.';

@@ -662,3 +662,7 @@ $_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 
 $_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'Impossibile modificare l\'abbonamento. Riprova più tardi.';
 $_MODULE['<{ciklik}prestashop>manage_819510706408719c8a3de819e2f41b7f'] = 'Questo abbonamento è disattivato: riattivalo prima di modificarne la frequenza.';
 $_MODULE['<{ciklik}prestashop>subscription_ad78b5d54b07add131ee95239d281ab1'] = 'Questo abbonamento è disattivato: la sua frequenza non può essere modificata.';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_485115c849e2941a8608587cab909927'] = 'Punti di ritiro';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_867c94f90e36b8d919ec926e4489658c'] = 'Ricerca dei punti di ritiro Chronopost';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_e8e68fe1983996443e7087bf7238cd2e'] = 'Consente a clienti e dipendenti di cercare i punti di ritiro Chronopost per indirizzo, con il contratto configurato nel modulo Chronopost (non disponibile per gli account small business). Se disattivata, vengono proposti solo i punti di ritiro già utilizzati dal cliente.';
+$_MODULE['<{ciklik}prestashop>validation_17cd92240a66e1c44e3dd40fd4fe4d21'] = 'Il tuo pagamento è in corso di conferma. Non pagare una seconda volta.';

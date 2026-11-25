@@ -567,7 +567,8 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         }
 
         // Plafond d'appels au compte transporteur, compté par employé
-        $quota = RelaySearchQuota::consumeForEmployee((int) $this->employee->id, $idShop);
+        $idEmployee = (int) $this->employee->id;
+        $quota = RelaySearchQuota::consumeForEmployee($idEmployee, $idShop);
         if (RelaySearchQuota::GRANTED !== $quota) {
             $this->ajaxFailAndDie(
                 RelaySearchQuota::LIMITED === $quota
@@ -578,13 +579,21 @@ class CiklikManageModuleFrontController extends ModuleFrontController
         }
 
         try {
-            // Transporteur de la commande : choisit le contrat de son offre
-            // quand le module transporteur en a plusieurs (Chronopost)
+            // Transporteur de l'abonnement, posté par le bloc et reconnu dans
+            // la boutique de la commande, sinon celui de la commande : choisit
+            // le contrat de son offre quand le module en a plusieurs (Chronopost).
+            // Une seconde recherche sur le code postal seul compte dans le
+            // même plafond.
             $results = CiklikRelaySearch::searchRelays($carrierModule, [
                 'zipcode' => $zipcode,
                 'city' => $city,
                 'country_iso' => (string) Tools::getValue('country_iso'),
-            ], null, CiklikRelaySearch::carrierReferenceOf((int) $order->id_carrier));
+            ], null, CiklikRelaySearch::searchCarrierReference(
+                Tools::getValue('carrier_reference'),
+                (int) $order->id_carrier
+            ), function () use ($idEmployee, $idShop) {
+                return RelaySearchQuota::GRANTED === RelaySearchQuota::consumeForEmployee($idEmployee, $idShop);
+            });
         } catch (Throwable $e) {
             $this->ajaxFailAndDie(
                 $this->module->l('Pickup point search failed. Please try again or use manual entry.', 'manage')

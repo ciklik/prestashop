@@ -682,6 +682,49 @@ class CiklikRelaySearchTest extends TestCase
         $this->assertSame(['Amsterdam'], $calls);
     }
 
+    /**
+     * La recherche refaite sur le code postal seul est un second appel au
+     * transporteur : elle passe par le plafond, et n'a pas lieu quand il est
+     * atteint (les relais de la ville restent proposés)
+     */
+    public function testChronopostZipcodeRetryCountsInQuota()
+    {
+        $search = function ($city) use (&$calls) {
+            $calls[] = $city;
+
+            return '' === $city
+                ? [$this->relayItem('M', '13001')]
+                : [$this->relayItem('P', '75004')];
+        };
+
+        $calls = [];
+        $consumed = 0;
+        $items = CiklikRelaySearch::chronopostSearchByZipcodeFirst('13001', 'Paris', $search, function () use (&$consumed) {
+            ++$consumed;
+
+            return true;
+        });
+        $this->assertSame(1, $consumed);
+        $this->assertSame(['Paris', ''], $calls);
+        $this->assertSame('M', $items[0]['relay_id']);
+
+        $calls = [];
+        $items = CiklikRelaySearch::chronopostSearchByZipcodeFirst('13001', 'Paris', $search, function () {
+            return false;
+        });
+        $this->assertSame(['Paris'], $calls);
+        $this->assertSame('P', $items[0]['relay_id']);
+
+        // Pas de second appel : rien n'est compté
+        $consumed = 0;
+        CiklikRelaySearch::chronopostSearchByZipcodeFirst('75004', 'Paris', $search, function () use (&$consumed) {
+            ++$consumed;
+
+            return true;
+        });
+        $this->assertSame(0, $consumed);
+    }
+
     private function relayItem(string $id, string $zipcode): array
     {
         return ['relay_id' => $id, 'zipcode' => $zipcode];
@@ -1140,6 +1183,34 @@ class CiklikRelaySearchTest extends TestCase
         $this->assertSame(3, CiklikRelaySearch::carrierReferenceOf(12));
         $this->assertNull(CiklikRelaySearch::carrierReferenceOf(99));
         $this->assertNull(CiklikRelaySearch::carrierReferenceOf(0));
+
+        \Carrier::resetMocks();
+    }
+
+    /**
+     * Recherche du back-office : le transporteur de l'abonnement posté par le
+     * bloc choisit le contrat quand il est une offre relais Chronopost de la
+     * boutique ; sinon, ou s'il est absent ou mal formé, le transporteur de
+     * la commande
+     */
+    public function testSearchCarrierReferencePrefersSubscriptionCarrier()
+    {
+        \Carrier::resetMocks();
+        \Carrier::setMockCarrier(12, ['id_reference' => 3, 'external_module_name' => 'chronopost']);
+        \Configuration::updateValue('CHRONOPOST_CHRONORELAIS_ID', '3');
+        \Configuration::updateValue('CHRONOPOST_TOSHOPDIRECT_ID', '9');
+
+        // Abonnement passé en ToShop après la commande : son offre fait foi
+        $this->assertSame(9, CiklikRelaySearch::searchCarrierReference('9', 12));
+        $this->assertSame(9, CiklikRelaySearch::searchCarrierReference(9, 12));
+
+        // Inconnu de la boutique, absent ou mal formé : transporteur de la commande
+        $this->assertSame(3, CiklikRelaySearch::searchCarrierReference('42', 12));
+        $this->assertSame(3, CiklikRelaySearch::searchCarrierReference(false, 12));
+        $this->assertSame(3, CiklikRelaySearch::searchCarrierReference('9 OR 1', 12));
+        $this->assertSame(3, CiklikRelaySearch::searchCarrierReference(['9'], 12));
+        $this->assertSame(3, CiklikRelaySearch::searchCarrierReference('-9', 12));
+        $this->assertNull(CiklikRelaySearch::searchCarrierReference('42', 99));
 
         \Carrier::resetMocks();
     }

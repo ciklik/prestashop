@@ -662,3 +662,7 @@ $_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 
 $_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'Unable to update the subscription. Please try again later.';
 $_MODULE['<{ciklik}prestashop>manage_819510706408719c8a3de819e2f41b7f'] = 'This subscription is inactive: reactivate it before changing its frequency.';
 $_MODULE['<{ciklik}prestashop>subscription_ad78b5d54b07add131ee95239d281ab1'] = 'This subscription is inactive: its frequency cannot be changed.';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_485115c849e2941a8608587cab909927'] = 'Pickup points';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_867c94f90e36b8d919ec926e4489658c'] = 'Chronopost pickup point search';
+$_MODULE['<{ciklik}prestashop>adminconfigureciklikcontroller_e8e68fe1983996443e7087bf7238cd2e'] = 'Lets customers and employees search Chronopost pickup points by address, with the contract set up in the Chronopost module (not available for small business accounts). When disabled, only pickup points already used by the customer are offered.';
+$_MODULE['<{ciklik}prestashop>validation_17cd92240a66e1c44e3dd40fd4fe4d21'] = 'Your payment is being confirmed. Please do not pay a second time.';

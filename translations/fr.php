@@ -665,3 +665,4 @@ $_MODULE['<{ciklik}prestashop>subscription_d3d6c706b5fc0efcb2bfaca04bf3facf'] = 
 $_MODULE['<{ciklik}prestashop>subscription_9f3da1ab0ead4bb09c37f5d609b443f8'] = 'Impossible de modifier l\'abonnement. Réessayez plus tard.';
 $_MODULE['<{ciklik}prestashop>manage_819510706408719c8a3de819e2f41b7f'] = 'Cet abonnement est désactivé : réactivez-le avant de modifier sa fréquence.';
 $_MODULE['<{ciklik}prestashop>subscription_ad78b5d54b07add131ee95239d281ab1'] = 'Cet abonnement est désactivé : sa fréquence ne peut pas être modifiée.';
+$_MODULE['<{ciklik}prestashop>validation_17cd92240a66e1c44e3dd40fd4fe4d21'] = 'Votre paiement est en cours de confirmation, ne payez pas une seconde fois.';

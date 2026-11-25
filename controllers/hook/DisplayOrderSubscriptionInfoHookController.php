@@ -123,7 +123,7 @@ class DisplayOrderSubscriptionInfoHookController
         // Bloc « point relais des prochains prélèvements » : uniquement si le
         // transporteur des rebills (celui du fingerprint, pas celui de la
         // commande affichée) est un module relais supporté.
-        $relayVars = $this->buildRelayOverrideVars($subscription, (int) $order->id_customer, (int) $order->id_shop, (int) $order->id);
+        $relayVars = $this->relayOverrideVarsInOrderShop($subscription, $order);
 
         $this->context->smarty->assign(array_merge([
             'subscription_items' => $subscriptionInfos,
@@ -144,6 +144,28 @@ class DisplayOrderSubscriptionInfoHookController
     }
 
     /**
+     * Variables du bloc relais calculées dans la boutique de la commande :
+     * la disponibilité de la recherche et les contrats transporteur y sont
+     * lus dans sa configuration, comme les actions du bloc qui les utilisent.
+     *
+     * @param SubscriptionData|null $subscription
+     * @param Order $order
+     *
+     * @return array
+     */
+    protected function relayOverrideVarsInOrderShop($subscription, $order)
+    {
+        $shopContext = new ShopContextSwitch();
+        $shopContext->switchTo((int) $order->id_shop);
+
+        try {
+            return $this->buildRelayOverrideVars($subscription, (int) $order->id_customer, (int) $order->id_shop, (int) $order->id);
+        } finally {
+            $shopContext->restore();
+        }
+    }
+
+    /**
      * Prépare les variables Smarty du bloc de changement de point relais.
      *
      * @param SubscriptionData|null $subscription
@@ -152,7 +174,7 @@ class DisplayOrderSubscriptionInfoHookController
      *
      * @return array
      */
-    private function buildRelayOverrideVars($subscription, $idCustomer, $idShop = 0, $idOrder = 0)
+    protected function buildRelayOverrideVars($subscription, $idCustomer, $idShop = 0, $idOrder = 0)
     {
         $vars = [
             'ciklik_relay_supported' => false,
@@ -163,6 +185,9 @@ class DisplayOrderSubscriptionInfoHookController
             // Seul identifiant posté au contrôleur : client et boutique en sont
             // redérivés côté serveur, jamais lus depuis la requête.
             'ciklik_relay_order_id' => $idOrder,
+            // Transporteur de l'abonnement, posté avec la recherche : choisit le
+            // contrat Chronopost, contrôlé côté serveur
+            'ciklik_relay_carrier_reference' => 0,
             'ciklik_relay_current' => null,
             'ciklik_relay_has_override' => false,
             'ciklik_relay_known' => [],
@@ -193,6 +218,7 @@ class DisplayOrderSubscriptionInfoHookController
         $vars['ciklik_relay_supported'] = true;
         $vars['ciklik_relay_module'] = $module;
         $vars['ciklik_relay_carrier_name'] = $carrier->name;
+        $vars['ciklik_relay_carrier_reference'] = (int) $carrier->id_reference;
         $vars['ciklik_relay_current'] = $current;
         $vars['ciklik_relay_has_override'] = null !== $current && 'override' === $current['source'];
         $vars['ciklik_relay_known'] = DeliveryModuleManager::getKnownRelays($idCustomer, $module);

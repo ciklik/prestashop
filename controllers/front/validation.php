@@ -17,6 +17,7 @@ if (!defined('_PS_VERSION_')) {
 class CiklikValidationModuleFrontController extends ModuleFrontController
 {
     use ThreadHelper;
+
     /**
      * @var PaymentModule
      */
@@ -43,7 +44,11 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
             // Ciklik injoignable (Guzzle 7 lève ConnectException) : comme une commande illisible, retour au tunnel ;
             // la commande d'un paiement abouti est créée par l'appel de Ciklik (OrderGateway), rejoué jusqu'au succès
             PrestaShopLogger::addLog('Ciklik validation - Ciklik unreachable - exception ' . get_class($e), 2, null, 'Ciklik', null, true);
-            $orderData = null;
+
+            // Le client revient au tunnel avec une explication : sans elle, il
+            // croirait le paiement échoué et pourrait payer une seconde fois
+            $this->warning[] = $this->module->l('Your payment is being confirmed. Please do not pay a second time.', 'validation');
+            $this->redirectWithNotifications($this->checkoutUrl());
         }
 
         if (!$orderData instanceof OrderData) {
@@ -159,14 +164,22 @@ class CiklikValidationModuleFrontController extends ModuleFrontController
 
     private function redirectToCheckout()
     {
-        Tools::redirect($this->context->link->getPageLink(
+        Tools::redirect($this->checkoutUrl());
+    }
+
+    /**
+     * @return string Première étape du tunnel de commande
+     */
+    private function checkoutUrl()
+    {
+        return $this->context->link->getPageLink(
             'order',
             true,
             (int) $this->context->language->id,
             [
                 'step' => 1,
             ]
-        ));
+        );
     }
 
     /**
